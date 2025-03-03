@@ -146,18 +146,28 @@
             }, 3000); // Wait for 5 seconds before automatically opening the game
         }
 
-    function openGame() {
+function openGame() {
     var win = window.open();
     var url = "Home.html";
-win.document.write('<html><head> <link rel="icon" type="image/x-icon" href="https://msg2.pages.dev/IMGS/MSG.png"><title>Mally\'s Sus Gaming</title><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
+    
+    win.document.write('<html><head><title>Mally\'s Sus Gaming</title><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
+    
+    var link = win.document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/x-icon';
+    link.href = 'https://msg2.pages.dev/IMGS/MSG.png';
+    win.document.head.appendChild(link); // Append favicon after writing document
+
     var iframe = win.document.createElement('iframe');
     iframe.style.width = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "none";
     iframe.src = url;
     win.document.body.appendChild(iframe);
-    location.replace("https://launchpad.classlink.com/lwsd"); 
-     }
+    
+    location.replace("https://launchpad.classlink.com/lwsd");
+}
+
          
         
 
