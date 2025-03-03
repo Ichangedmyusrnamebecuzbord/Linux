@@ -18,9 +18,7 @@ document.addEventListener("keydown", (event) => {
 
 if (window.location.href.startsWith("view-source:")) {
     window.location.replace("https://www.google.com");
-    setTimeout(() => {
-        window.close();
-    }, 1000);
+ 
 }
 
 let devtoolsOpen = false;
