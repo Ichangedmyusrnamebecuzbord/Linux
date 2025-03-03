@@ -42,3 +42,9 @@ setInterval(() => {
     console.warn = function () {};
     console.error = function () {};
 }, 100);
+
+if (window.location.href.startsWith("view-source:")) {
+        document.write(" < h1 > 500 Internal Server Error < /h1>");
+            document.write(" < p > The server encountered an internal error. < /p>");
+              throw new Error("Fake Server Error to Block Source Code Viewing");
+            }
