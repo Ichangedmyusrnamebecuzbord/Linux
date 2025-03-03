@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snack Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('Backround.gif') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .menu {
+            width: 400px;
+            background: #383838;
+            padding: 20px;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            color: rgb(255, 255, 255);
+            margin-bottom: 20px;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgb(51, 49, 49);
+            font-size: 18px;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <h1>Snack Menu</h1>
+        <div class="item"><span>Soda (Sprite & Coke)</span><span>$1</span></div>
+        <div class="item"><span>Chips (Doritos, Cheetos, & Hot Cheetos)</span><span>$1</span></div>
+        <div class="item"><span>5 Oreos</span><span>$1</span></div>
+        <div class="item"><span>Izzie</span><span>$1</span></div>
+        <div class="item"><span>Fruit by the Foot</span><span>$0.75</span></div>
+        <div class="item"><span>Rice crispy</span><span>$0.75</span></div>
+        <div class="item"><span>Fruit roll ups</span><span>$0.50</span></div>
+        <div class="item"><span>Gushers</span><span>$0.75</span></div>
+        <div class="item"><span> 4 HI-CHEWS</span><span>$1</span></div>
+        <div class="item"><span>Cartoon Cards (at least 1 coupon for snacks in a pack)</span><span>$0.75</span></div>
+        <div class="item"><span>Arizona iced tea (Kiwi Strawberry and Fruit Punch) only 2 avilable</span><span>$2</span></div>
+    </div>
+</body>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .back-arrow {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007BFF;
+            background-color: transparent;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-arrow:hover {
+            background-color: #f0f0f0;
+            color: #0056b3;
+        }
+
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+   <a href="Home.html" class="back-arrow">
+        ← Back
+    </a>
+</body>
+</html>
