@@ -351,17 +351,26 @@ top: 10px;
 function searchGames() {
     let input = document.getElementById("searchBar").value.toLowerCase();
     let games = document.getElementsByClassName("LOL");
+    let firstMatch = null;
 
     for (let game of games) {
-        let name = game.getAttribute("data-name");
-        if (name) {
-            name = name.toLowerCase();
-            game.style.display = name.includes(input) ? "inline-block" : "none";
+        let name = game.getAttribute("data-name")?.toLowerCase();
+        if (name && name.includes(input)) {
+            game.style.display = "inline-block";
+            if (!firstMatch) {
+                firstMatch = game; // Store the first visible game
+            }
         } else {
-            game.style.display = "none"; // Hide elements without data-name
+            game.style.display = "none";
         }
     }
+
+    // Scroll to the first match
+    if (firstMatch) {
+        firstMatch.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 }
+
   </script>
    <body>
      <input type="text" id="searchBar" onkeyup="searchGames()" placeholder="Search for a game...">
