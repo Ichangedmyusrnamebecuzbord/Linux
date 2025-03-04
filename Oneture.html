@@ -350,25 +350,24 @@ top: 10px;
     }
 function searchGames() {
     let input = document.getElementById("searchBar").value.toLowerCase();
-    let gameContainer = document.getElementById("gameContainer"); // The parent div holding all games
-    let games = Array.from(document.getElementsByClassName("LOL"));
+    let games = document.getElementsByClassName("LOL");
+    let gameContainer = document.getElementById("gameContainer");
+
     let matchingGames = [];
 
+    // Loop through all games to find matches
     for (let game of games) {
         let name = game.getAttribute("data-name")?.toLowerCase();
-        if (name && name.includes(input)) {
+        if (name.includes(input)) {
             matchingGames.push(game);
         }
     }
 
-    // Clear the container and append only matching games
+    // Clear the container and only append matching games
     gameContainer.innerHTML = "";
-    if (matchingGames.length > 0) {
-        matchingGames.forEach(game => gameContainer.appendChild(game));
-    } else {
-        games.forEach(game => gameContainer.appendChild(game)); // Restore original order if no match
-    }
+    matchingGames.forEach(game => gameContainer.appendChild(game));
 }
+
 
 
   </script>
