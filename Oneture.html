@@ -348,20 +348,20 @@ top: 10px;
       // Open the corresponding game page
       window.location.href = gamePages[game];
     }
-function searchGames() {
-    let input = document.getElementById("searchBar").value.toLowerCase();
-    let games = document.getElementsByClassName("LOL");
+        function searchGames() {
+            let input = document.getElementById("searchBar").value.toLowerCase();
+            let games = document.getElementsByClassName("LOL");
 
-    for (let game of games) {
-        let name = game.getAttribute("data-name");
-        if (name) {
-            name = name.toLowerCase();
-            game.style.display = name.includes(input) ? "inline-block" : "none";
-        } else {
-            game.style.display = "none"; // Hide elements without data-name
+            for (let game of games) {
+                let name = game.getAttribute("data-name");
+                if (name) {
+                    name = name.toLowerCase();
+                    game.style.display = name.includes(input) ? "inline-block" : "none";
+                } else {
+                    game.style.display = "none"; // Hide elements without data-name
+                }
+            }
         }
-    }
-}
 
 
 
