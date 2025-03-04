@@ -121,6 +121,18 @@ top: 10px;
             height: 100%;  
             border: none;  
         }
+              .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+             #searchBar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+             
 
 
           .music-buttons-container {
@@ -340,8 +352,19 @@ Rizzy gaming, Youtube, 42 unblocked, and nitrotype open in a new tab
       // Open the corresponding game page
       window.location.href = gamePages[game];
     }
+         function searchGames() {
+            let input = document.getElementById("searchBar").value.toLowerCase();
+            let games = document.getElementsByClassName("LOL");
+            
+            for (let game of games) {
+                let name = game.getAttribute("data-name").toLowerCase();
+                game.style.display = name.includes(input) ? "inline-block" : "none";
+            }
+        }
   </script>
    <body>
+     <input type="text" id="searchBar" onkeyup="searchGames()" placeholder="Search for a game...">
+         <div class="game-container">
         <div class="LOL" data-name="Ryan's Sussy Gaming">
   <a href="#" onclick="openpage('RSG')">
     <img src="IMGS/RSG.png" width="150px" style="position: absolute; top: 30%; left: 1%;">
@@ -794,7 +817,7 @@ Rizzy gaming, Youtube, 42 unblocked, and nitrotype open in a new tab
     <img src="IMGS/Bitlife.png" width="150px" style="position: absolute; top: 280%; left: 73%;">
   </a>
 </div>
-      
+         </div>
        
   <script src="../Script.js"></script>
        </body>
