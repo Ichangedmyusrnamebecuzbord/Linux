@@ -348,32 +348,23 @@ top: 10px;
       // Open the corresponding game page
       window.location.href = gamePages[game];
     }
-   
-function searchGames() {
-    let input = document.getElementById("searchBar").value.toLowerCase();
-    let games = Array.from(document.getElementsByClassName("LOL"));
-    let container = document.querySelector(".game-container");
-
-    if (!container) {
-        console.error("Error: .game-container not found!");
-        return;
-    }
-
-    let matchedGames = [];
-    let otherGames = [];
-
+   <script>
+  function searchGames() {
+    const searchInput = document.getElementById('searchBar');
+    const games = document.querySelectorAll('.LOL');
+    const searchQuery = searchInput.value.toLowerCase();
+    
     games.forEach(game => {
-        let name = game.getAttribute("data-name") || "";
-        if (name.toLowerCase().includes(input)) {
-            matchedGames.push(game);
-        } else {
-            otherGames.push(game);
-        }
+      const gameName = game.getAttribute('data-name').toLowerCase();
+      if (gameName.includes(searchQuery)) {
+        game.style.display = 'block';
+      } else {
+        game.style.display = 'none';
+      }
     });
+  }
 
 
-
-}
 
 
 
@@ -389,13 +380,13 @@ function searchGames() {
 
 <div class="LOL" data-name="Doge Unblocker">
   <a href="#" onclick="openpage('DogeUnblocker')">
-    <img src="IMGS/DogeUnblocker.png" width="150px" style="position: absolute; top: 30%; left: 13%;"alt="Doge Unblocker">
+    <img src="IMGS/DogeUnblocker.png" width="150px" style="position: absolute; top: 30%; left: 13%;" alt="Doge Unblocker">
   </a>
 </div>
      
 <div class="LOL" data-name="Minecraft">
   <a href="#" onclick="openpage('Minecraft')">
-    <img src="IMGS/EC.png" width="150px" style="position: absolute; top: 30%; left: 25%;"alt="Minecraft">
+    <img src="IMGS/EC.png" width="150px" style="position: absolute; top: 30%; left: 25%;" alt="Minecraft">
   </a>
 </div>
 
