@@ -827,7 +827,44 @@ top: 10px;
          </div>
      <div class=searchBar> <input id=Searchbar onkeyup=searchGames() placeholder="Type in a game or something...">
        
-  <script src="../Script.js"></script>
+  <script>function searchGames() {
+    const input = document.getElementById("Searchbar").value.toLowerCase(); // Correct input reference
+    const gameCards = document.querySelectorAll(".LOL"); // Keep .LOL as the game card class
+  
+    let noResultsMessage = document.getElementById("no-results"); 
+    let hasResults = false;
+
+    if (input) {
+      
+
+        gameCards.forEach(card => {
+            const title = card.querySelector("h3").textContent.toLowerCase();
+            if (title.includes(input)) {
+                card.style.display = "block";
+                hasResults = true;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        if (!hasResults) {
+            if (!noResultsMessage) {
+                noResultsMessage = document.createElement("div");
+                noResultsMessage.id = "no-results";
+                noResultsMessage.innerHTML = 'We don\'t have that game :( Add it in our <a href="Forms.html">Forms</a> :)';
+                document.getElementById("games").appendChild(noResultsMessage);
+            } else {
+                noResultsMessage.style.display = "block";
+            }
+        } else if (noResultsMessage) {
+            noResultsMessage.style.display = "none";
+        }
+    } else {
+        gameCards.forEach(card => card.style.display = "block");
+        if (noResultsMessage) noResultsMessage.style.display = "none";
+    }
+}
+</script></script>
        </body>
 
 
