@@ -121,7 +121,7 @@ top: 10px;
             height: 100%;  
             border: none;  
         }
-      .searchBar {
+      #searchBar {
             width: 800px;
             padding: 10px;
             margin: 10px auto;
@@ -825,7 +825,7 @@ top: 10px;
   </a>
 </div>
          </div>
-     <div class=searchBar> <input id="text" onkeyup=searchGames() placeholder="Type in a game or something..."> </div>
+     <input type="text" id="searchBar" onkeyup="searchGames()" placeholder="Search for a game...">
        
   <script>function searchGames() {
     const input = document.getElementById("Searchbar").value.toLowerCase(); // Correct input reference
