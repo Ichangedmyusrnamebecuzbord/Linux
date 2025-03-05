@@ -370,8 +370,10 @@ function searchGames() {
         }
     }
 
-    // Clear the container and re-add the elements with matches first
+    // Clear the container
     container.innerHTML = "";
+
+    // Append matched games first, then other games
     matchedGames.forEach(game => container.appendChild(game));
     otherGames.forEach(game => container.appendChild(game));
 }
