@@ -812,58 +812,28 @@ top: 10px;
      <input type="text" id="searchBar" placeholder="Search for a game...">
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-            const searchInput = document.getElementById("searchBar");
-            const games = document.querySelectorAll(".LOL");
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("searchBar");
+  const games = document.querySelectorAll(".LOL");
 
-            // Array of positions for each spot
-            const positions = [
-                { top: 30, left: 1 }, { top: 30, left: 13 }, { top: 30, left: 25 },
-                { top: 30, left: 37 }, { top: 30, left: 49 }, { top: 30, left: 61 },
-                { top: 30, left: 73 }, { top: 30, left: 85 }, { top: 55, left: 1 },
-                { top: 55, left: 13 }, { top: 55, left: 25 }, { top: 55, left: 37 },
-                { top: 55, left: 49 }, { top: 55, left: 61 }, { top: 55, left: 73 },
-                { top: 55, left: 85 }, { top: 80, left: 1 }, { top: 80, left: 13 },
-                { top: 80, left: 25 }, { top: 80, left: 37 }, { top: 80, left: 49 },
-                { top: 80, left: 61 }, { top: 80, left: 73 }, { top: 80, left: 85 },
-                { top: 105, left: 1 }, { top: 105, left: 13 }, { top: 105, left: 25 },
-                { top: 105, left: 37 }, { top: 105, left: 49 }, { top: 105, left: 61 },
-                { top: 105, left: 73 }, { top: 105, left: 85 }, { top: 130, left: 1 },
-                { top: 130, left: 13 }, { top: 130, left: 25 }, { top: 130, left: 37 },
-                { top: 130, left: 49 }, { top: 130, left: 61 }, { top: 130, left: 73 },
-                { top: 130, left: 85 }, { top: 155, left: 1 }, { top: 155, left: 13 },
-                { top: 155, left: 25 }, { top: 155, left: 37 }, { top: 155, left: 49 },
-                { top: 155, left: 61 }, { top: 155, left: 73 }, { top: 155, left: 85 },
-                { top: 180, left: 1 }, { top: 180, left: 13 }, { top: 180, left: 25 },
-                { top: 180, left: 37 }, { top: 180, left: 49 }, { top: 180, left: 61 },
-                { top: 180, left: 73 }, { top: 180, left: 85 }, { top: 205, left: 1 },
-                { top: 205, left: 13 }, { top: 205, left: 25 }, { top: 205, left: 37 },
-                { top: 205, left: 49 }, { top: 205, left: 61 }, { top: 205, left: 73 },
-                { top: 205, left: 85 }
-            ];
+  searchInput.addEventListener("input", function () {
+    const searchValue = searchInput.value.toLowerCase();
 
- games.forEach((game, index) => {
-                const position = positions[index];
-                game.style.top = `${position.top}px`;
-                game.style.left = `${position.left}px`;
+    games.forEach(game => {
+      const gameName = game.getAttribute("data-name").toLowerCase();
+      const gameImage = game.querySelector("img"); // Assuming images are inside the divs
+      const imageAlt = gameImage ? gameImage.getAttribute("alt").toLowerCase() : "";
 
-                game.style.display = "block"; // Show all games initially
-            });
+      // Show game if search value is found in data-name or image alt
+      if (gameName.includes(searchValue) || imageAlt.includes(searchValue)) {
+        game.style.display = "block"; // Show matching games
+      } else {
+        game.style.display = "none"; // Hide non-matching games
+      }
+    });
+  });
+});
 
-            // Add search functionality
-            searchInput.addEventListener("input", function () {
-                const searchValue = searchInput.value.toLowerCase();
-
-                games.forEach(game => {
-                    const gameName = game.getAttribute("data-name").toLowerCase();
-                    if (gameName.includes(searchValue)) {
-                        game.style.display = "block"; // Show matching games
-                    } else {
-                        game.style.display = "none"; // Hide non-matching games
-                    }
-                });
-            });
-        });
     </script>
 </script>
        </body>
