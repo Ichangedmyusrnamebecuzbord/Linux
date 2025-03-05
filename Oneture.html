@@ -60,6 +60,7 @@ window.onload = openGame;
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* Adjust the number of columns */
   gap: 10px;
+position: relative; /* Required to apply z-index */
 }
 
  .Home {
@@ -174,6 +175,7 @@ top: 10px;
     width: 150px;
     height: 150px;
        display: none;
+        transition: opacity 0.3s ease, z-index 0.3s ease; /* Smooth transition for opacity and z-index change */
   }
              .LOL img {
     display: block;
@@ -823,18 +825,22 @@ document.addEventListener("DOMContentLoaded", function () {
   searchInput.addEventListener("input", function () {
     const searchValue = searchInput.value.toLowerCase();
 
-    // Track whether a game matches the search query
     games.forEach(game => {
       const gameName = game.getAttribute("data-name").toLowerCase();
 
       if (gameName.includes(searchValue)) {
-        game.style.visibility = "visible";  // Show matching games
+        game.style.opacity = "1";  // Make matching games visible
+        game.style.pointerEvents = "auto"; // Allow interactions
+        game.style.zIndex = "1"; // Bring matching games to the front
       } else {
-        game.style.visibility = "hidden";  // Hide non-matching games but keep space
+        game.style.opacity = "0";  // Make non-matching games invisible
+        game.style.pointerEvents = "none"; // Prevent interactions
+        game.style.zIndex = "-1"; // Send non-matching games to the back
       }
     });
   });
 });
+
     </script>
 </script>
        </body>
