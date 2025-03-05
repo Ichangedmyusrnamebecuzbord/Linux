@@ -822,24 +822,25 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("searchBar");
   const games = document.querySelectorAll(".LOL");
 
+  console.log(games);  // Check if the games are selected correctly
+
   searchInput.addEventListener("input", function () {
     const searchValue = searchInput.value.toLowerCase();
+    console.log("Searching for: ", searchValue);  // See what the search value is
 
     games.forEach(game => {
       const gameName = game.getAttribute("data-name").toLowerCase();
+      console.log("Game name: ", gameName);  // Check each game's name
 
       if (gameName.includes(searchValue)) {
-        game.style.opacity = "1";  // Make matching games visible
-        game.style.pointerEvents = "auto"; // Allow interactions
-        game.style.zIndex = "1"; // Bring matching games to the front
+        game.style.display = "block"; // Show matching games
       } else {
-        game.style.opacity = "0";  // Make non-matching games invisible
-        game.style.pointerEvents = "none"; // Prevent interactions
-        game.style.zIndex = "-1"; // Send non-matching games to the back
+        game.style.display = "none"; // Hide non-matching games
       }
     });
   });
 });
+
 
     </script>
 </script>
