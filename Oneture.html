@@ -823,43 +823,28 @@ top: 10px;
   </a>
 </div>
          </div>
-     <input type="text" id="searchBar" onkeyup="searchGames()" placeholder="Search for a game...">
-       
-  <script>
-       function searchGames() {
-    const input = document.getElementById("searchbar").value.toLowerCase(); // Correct input reference
-    const gameCards = document.querySelectorAll(".LOL"); // Keep .LOL as the game card class
-    let noResultsMessage = document.getElementById("no-results"); 
-    let hasResults = false;
 
-    if (input) {
-      gameCards.forEach(card => {
-     const title = card.querySelector("h3").textContent.toLowerCase();
-     if (title.includes(input)) {
-     card.style.display = "block";
-     hasResults = true;
-     } else {
-     card.style.display = "none";
+
+     <input type="text" id="searchBar" placeholder="Search for a game...">
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchBar");
+    const games = document.querySelectorAll(".LOL");
+
+    searchInput.addEventListener("input", function () {
+        const searchValue = searchInput.value.toLowerCase().trim();
+
+        games.forEach(game => {
+            const gameName = game.dataset.name.toLowerCase();
+            if (gameName.includes(searchValue)) {
+                game.style.display = "flex"; // Ensure visibility
+            } else {
+                game.style.display = "none";
             }
         });
-
-     if (!hasResults) {
-     if (!noResultsMessage) {
-      noResultsMessage = document.createElement("div");
-      noResultsMessage.id = "no-results";
-     noResultsMessage.innerHTML = 'We don\'t have that game :( Add it in our <a href="Forms.html">Forms</a> :)';
-     document.getElementById("games").appendChild(noResultsMessage);
-     }else {
-     noResultsMessage.style.display = "block";
-            }
-} else if (noResultsMessage) {
-noResultsMessage.style.display = "none";
-        }
-} else {
-gameCards.forEach(card => card.style.display = "block");
-if (noResultsMessage) noResultsMessage.style.display = "none";
-    }
-}
+    });
+});
 </script>
        </body>
 
