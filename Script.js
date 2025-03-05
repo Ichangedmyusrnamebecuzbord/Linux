@@ -48,4 +48,47 @@ if (window.location.href.startsWith("view-source:")) {
             document.write(" < p > The server encountered an internal error. < /p>");
               throw new Error("Fake Server Error to Block Source Code Viewing");
             }
-function searchGames(){const input=document.getElementById("gameSearch").value.toLowerCase();const gameCards=document.querySelectorAll(".LOL");const sectionLabels=document.querySelectorAll(".section-label");const noResultsMessage=document.getElementById("no-results");let hasResults=!1;if(input){sectionLabels.forEach(label=>(label.style.display="none"));gameCards.forEach(card=>{const title=card.querySelector("h3").textContent.toLowerCase();if(title.includes(input)){card.style.display="block";hasResults=!0}else{card.style.display="none"}});if(!hasResults){if(!noResultsMessage){const message=document.createElement("div");message.id="no-results";message.textContent="We dont have that game :( add it in our  <a href="Forms.html" Forms </a> :) ";document.getElementById("games").appendChild(message)}else{noResultsMessage.style.display="block"}}else if(noResultsMessage){noResultsMessage.style.display="none"}}else{sectionLabels.forEach(label=>(label.style.display="block"));gameCards.forEach(card=>(card.style.display="block"));if(noResultsMessage)noResultsMessage.style.display="none"}}
+<div class="searchBar">
+    <input id="Searchbar" onkeyup="searchGames()" placeholder="Type in a game or something...">
+</div>
+
+<script>
+function searchGames() {
+    const input = document.getElementById("Searchbar").value.toLowerCase(); // Fixed ID reference
+    const gameCards = document.querySelectorAll(".game-card"); // Ensure game cards have this class
+    const sectionLabels = document.querySelectorAll(".section-label");
+    let noResultsMessage = document.getElementById("no-results"); 
+    let hasResults = false;
+
+    if (input) {
+        sectionLabels.forEach(label => label.style.display = "none");
+
+        gameCards.forEach(card => {
+            const title = card.querySelector("h3").textContent.toLowerCase();
+            if (title.includes(input)) {
+                card.style.display = "block";
+                hasResults = true;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        if (!hasResults) {
+            if (!noResultsMessage) {
+                noResultsMessage = document.createElement("div");
+                noResultsMessage.id = "no-results";
+                noResultsMessage.innerHTML = 'We don\'t have that game :( add it in our <a href="Forms.html">Forms</a> :)';
+                document.getElementById("games").appendChild(noResultsMessage);
+            } else {
+                noResultsMessage.style.display = "block";
+            }
+        } else if (noResultsMessage) {
+            noResultsMessage.style.display = "none";
+        }
+    } else {
+        sectionLabels.forEach(label => label.style.display = "block");
+        gameCards.forEach(card => card.style.display = "block");
+        if (noResultsMessage) noResultsMessage.style.display = "none";
+    }
+}
+</script>
