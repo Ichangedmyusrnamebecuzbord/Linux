@@ -350,34 +350,20 @@ top: 10px;
     }
    
 
-function searchGames() {
-    let input = document.getElementById("searchBar").value.toLowerCase();
-    let games = Array.from(document.getElementsByClassName("LOL"));
-    let container = document.querySelector(".game-container");
+    function searchGames() {
+            let input = document.getElementById("searchBar").value.toLowerCase();
+            let games = document.getElementsByClassName("LOL");
 
-    let matchedGames = [];
-    let otherGames = [];
-
-    for (let game of games) {
-        let name = game.getAttribute("data-name");
-        if (name) {
-            name = name.toLowerCase();
-            if (name.includes(input)) {
-                matchedGames.push(game);
-            } else {
-                otherGames.push(game);
+            for (let game of games) {
+                let name = game.getAttribute("data-name");
+                if (name) {
+                    name = name.toLowerCase();
+                    game.style.display = name.includes(input) ? "inline-block" : "none";
+                } else {
+                    game.style.display = "none"; // Hide elements without data-name
+                }
             }
         }
-    }
-
-    // Clear the container
-    container.innerHTML = "";
-
-    // Append matched games first, then other games
-    matchedGames.forEach(game => container.appendChild(game));
-    otherGames.forEach(game => container.appendChild(game));
-}
-
 
 
 
