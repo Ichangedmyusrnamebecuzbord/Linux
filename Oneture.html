@@ -348,45 +348,34 @@ top: 10px;
       // Open the corresponding game page
       window.location.href = gamePages[game];
     }
-       function searchGames() {
-            const input = document.getElementById("gameSearch").value.toLowerCase();
-            const gameCards = document.querySelectorAll(".LOL");
-            const sectionLabels = document.querySelectorAll(".section-label");
-            const noResultsMessage = document.getElementById("no-results");
-            let hasResults = false;
+   
 
-            if (input) {
-                sectionLabels.forEach(label => label.style.display = "none");
-                gameCards.forEach(card => {
-                    const title = card.querySelector("h3").textContent.toLowerCase();
-                    if (title.includes(input)) {
-                        card.style.display = "block";
-                        hasResults = true;
-                    } else {
-                        card.style.display = "none";
-                    }
-                });
-                if (!hasResults) {
-                    if (!noResultsMessage) {
-                        const message = document.createElement("div");
-                        message.id = "no-results";
-                        message.textContent = "Sorry, but we don't seem to have that game :(";
-                        document.getElementById("games").appendChild(message);
-                    } else {
-                        noResultsMessage.style.display = "block";
-                    }
-                } else if (noResultsMessage) {
-                    noResultsMessage.style.display = "none";
-                }
+function searchGames() {
+    let input = document.getElementById("searchBar").value.toLowerCase();
+    let games = Array.from(document.getElementsByClassName("LOL"));
+    let container = document.querySelector(".game-container");
+
+    let matchedGames = [];
+    let otherGames = [];
+
+    for (let game of games) {
+        let name = game.getAttribute("data-name");
+        if (name) {
+            name = name.toLowerCase();
+            if (name.includes(input)) {
+                matchedGames.push(game);
             } else {
-                sectionLabels.forEach(label => label.style.display = "block");
-                gameCards.forEach(card => card.style.display = "block");
-                if (noResultsMessage) noResultsMessage.style.display = "none";
+                otherGames.push(game);
             }
         }
+    }
 
-        // Attach the search function to the input field's event
-        document.getElementById("gameSearch").addEventListener("input", searchGames);
+    // Clear the container and re-add the elements with matches first
+    container.innerHTML = "";
+    matchedGames.forEach(game => container.appendChild(game));
+    otherGames.forEach(game => container.appendChild(game));
+}
+
 
 
 
