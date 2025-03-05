@@ -1,2 +1,1 @@
-
-© 2025 Mally Sus Gaming. All rights reserved.
+© 2025 Mally Sus Gaming. All rights reserved. ;)
