@@ -50,32 +50,22 @@ if (window.location.href.startsWith("view-source:")) {
             }
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("searchBar");
-    const games = document.querySelectorAll(".LOL");
+    const gameContainer = document.querySelector(".game-container");
+    const games = Array.from(document.querySelectorAll(".LOL"));
 
-    if (!searchInput) {
-        console.error("Search bar not found!");
+    if (!searchInput || !gameContainer) {
+        console.error("Search bar or game container not found!");
         return;
     }
-
-    // Store original positions so we can reset them later
-    let originalPositions = [];
-    games.forEach(game => {
-        originalPositions.push({
-            element: game,
-            top: game.style.top,
-            left: game.style.left
-        });
-    });
 
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
 
         if (searchValue === "") {
-            // Reset all elements to their original positions
-            originalPositions.forEach(item => {
-                item.element.style.top = item.top;
-                item.element.style.left = item.left;
-                item.element.style.display = "block";
+            // Reset everything to original order
+            games.forEach(game => {
+                game.style.display = "block";
+                gameContainer.appendChild(game); // Restore original order
             });
             return;
         }
@@ -92,51 +82,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // If no matches are found, show everything
+        // If no matches are found, reset everything
         if (matchingGames.length === 0) {
-            originalPositions.forEach(item => {
-                item.element.style.display = "block";
-            });
+            games.forEach(game => game.style.display = "block");
             return;
         }
 
-        // Positioning variables
-        let startTop = 30;  // First row starts at 30% top
-        let startLeft = 1;  // First column starts at 1% left
-        let rowSpacing = 25; // Space between rows (Y-axis)
-        let colSpacing = 12; // Space between columns (X-axis)
-        let currentLeft = startLeft;
-        let currentTop = startTop;
-
-        // Position matching games at the top
+        // Clear container and append elements in the new order
+        gameContainer.innerHTML = "";
         matchingGames.forEach(game => {
-            game.style.position = "absolute";
-            game.style.display = "block";
-            game.style.top = `${currentTop}%`;
-            game.style.left = `${currentLeft}%`;
-
-            currentLeft += colSpacing;
-            if (currentLeft > 85) { // Move to the next row
-                currentLeft = startLeft;
-                currentTop += rowSpacing;
-            }
+            game.style.display = "block"; // Show matching games
+            gameContainer.appendChild(game);
         });
 
-        // Position non-matching games below matching games
-        currentTop += rowSpacing; // Move non-matching section lower
-        currentLeft = startLeft;
-
         nonMatchingGames.forEach(game => {
-            game.style.position = "absolute";
-            game.style.display = "block";
-            game.style.top = `${currentTop}%`;
-            game.style.left = `${currentLeft}%`;
-
-            currentLeft += colSpacing;
-            if (currentLeft > 85) { // Move to the next row
-                currentLeft = startLeft;
-                currentTop += rowSpacing;
-            }
+            game.style.display = "block"; // Show non-matching games at the bottom
+            gameContainer.appendChild(game);
         });
     });
 });
