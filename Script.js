@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let startLeft = 10; // Initial X position
         let rowSpacing = 25; // Space between rows
         let colSpacing = 12; // Space between columns
-        let maxColumns = 8; // Adjust based on screen width
+        let maxColumns = 7; // Adjust based on screen width
         let currentLeft = startLeft;
         let currentTop = startTop;
         let columnCount = 0;
