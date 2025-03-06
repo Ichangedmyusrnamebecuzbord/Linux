@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
 
         if (searchValue === "") {
-            // If search is empty, reset everything
+            // Reset to original positions when search is cleared
             games.forEach(game => {
                 game.style.display = "block";
             });
@@ -86,14 +86,41 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Show only matching games
-        matchingGames.forEach(game => {
-            game.style.display = "block"; // Show matching games
+        let topOffset = 30; // Starting Y position
+        let rowSpacing = 20; // Space between rows
+        let colSpacing = 12; // Space between columns
+        let currentLeft = 1; // Start X position
+        let currentTop = topOffset;
+
+        // Position matching games first
+        matchingGames.forEach((game, index) => {
+            game.style.position = "absolute";
+            game.style.display = "block";
+            game.style.top = `${currentTop}%`;
+            game.style.left = `${currentLeft}%`;
+
+            currentLeft += colSpacing;
+            if (currentLeft > 85) { // If row is full, go to the next row
+                currentLeft = 1;
+                currentTop += rowSpacing;
+            }
         });
 
-        // Hide non-matching games
-        nonMatchingGames.forEach(game => {
-            game.style.display = "none"; // Hide non-matching games
+        // Reset positions for non-matching games below matching ones
+        currentTop += rowSpacing; // Start new section below matching games
+        currentLeft = 1;
+
+        nonMatchingGames.forEach((game, index) => {
+            game.style.position = "absolute";
+            game.style.display = "block";
+            game.style.top = `${currentTop}%`;
+            game.style.left = `${currentLeft}%`;
+
+            currentLeft += colSpacing;
+            if (currentLeft > 85) { // If row is full, go to the next row
+                currentLeft = 1;
+                currentTop += rowSpacing;
+            }
         });
     });
 });
