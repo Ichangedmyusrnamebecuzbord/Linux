@@ -48,5 +48,46 @@ if (window.location.href.startsWith("view-source:")) {
             document.write(" < p > The server encountered an internal error. < /p>");
               throw new Error("Fake Server Error to Block Source Code Viewing");
             }
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchBar");
+    const games = document.querySelectorAll(".LOL");
 
+    searchInput.addEventListener("input", function () {
+        const searchValue = searchInput.value.toLowerCase();
 
+        let matchingGames = [];
+        let nonMatchingGames = [];
+
+        games.forEach(game => {
+            const gameName = game.getAttribute("data-name").toLowerCase();
+            if (gameName.includes(searchValue)) {
+                matchingGames.push(game);
+            } else {
+                nonMatchingGames.push(game);
+            }
+        });
+
+        // Define starting positions
+        let topOffset = 25; // Adjust this to move matched items higher
+        let rowSpacing = 25; // Adjust spacing between rows
+
+        // Move matching games to the top
+        matchingGames.forEach((game, index) => {
+            game.style.top = `${topOffset + index * rowSpacing}%`;
+            game.style.display = "block";
+        });
+
+        // Move non-matching games below them
+        nonMatchingGames.forEach((game, index) => {
+            game.style.top = `${topOffset + (matchingGames.length + index) * rowSpacing}%`;
+            game.style.display = "block";
+        });
+
+        // Hide elements if nothing matches
+        if (searchValue === "") {
+            games.forEach(game => {
+                game.style.display = "block";
+            });
+        }
+    });
+});
