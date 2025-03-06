@@ -57,13 +57,25 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // Store original positions so we can reset them later
+    let originalPositions = [];
+    games.forEach(game => {
+        originalPositions.push({
+            element: game,
+            top: game.style.top,
+            left: game.style.left
+        });
+    });
+
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
 
         if (searchValue === "") {
-            // Reset all games to original visibility
-            games.forEach(game => {
-                game.style.display = "block";
+            // Reset all elements to their original positions
+            originalPositions.forEach(item => {
+                item.element.style.top = item.top;
+                item.element.style.left = item.left;
+                item.element.style.display = "block";
             });
             return;
         }
@@ -80,46 +92,48 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // If no matches are found, reset visibility
+        // If no matches are found, show everything
         if (matchingGames.length === 0) {
-            games.forEach(game => game.style.display = "block");
+            originalPositions.forEach(item => {
+                item.element.style.display = "block";
+            });
             return;
         }
 
-        // Positioning setup
-        let startTop = 30; // Initial Y position
-        let startLeft = 1; // Initial X position
+        // Positioning variables
+        let startTop = 30;  // First row starts at 30% top
+        let startLeft = 1;  // First column starts at 1% left
         let rowSpacing = 25; // Space between rows (Y-axis)
         let colSpacing = 12; // Space between columns (X-axis)
         let currentLeft = startLeft;
         let currentTop = startTop;
 
-        // Position matching games in top rows
-        matchingGames.forEach((game, index) => {
+        // Position matching games at the top
+        matchingGames.forEach(game => {
             game.style.position = "absolute";
             game.style.display = "block";
             game.style.top = `${currentTop}%`;
             game.style.left = `${currentLeft}%`;
 
             currentLeft += colSpacing;
-            if (currentLeft > 85) { // If row is full, go to the next row
+            if (currentLeft > 85) { // Move to the next row
                 currentLeft = startLeft;
                 currentTop += rowSpacing;
             }
         });
 
-        // Move non-matching games below matched ones
-        currentTop += rowSpacing; // Start non-matching section below matching games
+        // Position non-matching games below matching games
+        currentTop += rowSpacing; // Move non-matching section lower
         currentLeft = startLeft;
 
-        nonMatchingGames.forEach((game, index) => {
+        nonMatchingGames.forEach(game => {
             game.style.position = "absolute";
             game.style.display = "block";
             game.style.top = `${currentTop}%`;
             game.style.left = `${currentLeft}%`;
 
             currentLeft += colSpacing;
-            if (currentLeft > 85) { // If row is full, go to the next row
+            if (currentLeft > 85) { // Move to the next row
                 currentLeft = startLeft;
                 currentTop += rowSpacing;
             }
