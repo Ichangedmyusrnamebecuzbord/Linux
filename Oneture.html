@@ -363,7 +363,13 @@ top: 10px;
    <body>
   
          <div class="game-container">
-        <div class="LOL" data-name="Ryan's Sussy Gaming">
+       
+
+
+<input type="text" id="searchBar" placeholder="Search for a game...">
+
+<div class="game-container">
+     <div class="LOL" data-name="Ryan's Sussy Gaming">
   <a href="#" onclick="openpage('RSG')">
     <img src="IMGS/RSG.png" width="150px" style="position: absolute; top: 30%; left: 1%;" alt="Ryan's Sus Gaming">
   </a>
@@ -861,38 +867,47 @@ top: 10px;
   </a>
 </div>
          </div>
-
-
-     <input type="text" id="searchBar" placeholder="Search for a game...">
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const searchInput = document.getElementById("searchBar");
-  const games = document.querySelectorAll(".LOL");
+    const searchInput = document.getElementById("searchBar");
+    const games = document.querySelectorAll(".LOL");
+    const gameContainer = document.querySelector(".game-container");
 
-  console.log(games);  // Check if the games are selected correctly
+    searchInput.addEventListener("input", function () {
+        const searchValue = searchInput.value.toLowerCase();
+        
+        let matchingGames = [];
+        let nonMatchingGames = [];
 
-  searchInput.addEventListener("input", function () {
-    const searchValue = searchInput.value.toLowerCase();
-    console.log("Searching for: ", searchValue);  // See what the search value is
+        games.forEach(game => {
+            const gameName = game.getAttribute("data-name").toLowerCase();
+            if (gameName.includes(searchValue)) {
+                matchingGames.push(game); // Add matching games to the top
+            } else {
+                nonMatchingGames.push(game);
+            }
+        });
 
-    games.forEach(game => {
-      const gameName = game.getAttribute("data-name").toLowerCase();
-      console.log("Game name: ", gameName);  // Check each game's name
+        // Clear the container and append games in the new order
+        gameContainer.innerHTML = "";
+        matchingGames.forEach(game => gameContainer.appendChild(game));
+        nonMatchingGames.forEach(game => gameContainer.appendChild(game));
 
-      if (gameName.includes(searchValue)) {
-        game.style.display = "block"; // Show matching games
-      } else {
-        game.style.display = "none"; // Hide non-matching games
-      }
+        // Show/hide elements
+        games.forEach(game => {
+            if (game.getAttribute("data-name").toLowerCase().includes(searchValue)) {
+                game.style.display = "block"; // Show matching games
+            } else {
+                game.style.display = "none"; // Hide non-matching games
+            }
+        });
     });
-  });
 });
-
-
-    </script>
 </script>
        </body>
+</html>
 
 
 
