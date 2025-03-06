@@ -922,17 +922,21 @@ position: absolute; top: 17%; left: 18%;">
 <script src="Script.js"></script>
         <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const searchBar = document.getElementById("searchBar");
-        const searchBarOriginalTop = searchBar.offsetTop; // Get initial position
+    const searchBar = document.getElementById("searchBar");
+    const searchBarOriginalTop = searchBar.offsetTop; // Get the original top position
+    const searchBarOriginalLeft = searchBar.offsetLeft; // Get the original left position
 
-        window.addEventListener("scroll", function () {
-            if (window.scrollY >= searchBarOriginalTop) {
-                searchBar.classList.add("sticky"); // Stick it to the top
-            } else {
-                searchBar.classList.remove("sticky"); // Restore position
-            }
-        });
+    window.addEventListener("scroll", function () {
+        if (window.scrollY >= searchBarOriginalTop) {
+            searchBar.classList.add("sticky");
+            searchBar.style.left = `${searchBarOriginalLeft}px`; // Lock left position
+        } else {
+            searchBar.classList.remove("sticky");
+            searchBar.style.left = ""; // Reset left position when scrolling back up
+        }
     });
+});
+             
 </script>
 
        </body>
