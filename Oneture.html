@@ -866,32 +866,6 @@ top: 10px;
          </div>
 </script>
 
-<script>
-function searchGames() {
-    let input = document.getElementById("searchBar").value.toLowerCase();
-    let games = document.querySelectorAll(".LOL");
-
-    let matchingGames = [];
-    let nonMatchingGames = [];
-
-    games.forEach(game => {
-        let gameName = game.getAttribute("data-name").toLowerCase();
-        if (gameName.startsWith(input)) {
-            matchingGames.unshift(game); // Move matching games to the front
-        } else {
-            nonMatchingGames.push(game); // Keep other games in normal order
-        }
-    });
-
-    let gameContainer = document.querySelector(".game-container");
-    gameContainer.innerHTML = ""; // Clear existing game list
-
-    // Append matching games first, then non-matching ones
-    matchingGames.concat(nonMatchingGames).forEach(game => {
-        gameContainer.appendChild(game);
-    });
-}
-   </script>
        </body>
 </html>
 
