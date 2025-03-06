@@ -56,9 +56,17 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Search bar not found!");
         return;
     }
-    
+
     searchInput.addEventListener("input", function () {
-        const searchValue = searchInput.value.toLowerCase();
+        const searchValue = searchInput.value.toLowerCase().trim();
+
+        if (searchValue === "") {
+            // If search is empty, reset everything
+            games.forEach(game => {
+                game.style.display = "block";
+            });
+            return;
+        }
 
         let matchingGames = [];
         let nonMatchingGames = [];
@@ -72,45 +80,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Define starting positions for matched and non-matched elements
-        let topOffset = 30; // Start position for first row
-        let rowSpacing = 20; // Adjust spacing between rows
-        let currentLeft = 1; // Start left positioning
-
-        // Reposition matching games at the top
-        matchingGames.forEach((game, index) => {
-            game.style.position = "absolute";
-            game.style.top = `${topOffset}%`;
-            game.style.left = `${currentLeft}%`;
-            game.style.display = "block";
-
-            // Adjust left positioning for next game
-            currentLeft += 12;
-            if (currentLeft > 85) { // Reset left position after reaching limit
-                currentLeft = 1;
-                topOffset += rowSpacing;
-            }
-        });
-
-        // Reposition non-matching games below matched ones
-        nonMatchingGames.forEach((game, index) => {
-            game.style.position = "absolute";
-            game.style.top = `${topOffset + (matchingGames.length + index) * rowSpacing}%`;
-            game.style.left = `${currentLeft}%`;
-            game.style.display = "block";
-
-            currentLeft += 12;
-            if (currentLeft > 85) {
-                currentLeft = 1;
-                topOffset += rowSpacing;
-            }
-        });
-
-        // Hide elements if nothing matches
-        if (searchValue === "") {
-            games.forEach(game => {
-                game.style.display = "block";
-            });
+        // If no matches are found, don't hide everything
+        if (matchingGames.length === 0) {
+            games.forEach(game => game.style.display = "block");
+            return;
         }
+
+        // Show only matching games
+        matchingGames.forEach(game => {
+            game.style.display = "block"; // Show matching games
+        });
+
+        // Hide non-matching games
+        nonMatchingGames.forEach(game => {
+            game.style.display = "none"; // Hide non-matching games
+        });
     });
 });
