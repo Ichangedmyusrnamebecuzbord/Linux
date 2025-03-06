@@ -919,6 +919,21 @@ position: absolute; top: 17%; left: 18%;">
 </script>
      
 <script src="Script.js"></script>
+        <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("searchBar");
+        const searchBarOriginalTop = searchBar.offsetTop; // Get initial position
+
+        window.addEventListener("scroll", function () {
+            if (window.scrollY >= searchBarOriginalTop) {
+                searchBar.classList.add("sticky"); // Stick it to the top
+            } else {
+                searchBar.classList.remove("sticky"); // Restore position
+            }
+        });
+    });
+</script>
+
        </body>
 </html>
 
