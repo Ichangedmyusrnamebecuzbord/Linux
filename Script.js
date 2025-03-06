@@ -54,29 +54,31 @@ if (window.location.href.startsWith("view-source:")) {
         document.write(" < h1 > 500 Internal Server Error < /h1>");
             document.write(" < p > The server encountered an internal error. < /p>");
               throw new Error("Fake Server Error to Block Source Code Viewing");
-            }
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("Search script loaded.");
-
-    const searchInput = document.getElementById("searchBar");
-    const games = Array.from(document.querySelectorAll(".LOL"));
+            }document.addEventListener("DOMContentLoaded", function () {
     const gameContainer = document.querySelector(".game-container");
+    let games = Array.from(document.querySelectorAll(".LOL"));
 
-    if (!searchInput || !gameContainer) {
-        console.error("Search bar or game container not found!");
+    if (!gameContainer || games.length === 0) {
+        console.error("Game container or games not found!");
         return;
     }
 
+    // Sort games alphabetically by data-name on page load only
+    games.sort((a, b) => {
+        let nameA = a.getAttribute("data-name").toLowerCase();
+        let nameB = b.getAttribute("data-name").toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+
+    // Append sorted games to the container
+    gameContainer.innerHTML = "";
+    games.forEach(game => gameContainer.appendChild(game));
+
+    // Search Functionality
+    const searchInput = document.getElementById("searchBar");
+
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
-
-        if (searchValue === "") {
-            // Reset everything to original positions when search is cleared
-            games.forEach(game => {
-                game.style.display = "block";
-            });
-            return;
-        }
 
         let matchingGames = [];
         let nonMatchingGames = [];
@@ -90,47 +92,26 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        console.log("Matching games:", matchingGames.length);
-        console.log("Non-matching games:", nonMatchingGames.length);
-
-        // If no matches are found, hide all games
-        if (matchingGames.length === 0) {
-            games.forEach(game => game.style.display = "none");
+        // If the search bar is empty, restore original alphabetical order
+        if (searchValue === "") {
+            gameContainer.innerHTML = "";
+            games.forEach(game => {
+                game.style.display = "block";
+                gameContainer.appendChild(game);
+            });
             return;
         }
 
-        // Clear the container and reorder elements
+        // Clear container and display only matching games
         gameContainer.innerHTML = "";
-
-        // Arrange matching games at the top
-        let topOffset = 30; // Start at top: 30%
-        let leftOffset = 1; // Start at left: 1%
-        let rowSpacing = 25; // Space between rows
-        let colSpacing = 12; // Space between columns
-        let currentLeft = leftOffset;
-        let currentTop = topOffset;
-
-        matchingGames.forEach((game, index) => {
-            game.style.position = "absolute";
+        matchingGames.forEach(game => {
             game.style.display = "block";
-            game.style.top = `${currentTop}%`;
-            game.style.left = `${currentLeft}%`;
             gameContainer.appendChild(game);
-
-            currentLeft += colSpacing;
-            if (currentLeft > 85) {
-                currentLeft = leftOffset;
-                currentTop += rowSpacing;
-            }
         });
 
-        // Position non-matching games below matching ones
-        currentTop += rowSpacing; // Move non-matching section lower
-        currentLeft = leftOffset;
-
-        nonMatchingGames.forEach((game, index) => {
-            game.style.position = "absolute";
-            game.style.display = "none"; // Hide non-matching games
+        // Hide non-matching games
+        nonMatchingGames.forEach(game => {
+            game.style.display = "none";
         });
     });
 });
