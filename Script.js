@@ -96,8 +96,8 @@ document.addEventListener("DOMContentLoaded", function () {
         matchingGames.forEach((game, index) => {
             game.style.position = "absolute";
             game.style.display = "block";
-            game.style.top = `${currentTop}%`;
-            game.style.left = `${currentLeft}%`;
+            game.style.top = `30%`;
+            game.style.left = `1%`;
 
             currentLeft += colSpacing;
             if (currentLeft > 85) { // If row is full, go to the next row
