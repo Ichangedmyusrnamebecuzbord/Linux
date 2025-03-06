@@ -5,27 +5,32 @@ document.addEventListener("DOMContentLoaded", function () {
     const games = document.querySelectorAll(".LOL");
     const gameContainer = document.querySelector(".game-container");
 
-    if (!searchInput || !gameContainer) {
-        console.error("Search bar or game container not found!");
+    if (!searchInput) {
+        console.error("Search bar not found!");
+        return;
+    }
+
+    if (!gameContainer) {
+        console.error("Game container not found!");
+        return;
+    }
+
+    if (games.length === 0) {
+        console.error("No games found!");
         return;
     }
 
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
-
-        if (searchValue === "") {
-            // Reset everything to original positions when search is cleared
-            games.forEach(game => {
-                game.style.display = "block";
-            });
-            return;
-        }
+        console.log("Search input:", searchValue);
 
         let matchingGames = [];
         let nonMatchingGames = [];
 
         games.forEach(game => {
-            const gameName = game.getAttribute("data-name").toLowerCase();
+            const gameName = game.getAttribute("data-name")?.toLowerCase();
+            if (!gameName) return;
+
             if (gameName.includes(searchValue)) {
                 matchingGames.push(game);
             } else {
@@ -33,22 +38,27 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // If no matches are found, show everything
-        if (matchingGames.length === 0) {
-            games.forEach(game => game.style.display = "block");
+        console.log("Matching games:", matchingGames.length);
+        console.log("Non-matching games:", nonMatchingGames.length);
+
+        // Reset if search is empty
+        if (searchValue === "") {
+            games.forEach(game => {
+                game.style.display = "block";
+                gameContainer.appendChild(game);
+            });
             return;
         }
 
-        // Clear the container and reorder elements
+        // Reorder elements
         gameContainer.innerHTML = "";
-
         matchingGames.forEach(game => {
-            game.style.display = "block"; // Show matching games
+            game.style.display = "block";
             gameContainer.appendChild(game);
         });
 
         nonMatchingGames.forEach(game => {
-            game.style.display = "block"; // Show non-matching games below
+            game.style.display = "block";
             gameContainer.appendChild(game);
         });
     });
