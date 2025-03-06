@@ -52,6 +52,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("searchBar");
     const games = document.querySelectorAll(".LOL");
 
+    if (!searchInput) {
+        console.error("Search bar not found!");
+        return;
+    }
+    
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase();
 
@@ -67,20 +72,38 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Define starting positions
-        let topOffset = 25; // Adjust this to move matched items higher
-        let rowSpacing = 25; // Adjust spacing between rows
+        // Define starting positions for matched and non-matched elements
+        let topOffset = 30; // Start position for first row
+        let rowSpacing = 20; // Adjust spacing between rows
+        let currentLeft = 1; // Start left positioning
 
-        // Move matching games to the top
+        // Reposition matching games at the top
         matchingGames.forEach((game, index) => {
-            game.style.top = `${topOffset + index * rowSpacing}%`;
+            game.style.position = "absolute";
+            game.style.top = `${topOffset}%`;
+            game.style.left = `${currentLeft}%`;
             game.style.display = "block";
+
+            // Adjust left positioning for next game
+            currentLeft += 12;
+            if (currentLeft > 85) { // Reset left position after reaching limit
+                currentLeft = 1;
+                topOffset += rowSpacing;
+            }
         });
 
-        // Move non-matching games below them
+        // Reposition non-matching games below matched ones
         nonMatchingGames.forEach((game, index) => {
+            game.style.position = "absolute";
             game.style.top = `${topOffset + (matchingGames.length + index) * rowSpacing}%`;
+            game.style.left = `${currentLeft}%`;
             game.style.display = "block";
+
+            currentLeft += 12;
+            if (currentLeft > 85) {
+                currentLeft = 1;
+                topOffset += rowSpacing;
+            }
         });
 
         // Hide elements if nothing matches
