@@ -48,3 +48,82 @@ if (window.location.href.startsWith("view-source:")) {
             document.write(" < p > The server encountered an internal error. < /p>");
               throw new Error("Fake Server Error to Block Source Code Viewing");
             }
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("Search script loaded.");
+
+    const searchInput = document.getElementById("searchBar");
+    const games = Array.from(document.querySelectorAll(".LOL"));
+    const gameContainer = document.querySelector(".game-container");
+
+    if (!searchInput || !gameContainer) {
+        console.error("Search bar or game container not found!");
+        return;
+    }
+
+    searchInput.addEventListener("input", function () {
+        const searchValue = searchInput.value.toLowerCase().trim();
+
+        if (searchValue === "") {
+            // Reset everything to original positions when search is cleared
+            games.forEach(game => {
+                game.style.display = "block";
+            });
+            return;
+        }
+
+        let matchingGames = [];
+        let nonMatchingGames = [];
+
+        games.forEach(game => {
+            const gameName = game.getAttribute("data-name").toLowerCase();
+            if (gameName.includes(searchValue)) {
+                matchingGames.push(game);
+            } else {
+                nonMatchingGames.push(game);
+            }
+        });
+
+        console.log("Matching games:", matchingGames.length);
+        console.log("Non-matching games:", nonMatchingGames.length);
+
+        // If no matches are found, hide all games
+        if (matchingGames.length === 0) {
+            games.forEach(game => game.style.display = "none");
+            return;
+        }
+
+        // Clear the container and reorder elements
+        gameContainer.innerHTML = "";
+
+        // Arrange matching games at the top
+        let topOffset = 30; // Start at top: 30%
+        let leftOffset = 1; // Start at left: 1%
+        let rowSpacing = 25; // Space between rows
+        let colSpacing = 12; // Space between columns
+        let currentLeft = leftOffset;
+        let currentTop = topOffset;
+
+        matchingGames.forEach((game, index) => {
+            game.style.position = "absolute";
+            game.style.display = "block";
+            game.style.top = `${currentTop}%`;
+            game.style.left = `${currentLeft}%`;
+            gameContainer.appendChild(game);
+
+            currentLeft += colSpacing;
+            if (currentLeft > 85) {
+                currentLeft = leftOffset;
+                currentTop += rowSpacing;
+            }
+        });
+
+        // Position non-matching games below matching ones
+        currentTop += rowSpacing; // Move non-matching section lower
+        currentLeft = leftOffset;
+
+        nonMatchingGames.forEach((game, index) => {
+            game.style.position = "absolute";
+            game.style.display = "none"; // Hide non-matching games
+        });
+    });
+});
