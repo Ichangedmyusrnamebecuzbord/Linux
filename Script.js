@@ -125,5 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
             game.style.position = "absolute";
             game.style.display = "none"; // Hide non-matching games
         });
+        document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".LOL").forEach(game => {
+        game.style.display = "block";  // Make sure all are visible
     });
 });
