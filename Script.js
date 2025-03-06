@@ -1,3 +1,10 @@
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".LOL").forEach(game => {
+        game.style.display = "block"; // Ensure all elements are shown
+        game.style.visibility = "visible"; // Make sure they are not hidden
+        game.style.opacity = "1"; // Fully visible
+    });
+});
 console.log("you shouldn't be seeing this");
 
 document.addEventListener("DOMContentLoaded", () => {
