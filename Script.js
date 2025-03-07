@@ -184,3 +184,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const audio = document.getElementById("background-music");
+
+    // Restore the music state from local storage
+    if (localStorage.getItem("musicPaused") === "false") {
+        audio.currentTime = localStorage.getItem("musicTime") || 0;
+        audio.play();
+    }
+
+    // Save the music state before the user navigates away
+    window.addEventListener("beforeunload", function () {
+        localStorage.setItem("musicTime", audio.currentTime);
+        localStorage.setItem("musicPaused", audio.paused);
+    });
+});
