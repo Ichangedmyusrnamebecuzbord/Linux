@@ -5,6 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
         game.style.opacity = "1"; // Fully visible
     });
 });
+
+
+
+
+
 console.log("you shouldn't be seeing this");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -55,6 +60,11 @@ if (window.location.href.startsWith("view-source:")) {
             document.write(" < p > The server encountered an internal error. < /p>");
               throw new Error("Fake Server Error to Block Source Code Viewing");
             }
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const gameContainer = document.querySelector(".game-container");
     let games = Array.from(document.querySelectorAll(".LOL"));
@@ -151,6 +161,14 @@ document.addEventListener("DOMContentLoaded", function () {
         positionGames(matchingGames);
     });
 });
+
+
+
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const searchBar = document.getElementById("searchBar");
     const searchBarOriginalTop = searchBar.offsetTop; // Get original top position
