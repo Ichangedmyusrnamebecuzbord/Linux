@@ -1,28 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-
-<script>
-    // Firebase Configuration (Replace with your Firebase config)
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(); // Make sure Firestore is initialized
-
-    console.log("✅ Firebase Initialized:", firebase);
-    console.log("✅ Firestore Reference:", db);
-</script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,11 +70,14 @@
     <button onclick="sendMessage()">Send</button>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+<!-- ✅ Correct Firebase SDK Import (No 'module' needed) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
-    <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+<script>
+    // ✅ Prevent Duplicate Firebase Config Declaration
+    if (!firebase.apps.length) {
+        // 🔹 Replace this with your actual Firebase config from Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
   authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -107,10 +88,17 @@ const firebaseConfig = {
   measurementId: "G-MSF2RTLJD2"
 };
 
-        // Initialize Firebase
+        // ✅ Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    }
 
+    // ✅ Initialize Firestore
+    const db = firebase.firestore();
+
+    console.log("✅ Firebase Initialized:", firebase);
+    console.log("✅ Firestore Ready:", db);
+</script>
+    <script>
         function testFirestore() {
     db.collection("messages").get().then((snapshot) => {
         console.log("Firestore Connection Success!", snapshot.docs.length);
