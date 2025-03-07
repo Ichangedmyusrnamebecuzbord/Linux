@@ -935,6 +935,7 @@ position: absolute; top: 17%; left: 18%;">
     window.addEventListener("scroll", function () {
         if (window.scrollY >= searchBarOriginalTop) {
             searchBar.classList.add("sticky");
+             searchBar.style.left = `${searchBarOriginalLeft}px`; // Lock left position
         } else {
             searchBar.classList.remove("sticky");
             searchBar.style.left = ""; // Reset left position when scrolling back up
