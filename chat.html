@@ -56,54 +56,56 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Display the temporary username on screen */
     #username-display {
       margin-bottom: 15px;
       font-weight: bold;
     }
   </style>
-  <!-- Use Firebase in Compatibility Mode (no "import" or "export" errors) -->
+  <!-- Use Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <a href="Home.html" class="back-button">⬅ Back to Home</a>
+  <!-- The back button will have its href updated via JavaScript -->
+  <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
-  
-  <!-- Display the temporary username -->
   <div id="username-display"></div>
-  
-  <!-- Chat box for displaying messages -->
   <div id="chat-box"></div>
-  
-  <!-- Message input (press Enter or click Send) -->
-  <input 
-    type="text" 
-    id="message" 
-    placeholder="Type your message..." 
-    onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}"
-  >
+  <input type="text" id="message" placeholder="Type your message..." 
+         onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // 1. Temporary Username (persists across browser sessions)
+    // Function to get a query parameter from the URL
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    // Update the back button based on the "prev" query parameter (default to Home.html)
+    document.addEventListener("DOMContentLoaded", function() {
+      const prevPage = getQueryParam("prev") || "Home.html";
+      document.querySelector("a.back-button").href = prevPage;
+      console.log("Back button set to:", prevPage);
+    });
+
+    // Temporary username stored in localStorage (persists across sessions)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
-      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000); // e.g. "User1234"
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
       localStorage.setItem("tempUsername", tempUsername);
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // 2. Chat Start Time (new for each tab/session). 
-    //    We only show messages posted after this time.
+    // Session-based chat: new session per browser tab
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
-      chatStartTime = Date.now().toString(); 
+      chatStartTime = Date.now().toString();
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // 3. Initialize Firebase
+    // Initialize Firebase
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -121,41 +123,31 @@
       } else {
         console.log("ℹ️ Firebase already initialized.");
       }
+
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // 4. Real-time listener for ALL messages, sorted by timestamp
-      //    We'll filter them client-side below.
+      // Listen for messages and only display those posted after chatStartTime
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = ""; // Clear the chat box
-
+          chatBox.innerHTML = "";
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
-            // Skip messages that don't have a timestamp or are older than chatStartTime
             if (!msgData.timestamp) return;
-            
-            const msgTime = msgData.timestamp.toMillis(); 
-            if (msgTime < parseInt(chatStartTime)) {
-              // This message was posted before this user opened the site
-              return; 
-            }
-
-            // Display the message
+            const msgTime = msgData.timestamp.toMillis();
+            if (msgTime < parseInt(chatStartTime)) return;
             const p = document.createElement("p");
             const displayName = msgData.username || "Anon";
             p.textContent = displayName + ": " + msgData.text;
             chatBox.appendChild(p);
           });
-
-          // Auto-scroll to the bottom
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // 5. Send a message with the user’s name & server timestamp
+    // Function to send a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -163,7 +155,6 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-
       window.db.collection("messages").add({
         username: tempUsername,
         text: message,
