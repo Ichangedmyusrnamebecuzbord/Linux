@@ -151,3 +151,21 @@ document.addEventListener("DOMContentLoaded", function () {
         positionGames(matchingGames);
     });
 });
+document.addEventListener("DOMContentLoaded", function () {
+    const searchBar = document.getElementById("searchBar");
+    const searchBarOriginalTop = searchBar.offsetTop; // Get original top position
+
+    window.addEventListener("scroll", function () {
+        if (window.scrollY >= searchBarOriginalTop) {
+            searchBar.style.position = "fixed";
+            searchBar.style.top = "0"; // Stick to the top of the screen
+            searchBar.style.left = "18%"; // Keep original left position
+            searchBar.style.width = "800px"; // Maintain width
+            searchBar.style.zIndex = "1000"; // Ensure it's above other elements
+        } else {
+            searchBar.style.position = "absolute";
+            searchBar.style.top = "17%"; // Restore original position
+            searchBar.style.left = "18%";
+        }
+    });
+});
