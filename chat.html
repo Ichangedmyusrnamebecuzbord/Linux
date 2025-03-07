@@ -56,14 +56,9 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Container for username display and change button */
-    #username-container {
+    #username-display {
       margin-bottom: 15px;
       font-weight: bold;
-      display: inline-block;
-    }
-    #username-display {
-      margin-right: 10px;
     }
   </style>
   <!-- Use Firebase in Compatibility Mode -->
@@ -71,24 +66,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button will be set by your earlier code (e.g., based on previous page query) -->
+  <!-- The back button will have its href updated via JavaScript -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
-
-  <!-- Username container with display and change button -->
-  <div id="username-container">
-    <span id="username-display"></span>
-    <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
-  </div>
-  
+  <div id="username-display"></div>
   <div id="chat-box"></div>
-  
   <input type="text" id="message" placeholder="Type your message..." 
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // 1. Temporary Username (persistent in localStorage)
+    // Function to get a query parameter from the URL
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    // Update the back button based on the "prev" query parameter (default to Home.html)
+    document.addEventListener("DOMContentLoaded", function() {
+      const prevPage = getQueryParam("prev") || "Home.html";
+      document.querySelector("a.back-button").href = prevPage;
+      console.log("Back button set to:", prevPage);
+    });
+
+    // Temporary username stored in localStorage (persists across sessions)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -96,18 +97,15 @@
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // 2. Generate a unique chat session (ephemeral, stored in sessionStorage)
-    let chatSession = sessionStorage.getItem("chatSession");
-    if (!chatSession) {
-      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
-      sessionStorage.setItem("chatSession", chatSession);
+    // Session-based chat: new session per browser tab
+    let chatStartTime = sessionStorage.getItem("chatStartTime");
+    if (!chatStartTime) {
+      chatStartTime = Date.now().toString();
+      sessionStorage.setItem("chatStartTime", chatStartTime);
     }
-    console.log("Chat Session ID:", chatSession);
+    console.log("Chat Start Time:", chatStartTime);
 
-    // 3. Active user document ID based on chatSession
-    const activeUserDocId = "active_" + chatSession;
-
-    // 4. Initialize Firebase and Firestore once DOM is loaded
+    // Initialize Firebase
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -125,30 +123,11 @@
       } else {
         console.log("ℹ️ Firebase already initialized.");
       }
+
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // 5. Create/update active user document in "activeUsers" collection
-      const activeUserRef = window.db.collection("activeUsers").doc(activeUserDocId);
-      activeUserRef.set({
-        username: tempUsername,
-        session: chatSession,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        console.log("✅ Active user document updated:", activeUserDocId);
-      }).catch(error => {
-        console.error("❌ Error updating active user document:", error);
-      });
-
-      // 6. Record chat start time (to hide old messages) in sessionStorage
-      let chatStartTime = sessionStorage.getItem("chatStartTime");
-      if (!chatStartTime) {
-        chatStartTime = Date.now().toString();
-        sessionStorage.setItem("chatStartTime", chatStartTime);
-      }
-      console.log("Chat Start Time:", chatStartTime);
-
-      // 7. Real-time listener for messages (showing messages after chatStartTime)
+      // Listen for messages and only display those posted after chatStartTime
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -168,54 +147,7 @@
         });
     });
 
-    // 8. Change Username button functionality
-    document.getElementById("change-username-button").addEventListener("click", function() {
-      const newUsername = prompt("Enter new username:");
-      if (!newUsername || newUsername.trim() === "") {
-        alert("Username cannot be empty.");
-        return;
-      }
-      const trimmedUsername = newUsername.trim();
-
-      // Check activeUsers collection for the new username
-      window.db.collection("activeUsers")
-        .where("username", "==", trimmedUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            alert("That username is already taken by an active user. Please choose another.");
-          } else {
-            // Update our active user document with the new username
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: trimmedUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = trimmedUsername;
-                localStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                alert("Username changed to " + tempUsername);
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                alert("Error updating username. Please try again.");
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          alert("Error checking username uniqueness. Please try again later.");
-        });
-    });
-
-    // 9. Function to send a message (includes current username)
+    // Function to send a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
