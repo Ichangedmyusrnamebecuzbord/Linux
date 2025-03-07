@@ -112,31 +112,28 @@ function sendMessage() {
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 DOM Loaded, initializing Firebase...");
+        console.log("🚀 DOM Loaded, checking Firebase...");
 
-        // ✅ Check if Firebase is available
-        if (typeof firebase === "undefined") {
-            console.error("❌ Firebase SDK did NOT load! Possible issues:");
-            console.error("1️⃣ The Firebase script URLs are incorrect or blocked.");
-            console.error("2️⃣ There is a network issue preventing the scripts from loading.");
-            console.error("3️⃣ A browser extension (like an ad-blocker) is blocking Firebase.");
+        // 🔍 Force Firebase to be global
+        window.firebase = firebase;
+
+        if (typeof window.firebase === "undefined") {
+            console.error("❌ Firebase is still undefined! Possible script execution issue.");
             return;
         }
 
-        console.log("✅ Firebase SDK is available!");
+        console.log("✅ Firebase SDK is available globally!");
 
-        // ✅ Correct Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-            authDomain: "mallyssusgamingchat.firebaseapp.com",
-            projectId: "mallyssusgamingchat",
-            storageBucket: "mallyssusgamingchat.appspot.com",  // ✅ Fixed storageBucket typo
-            messagingSenderId: "848817267004",
-            appId: "1:848817267004:web:fbecb7246352afb9937e39",
-            measurementId: "G-MSF2RTLJD2"
-        };
+        // ✅ Firebase Configuration (Replace with your actual Firebase config)
+const firebaseConfig = {
+  apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
+  authDomain: "mallyssusgamingchat.firebaseapp.com",
+  projectId: "mallyssusgamingchat",
+  storageBucket: "mallyssusgamingchat.firebasestorage.app",
+  messagingSenderId: "848817267004",
+  appId: "1:848817267004:web:fbecb7246352afb9937e39",
+};
 
-        // ✅ Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
             console.log("✅ Firebase Initialized!");
@@ -144,7 +141,7 @@ function sendMessage() {
             console.log("ℹ️ Firebase already initialized.");
         }
 
-        // ✅ Initialize Firestore
+        // ✅ Initialize Firestore and force global access
         window.db = firebase.firestore();
         console.log("✅ Firestore Ready:", window.db);
     });
