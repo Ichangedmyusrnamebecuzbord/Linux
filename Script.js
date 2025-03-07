@@ -240,23 +240,3 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".play-music").forEach(btn => btn.addEventListener("click", () => audio.play()));
     document.querySelectorAll(".pause-music").forEach(btn => btn.addEventListener("click", () => audio.pause()));
 });
-
-function sendMessage() {
-    let message = messageInput.value.trim();
-    if (message === "") {
-        console.warn("Empty message, not sending.");
-        return; // Prevent empty messages
-    }
-
-    console.log("Sending message:", message);
-
-    db.collection("messages").add({
-        text: message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        console.log("Message sent successfully!");
-        messageInput.value = ""; // Clear input after sending
-    }).catch(error => {
-        console.error("Error sending message:", error);
-    });
-}
