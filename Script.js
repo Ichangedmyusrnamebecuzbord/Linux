@@ -99,8 +99,8 @@ document.addEventListener("DOMContentLoaded", function () {
         let startTop = 30;  // Initial Y position
         let startLeft = 10; // Initial X position
         let rowSpacing = 25; // Space between rows
-        let colSpacing = 12; // Space between columns
-        let maxColumns = 6; // Adjust based on screen width
+        let colSpacing = 15; // Space between columns
+        let maxColumns = 5; // Adjust based on screen width
         let currentLeft = startLeft;
         let currentTop = startTop;
         let columnCount = 0;
@@ -121,26 +121,29 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
     // Position the sorted games correctly on load
     positionGames(games);
 
     // Search Functionality
+    const searchInput = document.getElementById("searchBar");
+
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
 
-        let exactMatches = [];
-        let partialMatches = [];
+        let matchingGames = [];
+        let nonMatchingGames = [];
 
         games.forEach(game => {
             const gameName = game.getAttribute("data-name").toLowerCase();
-            if (gameName.startsWith(searchValue)) {
-                exactMatches.push(game); // Prioritize games that start with the search term
-            } else if (gameName.includes(searchValue)) {
-                partialMatches.push(game); // Games that contain the search term elsewhere
+            if (gameName.includes(searchValue)) {
+                matchingGames.push(game);
+            } else {
+                nonMatchingGames.push(game);
             }
         });
 
-        // If the search bar is empty, restore alphabetical order
+        // If the search bar is empty, restore alphabetical order and original layout
         if (searchValue === "") {
             gameContainer.innerHTML = "";
             games.forEach(game => {
@@ -151,26 +154,20 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Clear container and display matches in correct order
+        // Clear container and display only matching games at the top
         gameContainer.innerHTML = "";
-        exactMatches.forEach(game => {
-            game.style.display = "block";
-            gameContainer.appendChild(game);
-        });
-        partialMatches.forEach(game => {
+        matchingGames.forEach(game => {
             game.style.display = "block";
             gameContainer.appendChild(game);
         });
 
         // Hide non-matching games
-        games.forEach(game => {
-            if (!gameName.includes(searchValue)) {
-                game.style.display = "none";
-            }
+        nonMatchingGames.forEach(game => {
+            game.style.display = "none";
         });
 
         // Reposition only the matching games
-        positionGames([...exactMatches, ...partialMatches]);
+        positionGames(matchingGames);
     });
 });
 
