@@ -106,22 +106,24 @@ console.log("Firestore Reference:", db);
 
         // ✅ Fixing the Send Button
 function sendMessage() {
+    let messageInput = document.getElementById("message");
     let message = messageInput.value.trim();
+
     if (message === "") {
-        console.warn("Empty message, not sending.");
-        return;
+        console.warn("Empty message - Not Sending");
+        return; // Stop empty messages
     }
 
-    console.log("Sending message:", message);
+    console.log("Attempting to Send Message:", message);
 
     db.collection("messages").add({
         text: message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Auto-set timestamp
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
     }).then(() => {
-        console.log("Message sent successfully!");
-        messageInput.value = ""; // Clear input
+        console.log("✅ Message Sent Successfully!");
+        messageInput.value = ""; // Clear input after sending
     }).catch(error => {
-        console.error("Error sending message:", error);
+        console.error("❌ Error Sending Message:", error);
     });
 }
 
