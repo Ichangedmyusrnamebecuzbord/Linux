@@ -210,10 +210,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    let audio = document.getElementById("background-music");
+    let audio;
 
-    // Check if audio element exists, if not, create it dynamically
-    if (!audio) {
+    // Check if audio already exists in another page
+    if (window.parent && window.parent.document.getElementById("background-music")) {
+        audio = window.parent.document.getElementById("background-music"); // Get the main audio element from index.html
+    } else {
+        // If this is the main page, create the audio element
         audio = document.createElement("audio");
         audio.id = "background-music";
         audio.loop = true;
@@ -221,27 +224,19 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.appendChild(audio);
     }
 
-    // Restore playback state from local storage
+    // Restore the last state of music
     if (localStorage.getItem("musicPaused") === "false") {
         audio.currentTime = localStorage.getItem("musicTime") || 0;
         audio.play();
     }
 
-    // Save music state before leaving page
+    // Save the music state before leaving the page
     window.addEventListener("beforeunload", function () {
         localStorage.setItem("musicTime", audio.currentTime);
         localStorage.setItem("musicPaused", audio.paused);
     });
 
-    // Attach play/pause buttons dynamically (if needed)
-    const playButton = document.querySelector(".play-music");
-    const pauseButton = document.querySelector(".pause-music");
-
-    if (playButton) {
-        playButton.addEventListener("click", () => audio.play());
-    }
-    if (pauseButton) {
-        pauseButton.addEventListener("click", () => audio.pause());
-    }
+    // Add event listeners for play/pause buttons if they exist
+    document.querySelectorAll(".play-music").forEach(btn => btn.addEventListener("click", () => audio.play()));
+    document.querySelectorAll(".pause-music").forEach(btn => btn.addEventListener("click", () => audio.pause()));
 });
-
