@@ -123,53 +123,5 @@ const firebaseConfig = {
     }
 </script>
 
-testFirestore();
-
-
-        const chatBox = document.getElementById("chat-box");
-        const messageInput = document.getElementById("message");
-        
-console.log("Firebase Initialized:", firebase);
-console.log("Firestore Reference:", db);
-
-function sendMessage() {
-    let messageInput = document.getElementById("message");
-    let message = messageInput.value.trim();
-
-    if (message === "") {
-        console.warn("⚠️ Empty message - Not Sending");
-        return;
-    }
-
-    console.log("📤 Attempting to Send Message:", message);
-
-    db.collection("messages").add({
-        text: message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        console.log("✅ Message Sent Successfully!");
-        messageInput.value = ""; // Clear input after sending
-    }).catch(error => {
-        console.error("❌ Error Sending Message:", error);
-    });
-}
-
-
-        // ✅ Load messages in real-time
-        db.collection("messages").orderBy("timestamp").onSnapshot(snapshot => {
-            chatBox.innerHTML = "";
-            snapshot.forEach(doc => {
-                chatBox.innerHTML += `<p>${doc.data().text}</p>`;
-            });
-
-            // Auto-scroll to the newest message
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-
-        // 🔹 Debugging Firebase Initialization
-        console.log("Firebase Initialized:", firebase);
-        console.log("Firestore Reference:", db);
-    </script>
-
 </body>
 </html>
