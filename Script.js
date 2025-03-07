@@ -84,17 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // Sort games alphabetically by default (on page load)
-    games.sort((a, b) => {
-        let nameA = a.getAttribute("data-name").toLowerCase();
-        let nameB = b.getAttribute("data-name").toLowerCase();
-        return nameA.localeCompare(nameB);
-    });
-
-    // Append sorted games to the container
-    gameContainer.innerHTML = "";
-    games.forEach(game => gameContainer.appendChild(game));
-
     // Function to position games in a grid
     function positionGames(gameList) {
         let startTop = 30;
@@ -108,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         gameList.forEach((game) => {
             game.style.position = "absolute";
-            game.style.display = "block";
+            game.style.display = "block"; // Make sure elements are shown
             game.style.top = `${currentTop}%`;
             game.style.left = `${currentLeft}%`;
 
@@ -123,12 +112,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Position the sorted games correctly on load
-    positionGames(games);
+    // Sort games alphabetically on page load
+    games.sort((a, b) => {
+        let nameA = a.getAttribute("data-name").toLowerCase();
+        let nameB = b.getAttribute("data-name").toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+
+    // Function to update the game display
+    function renderGames(gameList) {
+        gameContainer.innerHTML = "";
+        gameList.forEach(game => gameContainer.appendChild(game));
+        positionGames(gameList);
+    }
+
+    // Initial rendering (sorted alphabetically)
+    renderGames(games);
 
     // Search Functionality
     searchInput.addEventListener("input", function () {
         const searchValue = searchInput.value.toLowerCase().trim();
+
+        if (searchValue === "") {
+            renderGames(games); // Restore alphabetical order when search is cleared
+            return;
+        }
 
         let exactMatches = [];
         let partialMatches = [];
@@ -136,45 +144,20 @@ document.addEventListener("DOMContentLoaded", function () {
         games.forEach(game => {
             const gameName = game.getAttribute("data-name").toLowerCase();
             if (gameName.startsWith(searchValue)) {
-                exactMatches.push(game); // Prioritize games that start with the search term
+                exactMatches.push(game); // Prioritize exact matches
             } else if (gameName.includes(searchValue)) {
-                partialMatches.push(game); // Games that contain the search term elsewhere
+                partialMatches.push(game); // Secondary matches
             }
         });
 
-        // If the search bar is empty, restore alphabetical order
-        if (searchValue === "") {
-            gameContainer.innerHTML = "";
-            games.forEach(game => {
-                game.style.display = "block";
-                gameContainer.appendChild(game);
-            });
-            positionGames(games); // Restore original grid layout
-            return;
-        }
+        // Combine lists with exact matches first
+        let orderedGames = [...exactMatches, ...partialMatches];
 
-        // Clear container and display matches in correct order
-        gameContainer.innerHTML = "";
-        exactMatches.forEach(game => {
-            game.style.display = "block";
-            gameContainer.appendChild(game);
-        });
-        partialMatches.forEach(game => {
-            game.style.display = "block";
-            gameContainer.appendChild(game);
-        });
-
-        // Hide non-matching games
-        games.forEach(game => {
-            if (!gameName.includes(searchValue)) {
-                game.style.display = "none";
-            }
-        });
-
-        // Reposition only the matching games
-        positionGames([...exactMatches, ...partialMatches]);
+        // Render only the matching games
+        renderGames(orderedGames);
     });
 });
+
 
 
 
