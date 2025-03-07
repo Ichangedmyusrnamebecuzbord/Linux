@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+
+<script>
+    // Firebase Configuration (Replace with your Firebase config)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(); // Make sure Firestore is initialized
+
+    console.log("✅ Firebase Initialized:", firebase);
+    console.log("✅ Firestore Reference:", db);
+</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room - Mally's Sus Gaming</title>
@@ -104,17 +127,16 @@ testFirestore();
 console.log("Firebase Initialized:", firebase);
 console.log("Firestore Reference:", db);
 
-        // ✅ Fixing the Send Button
 function sendMessage() {
     let messageInput = document.getElementById("message");
     let message = messageInput.value.trim();
 
     if (message === "") {
-        console.warn("Empty message - Not Sending");
-        return; // Stop empty messages
+        console.warn("⚠️ Empty message - Not Sending");
+        return;
     }
 
-    console.log("Attempting to Send Message:", message);
+    console.log("📤 Attempting to Send Message:", message);
 
     db.collection("messages").add({
         text: message,
