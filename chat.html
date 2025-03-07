@@ -69,43 +69,13 @@
     <input type="text" id="message" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
 
-<!-- ✅ Correct Firebase SDK Import -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 DOM Loaded, initializing Firebase...");
-
-        // ✅ Correct Firebase Config (Replace with your actual values)
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-  authDomain: "mallyssusgamingchat.firebaseapp.com",
-  projectId: "mallyssusgamingchat",
-  storageBucket: "mallyssusgamingchat.firebasestorage.app",
-  messagingSenderId: "848817267004",
-  appId: "1:848817267004:web:fbecb7246352afb9937e39",
-};
-
-        // ✅ Ensure Firebase is initialized only once
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
-        // ✅ Set Firestore as a global variable to make sure it’s available everywhere
-        window.db = firebase.firestore();
-
-        console.log("✅ Firebase Initialized:", firebase);
-        console.log("✅ Firestore Ready:", window.db);
-    });
-</script>
 
 
 
 <!-- ✅ Ensure `sendMessage()` is declared AFTER Firebase is initialized -->
 <script>
-   function sendMessage() {
+function sendMessage() {
     let messageInput = document.getElementById("message");
     let message = messageInput.value.trim();
 
@@ -122,7 +92,7 @@ const firebaseConfig = {
         return;
     }
 
-    // ✅ Use `window.db` to make sure Firestore is available
+    // ✅ Use `window.db` to ensure Firestore is accessible
     window.db.collection("messages").add({
         text: message,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -133,8 +103,45 @@ const firebaseConfig = {
         console.error("❌ Error Sending Message:", error);
     });
 }
-
 </script>
+    
+<!-- ✅ Correct Firebase SDK Import (NO "module", NO "import/export") -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
+<script>
+    // ✅ Ensure Firebase is defined and initialized correctly
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("🚀 DOM Loaded, initializing Firebase...");
+
+        // ✅ Check if Firebase is available
+        if (typeof firebase === "undefined") {
+            console.error("❌ Firebase SDK did not load!");
+            return;
+        }
+
+        // ✅ Correct Firebase Configuration (Replace with YOUR actual Firebase config)
+       const firebaseConfig = {
+          apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
+          authDomain: "mallyssusgamingchat.firebaseapp.com",
+          projectId: "mallyssusgamingchat",
+          storageBucket: "mallyssusgamingchat.firebasestorage.app",
+          messagingSenderId: "848817267004",
+          appId: "1:848817267004:web:fbecb7246352afb9937e39",
+          measurementId: "G-MSF2RTLJD2"
+        };
+
+        // ✅ Initialize Firebase if not already initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // ✅ Ensure Firestore is available globally
+        window.db = firebase.firestore();
+
+        console.log("✅ Firebase Initialized:", firebase);
+        console.log("✅ Firestore Ready:", window.db);
+    });
+</script>
 </body>
 </html>
