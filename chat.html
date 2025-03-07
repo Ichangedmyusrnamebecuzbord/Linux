@@ -62,40 +62,49 @@
       font-weight: bold;
     }
   </style>
-  <!-- Use Firebase in Compatibility Mode -->
+  <!-- Use Firebase in Compatibility Mode (no "import" or "export" errors) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back to Home</a>
   <h1>Chat Room</h1>
+  
   <!-- Display the temporary username -->
   <div id="username-display"></div>
+  
+  <!-- Chat box for displaying messages -->
   <div id="chat-box"></div>
-  <!-- When pressing Enter in the message input, send the message -->
-  <input type="text" id="message" placeholder="Type your message..." 
-         onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+  
+  <!-- Message input (press Enter or click Send) -->
+  <input 
+    type="text" 
+    id="message" 
+    placeholder="Type your message..." 
+    onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}"
+  >
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // Generate or retrieve a temporary username (persistent across sessions)
+    // 1. Temporary Username (persists across browser sessions)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
-      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000); // e.g. "User1234"
       localStorage.setItem("tempUsername", tempUsername);
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // Generate or retrieve a chat session ID from sessionStorage (ephemeral per tab)
-    let chatSession = sessionStorage.getItem("chatSession");
-    if (!chatSession) {
-      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
-      sessionStorage.setItem("chatSession", chatSession);
+    // 2. Chat Start Time (new for each tab/session). 
+    //    We only show messages posted after this time.
+    let chatStartTime = sessionStorage.getItem("chatStartTime");
+    if (!chatStartTime) {
+      chatStartTime = Date.now().toString(); 
+      sessionStorage.setItem("chatStartTime", chatStartTime);
     }
-    console.log("Chat Session ID:", chatSession);
+    console.log("Chat Start Time:", chatStartTime);
 
+    // 3. Initialize Firebase
     document.addEventListener("DOMContentLoaded", function() {
-      // Firebase configuration (replace with your actual config)
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
         authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -106,38 +115,47 @@
         measurementId: "G-MSF2RTLJD2"
       };
 
-      // Initialize Firebase if not already initialized
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         console.log("✅ Firebase Initialized!");
       } else {
         console.log("ℹ️ Firebase already initialized.");
       }
-
-      // Initialize Firestore
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for messages only in the current chat session
+      // 4. Real-time listener for ALL messages, sorted by timestamp
+      //    We'll filter them client-side below.
       window.db.collection("messages")
-        .where("session", "==", chatSession)
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = ""; // Clear current messages
+          chatBox.innerHTML = ""; // Clear the chat box
+
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
+            // Skip messages that don't have a timestamp or are older than chatStartTime
+            if (!msgData.timestamp) return;
+            
+            const msgTime = msgData.timestamp.toMillis(); 
+            if (msgTime < parseInt(chatStartTime)) {
+              // This message was posted before this user opened the site
+              return; 
+            }
+
+            // Display the message
             const p = document.createElement("p");
-            // Display username and message
-            p.textContent = (msgData.username ? msgData.username : "Anon") + ": " + msgData.text;
+            const displayName = msgData.username || "Anon";
+            p.textContent = displayName + ": " + msgData.text;
             chatBox.appendChild(p);
           });
+
           // Auto-scroll to the bottom
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // Function to send a message with username and session ID attached
+    // 5. Send a message with the user’s name & server timestamp
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -145,10 +163,10 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
+
       window.db.collection("messages").add({
         username: tempUsername,
         text: message,
-        session: chatSession,  // attach the current session id
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
