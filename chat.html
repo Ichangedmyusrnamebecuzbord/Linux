@@ -88,11 +88,12 @@ function sendMessage() {
 
     // ✅ Wait for Firestore to be initialized
     if (!window.db) {
-        console.error("❌ Firestore is not initialized yet!");
+        console.error("❌ Firestore is not initialized yet! Retrying...");
+        setTimeout(sendMessage, 500); // 🔄 Retry after 500ms
         return;
     }
 
-    // ✅ Use `window.db` to ensure Firestore is accessible
+    // ✅ Firestore is ready, send message
     window.db.collection("messages").add({
         text: message,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -105,17 +106,15 @@ function sendMessage() {
 }
 </script>
     
-<!-- ✅ Load Firebase SDKs (MAKE SURE THESE LINES EXIST IN YOUR FILE) -->
+<!-- ✅ Correct Firebase SDK Import -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 DOM Loaded, checking Firebase...");
+        console.log("🚀 DOM Loaded, initializing Firebase...");
 
-        // 🔍 DEBUG: Check if Firebase scripts loaded
-        console.log("Checking if 'firebase' exists:", typeof firebase);
-
+        // ✅ Check if Firebase is available
         if (typeof firebase === "undefined") {
             console.error("❌ Firebase SDK did NOT load! Possible issues:");
             console.error("1️⃣ The Firebase script URLs are incorrect or blocked.");
@@ -126,16 +125,16 @@ function sendMessage() {
 
         console.log("✅ Firebase SDK is available!");
 
-        // 🔹 Replace this with YOUR actual Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-  authDomain: "mallyssusgamingchat.firebaseapp.com",
-  projectId: "mallyssusgamingchat",
-  storageBucket: "mallyssusgamingchat.firebasestorage.app",
-  messagingSenderId: "848817267004",
-  appId: "1:848817267004:web:fbecb7246352afb9937e39",
-  measurementId: "G-MSF2RTLJD2"
-};
+        // ✅ Correct Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
+            authDomain: "mallyssusgamingchat.firebaseapp.com",
+            projectId: "mallyssusgamingchat",
+            storageBucket: "mallyssusgamingchat.appspot.com",  // ✅ Fixed storageBucket typo
+            messagingSenderId: "848817267004",
+            appId: "1:848817267004:web:fbecb7246352afb9937e39",
+            measurementId: "G-MSF2RTLJD2"
+        };
 
         // ✅ Initialize Firebase
         if (!firebase.apps.length) {
