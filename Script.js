@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let startLeft = 10;
         let rowSpacing = 25;
         let colSpacing = 12;
-        let maxColumns = 7;
+        let maxColumns = 6;
         let currentLeft = startLeft;
         let currentTop = startTop;
         let columnCount = 0;
