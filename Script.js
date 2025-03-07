@@ -200,3 +200,48 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem("musicPaused", audio.paused);
     });
 });
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let audio = document.getElementById("background-music");
+
+    // Check if audio element exists, if not, create it dynamically
+    if (!audio) {
+        audio = document.createElement("audio");
+        audio.id = "background-music";
+        audio.loop = true;
+        audio.innerHTML = '<source src="CS.mp3" type="audio/mpeg">';
+        document.body.appendChild(audio);
+    }
+
+    // Restore playback state from local storage
+    if (localStorage.getItem("musicPaused") === "false") {
+        audio.currentTime = localStorage.getItem("musicTime") || 0;
+        audio.play();
+    }
+
+    // Save music state before leaving page
+    window.addEventListener("beforeunload", function () {
+        localStorage.setItem("musicTime", audio.currentTime);
+        localStorage.setItem("musicPaused", audio.paused);
+    });
+
+    // Attach play/pause buttons dynamically (if needed)
+    const playButton = document.querySelector(".play-music");
+    const pauseButton = document.querySelector(".pause-music");
+
+    if (playButton) {
+        playButton.addEventListener("click", () => audio.play());
+    }
+    if (pauseButton) {
+        pauseButton.addEventListener("click", () => audio.pause());
+    }
+});
+
