@@ -1,4 +1,3 @@
-//TH4NK YOU BRO
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,19 +47,21 @@
     </style>
 </head>
 <body>
-<a href="Home.html" style="
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: #cc0000;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 18px;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-">⬅ Back to Home</a>
+
+    <!-- Back to Home Button -->
+    <a href="Home.html" style="
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #cc0000;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 18px;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    ">⬅ Back to Home</a>
 
     <h1>Chat Room</h1>
     <div id="chat-box"></div>
@@ -72,7 +73,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
     <script>
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
   authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -90,28 +91,42 @@ const firebaseConfig = {
         const chatBox = document.getElementById("chat-box");
         const messageInput = document.getElementById("message");
 
-        function sendMessage() {
-            let message = messageInput.value;
-            if (message.trim() === "") return;
+        // ✅ Fixing the Send Button
+function sendMessage() {
+    let message = messageInput.value.trim();
+    if (message === "") {
+        console.warn("Empty message, not sending.");
+        return;
+    }
 
-            db.collection("messages").add({
-                text: message,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+    console.log("Sending message:", message);
 
-            messageInput.value = "";
-        }
+    db.collection("messages").add({
+        text: message,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Auto-set timestamp
+    }).then(() => {
+        console.log("Message sent successfully!");
+        messageInput.value = ""; // Clear input
+    }).catch(error => {
+        console.error("Error sending message:", error);
+    });
+}
 
-        // Listen for new messages
+
+        // ✅ Load messages in real-time
         db.collection("messages").orderBy("timestamp").onSnapshot(snapshot => {
             chatBox.innerHTML = "";
             snapshot.forEach(doc => {
                 chatBox.innerHTML += `<p>${doc.data().text}</p>`;
             });
 
-            // Auto-scroll to latest message
+            // Auto-scroll to the newest message
             chatBox.scrollTop = chatBox.scrollHeight;
         });
+
+        // 🔹 Debugging Firebase Initialization
+        console.log("Firebase Initialized:", firebase);
+        console.log("Firestore Reference:", db);
     </script>
 
 </body>
