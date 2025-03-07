@@ -77,14 +77,13 @@ if (window.location.href.startsWith("view-source:")) {
 document.addEventListener("DOMContentLoaded", function () {
     const gameContainer = document.querySelector(".game-container");
     let games = Array.from(document.querySelectorAll(".LOL"));
-    const searchInput = document.getElementById("searchBar");
 
-    if (!gameContainer || games.length === 0 || !searchInput) {
-        console.error("Game container, games, or search bar not found!");
+    if (!gameContainer || games.length === 0) {
+        console.error("Game container or games not found!");
         return;
     }
 
-    // Sort games alphabetically by default (on page load)
+    // Sort games alphabetically by data-name on page load
     games.sort((a, b) => {
         let nameA = a.getAttribute("data-name").toLowerCase();
         let nameB = b.getAttribute("data-name").toLowerCase();
@@ -95,13 +94,13 @@ document.addEventListener("DOMContentLoaded", function () {
     gameContainer.innerHTML = "";
     games.forEach(game => gameContainer.appendChild(game));
 
-    // Function to position games in a grid
+    // Position games in a grid layout
     function positionGames(gameList) {
-        let startTop = 30;
-        let startLeft = 10;
-        let rowSpacing = 25;
-        let colSpacing = 12;
-        let maxColumns = 7;
+        let startTop = 30;  // Initial Y position
+        let startLeft = 10; // Initial X position
+        let rowSpacing = 25; // Space between rows
+        let colSpacing = 12; // Space between columns
+        let maxColumns = 6; // Adjust based on screen width
         let currentLeft = startLeft;
         let currentTop = startTop;
         let columnCount = 0;
@@ -122,7 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
     // Position the sorted games correctly on load
     positionGames(games);
 
