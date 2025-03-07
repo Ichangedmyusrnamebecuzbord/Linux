@@ -56,22 +56,37 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
+    /* Display the temporary username on screen */
+    #username-display {
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
   </style>
-  <!-- Use Firebase in Compatibility Mode (avoids module syntax errors) -->
+  <!-- Use Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back to Home</a>
   <h1>Chat Room</h1>
+  <!-- Show the temporary username -->
+  <div id="username-display"></div>
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message...">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // Wait for the DOM to fully load
+    // Generate or retrieve a temporary username
+    let tempUsername = localStorage.getItem("tempUsername");
+    if (!tempUsername) {
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000); // e.g., User1234
+      localStorage.setItem("tempUsername", tempUsername);
+    }
+    document.getElementById("username-display").textContent = "You are: " + tempUsername;
+
+    // Wait for DOM content to load
     document.addEventListener("DOMContentLoaded", function() {
-      // Firebase configuration (replace with your actual config if needed)
+      // Firebase configuration (replace with your actual config)
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
         authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -82,7 +97,7 @@
         measurementId: "G-MSF2RTLJD2"
       };
 
-      // Initialize Firebase only if not already initialized
+      // Initialize Firebase if not already initialized
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         console.log("✅ Firebase Initialized!");
@@ -90,20 +105,21 @@
         console.log("ℹ️ Firebase already initialized.");
       }
 
-      // Initialize Firestore and assign it to a global variable
+      // Initialize Firestore and assign to global variable
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for new messages in real time and update the chat box
+      // Listen for new messages and update the chat box
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = ""; // Clear current messages
+          chatBox.innerHTML = ""; // Clear messages
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
             const p = document.createElement("p");
-            p.textContent = msgData.text;
+            // Display username and message
+            p.textContent = (msgData.username ? msgData.username : "Anon") + ": " + msgData.text;
             chatBox.appendChild(p);
           });
           // Auto-scroll to the bottom
@@ -111,7 +127,7 @@
         });
     });
 
-    // Function to send a message
+    // Function to send a message with the temporary username attached
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -120,6 +136,7 @@
         return;
       }
       window.db.collection("messages").add({
+        username: tempUsername,
         text: message,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
