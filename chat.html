@@ -1,170 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room - Mally's Sus Gaming</title>
-    <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        #chat-box {
-            width: 80%;
-            max-width: 600px;
-            height: 400px;
-            border: 1px solid #ccc;
-            margin: auto;
-            padding: 10px;
-            overflow-y: auto;
-            background: #222;
-            border-radius: 10px;
-        }
-        input {
-            width: 70%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            border: none;
-            background: #333;
-            color: white;
-        }
-        button {
-            padding: 10px;
-            border: none;
-            background: #0044cc;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background: #0033aa;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat Room - Mally's Sus Gaming</title>
+  <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    #chat-box {
+      width: 80%;
+      max-width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      margin: 20px auto;
+      padding: 10px;
+      overflow-y: auto;
+      background: #222;
+      border-radius: 10px;
+    }
+    input {
+      width: 70%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      background: #333;
+      color: white;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      background: #0044cc;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #0033aa;
+    }
+    a.back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #cc0000;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 18px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+  </style>
+  <!-- Use Firebase in Compatibility Mode (avoids module syntax errors) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <a href="Home.html" class="back-button">⬅ Back to Home</a>
+  <h1>Chat Room</h1>
+  <div id="chat-box"></div>
+  <input type="text" id="message" placeholder="Type your message...">
+  <button onclick="sendMessage()">Send</button>
 
-    <!-- Back to Home Button -->
-    <a href="Home.html" style="
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: #cc0000;
-        color: white;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-size: 18px;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    ">⬅ Back to Home</a>
+  <script>
+    // Wait for the DOM to fully load
+    document.addEventListener("DOMContentLoaded", function() {
+      // Firebase configuration (replace with your actual config if needed)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
+        authDomain: "mallyssusgamingchat.firebaseapp.com",
+        projectId: "mallyssusgamingchat",
+        storageBucket: "mallyssusgamingchat.appspot.com",
+        messagingSenderId: "848817267004",
+        appId: "1:848817267004:web:fbecb7246352afb9937e39",
+        measurementId: "G-MSF2RTLJD2"
+      };
 
-    <h1>Chat Room</h1>
-    <div id="chat-box"></div>
-    <input type="text" id="message" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
+      // Initialize Firebase only if not already initialized
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("✅ Firebase Initialized!");
+      } else {
+        console.log("ℹ️ Firebase already initialized.");
+      }
 
+      // Initialize Firestore and assign it to a global variable
+      window.db = firebase.firestore();
+      console.log("✅ Firestore Ready:", window.db);
 
+      // Listen for new messages in real time and update the chat box
+      window.db.collection("messages")
+        .orderBy("timestamp")
+        .onSnapshot(function(snapshot) {
+          const chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML = ""; // Clear current messages
+          snapshot.forEach(function(doc) {
+            const msgData = doc.data();
+            const p = document.createElement("p");
+            p.textContent = msgData.text;
+            chatBox.appendChild(p);
+          });
+          // Auto-scroll to the bottom
+          chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    });
 
-
-
-<!-- ✅ Ensure `sendMessage()` is declared AFTER Firebase is initialized -->
-<script>
-function sendMessage() {
-    let messageInput = document.getElementById("message");
-    let message = messageInput.value.trim();
-
-    if (message === "") {
-        console.warn("⚠️ Empty message - Not Sending");
+    // Function to send a message
+    function sendMessage() {
+      const messageInput = document.getElementById("message");
+      const message = messageInput.value.trim();
+      if (message === "") {
+        console.warn("⚠️ Empty message - Not sending");
         return;
-    }
-
-    console.log("📤 Attempting to Send Message:", message);
-
-    // ✅ Wait for Firestore to be initialized
-    if (!window.db) {
-        console.error("❌ Firestore is not initialized yet! Retrying...");
-        setTimeout(sendMessage, 500); // 🔄 Retry after 500ms
-        return;
-    }
-
-    // ✅ Firestore is ready, send message
-    window.db.collection("messages").add({
+      }
+      window.db.collection("messages").add({
         text: message,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
+      })
+      .then(() => {
         console.log("✅ Message Sent Successfully!");
-        messageInput.value = ""; // Clear input after sending
-    }).catch(error => {
+        messageInput.value = "";
+      })
+      .catch((error) => {
         console.error("❌ Error Sending Message:", error);
-    });
-}
-</script>
-    
-<!-- ✅ Correct Firebase SDK Import -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 DOM Loaded, checking Firebase...");
-
-        if (typeof firebase === "undefined") {
-            console.error("❌ Firebase SDK is loaded but NOT recognized in the script!");
-            return;
-        }
-
-        console.log("✅ Firebase SDK is available!");
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-  authDomain: "mallyssusgamingchat.firebaseapp.com",
-  projectId: "mallyssusgamingchat",
-  storageBucket: "mallyssusgamingchat.firebasestorage.app",
-  messagingSenderId: "848817267004",
-  appId: "1:848817267004:web:fbecb7246352afb9937e39",
-  measurementId: "G-MSF2RTLJD2"
-};
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-            console.log("✅ Firebase Initialized!");
-        } else {
-            console.log("ℹ️ Firebase already initialized.");
-        }
-
-        // ✅ Initialize Firestore
-        window.db = firebase.firestore();
-        console.log("✅ Firestore Ready:", window.db);
-    });
-</script>
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 Checking Firebase...");
-
-        // 🔍 Test if Firebase is defined
-        console.log("Checking if 'firebase' exists:", typeof firebase);
-
-        if (typeof firebase === "undefined") {
-            console.error("❌ Firebase SDK did NOT load!");
-            return;
-        }
-
-        console.log("✅ Firebase SDK Loaded Successfully!");
-
-        // 🔹 Test if Firestore is available
-        try {
-            const testDb = firebase.firestore();
-            console.log("✅ Firestore is working:", testDb);
-        } catch (error) {
-            console.error("❌ Firestore Error:", error);
-        }
-    });
-</script>
+      });
+    }
+  </script>
 </body>
 </html>
