@@ -114,17 +114,13 @@ function sendMessage() {
     document.addEventListener("DOMContentLoaded", function () {
         console.log("🚀 DOM Loaded, checking Firebase...");
 
-        // 🔍 Force Firebase to be global
-        window.firebase = firebase;
-
-        if (typeof window.firebase === "undefined") {
-            console.error("❌ Firebase is still undefined! Possible script execution issue.");
+        if (typeof firebase === "undefined") {
+            console.error("❌ Firebase SDK is loaded but NOT recognized in the script!");
             return;
         }
 
-        console.log("✅ Firebase SDK is available globally!");
+        console.log("✅ Firebase SDK is available!");
 
-        // ✅ Firebase Configuration (Replace with your actual Firebase config)
 const firebaseConfig = {
   apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
   authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -132,6 +128,7 @@ const firebaseConfig = {
   storageBucket: "mallyssusgamingchat.firebasestorage.app",
   messagingSenderId: "848817267004",
   appId: "1:848817267004:web:fbecb7246352afb9937e39",
+  measurementId: "G-MSF2RTLJD2"
 };
 
         if (!firebase.apps.length) {
@@ -141,7 +138,7 @@ const firebaseConfig = {
             console.log("ℹ️ Firebase already initialized.");
         }
 
-        // ✅ Initialize Firestore and force global access
+        // ✅ Initialize Firestore
         window.db = firebase.firestore();
         console.log("✅ Firestore Ready:", window.db);
     });
