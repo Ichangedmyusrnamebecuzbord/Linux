@@ -149,5 +149,28 @@ function sendMessage() {
         console.log("✅ Firestore Ready:", window.db);
     });
 </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("🚀 Checking Firebase...");
+
+        // 🔍 Test if Firebase is defined
+        console.log("Checking if 'firebase' exists:", typeof firebase);
+
+        if (typeof firebase === "undefined") {
+            console.error("❌ Firebase SDK did NOT load!");
+            return;
+        }
+
+        console.log("✅ Firebase SDK Loaded Successfully!");
+
+        // 🔹 Test if Firestore is available
+        try {
+            const testDb = firebase.firestore();
+            console.log("✅ Firestore is working:", testDb);
+        } catch (error) {
+            console.error("❌ Firestore Error:", error);
+        }
+    });
+</script>
 </body>
 </html>
