@@ -88,6 +88,16 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        function testFirestore() {
+    db.collection("messages").get().then((snapshot) => {
+        console.log("Firestore Connection Success!", snapshot.docs.length);
+    }).catch(error => {
+        console.error("Firestore Connection Error:", error);
+    });
+}
+testFirestore();
+
+
         const chatBox = document.getElementById("chat-box");
         const messageInput = document.getElementById("message");
         
