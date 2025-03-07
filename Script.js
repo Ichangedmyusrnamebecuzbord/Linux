@@ -65,6 +65,15 @@ if (window.location.href.startsWith("view-source:")) {
 
 
 
+
+
+
+
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const gameContainer = document.querySelector(".game-container");
     let games = Array.from(document.querySelectorAll(".LOL"));
