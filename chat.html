@@ -69,13 +69,17 @@
     <input type="text" id="message" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
 
- <!-- ✅ Correct Firebase SDK Import -->
+<!-- ✅ Correct Firebase SDK Import -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
 <script>
-    // ✅ Ensure Firebase is only initialized once
-    if (!firebase.apps.length) {
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("🚀 DOM Loaded, initializing Firebase...");
+
+        // ✅ Ensure Firebase is initialized only once
+        if (!firebase.apps.length) {
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
   authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -83,44 +87,46 @@ const firebaseConfig = {
   storageBucket: "mallyssusgamingchat.firebasestorage.app",
   messagingSenderId: "848817267004",
   appId: "1:848817267004:web:fbecb7246352afb9937e39",
-  measurementId: "G-MSF2RTLJD2"
 };
 
-        // ✅ Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-    }
+            // ✅ Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+        }
 
-    // ✅ Initialize Firestore and Assign `db`
-    const db = firebase.firestore();
+        // ✅ Initialize Firestore
+        window.db = firebase.firestore(); // Use `window.db` to make it globally accessible
 
-    console.log("✅ Firebase Initialized:", firebase);
-    console.log("✅ Firestore Ready:", db);
+        console.log("✅ Firebase Initialized:", firebase);
+        console.log("✅ Firestore Ready:", window.db);
+    });
 </script>
+
 
 <!-- ✅ Ensure `sendMessage()` is declared AFTER Firebase is initialized -->
 <script>
     function sendMessage() {
-        let messageInput = document.getElementById("message");
-        let message = messageInput.value.trim();
+    let messageInput = document.getElementById("message");
+    let message = messageInput.value.trim();
 
-        if (message === "") {
-            console.warn("⚠️ Empty message - Not Sending");
-            return;
-        }
-
-        console.log("📤 Attempting to Send Message:", message);
-
-        // ✅ Use `db` only after it's initialized
-        db.collection("messages").add({
-            text: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            console.log("✅ Message Sent Successfully!");
-            messageInput.value = ""; // Clear input after sending
-        }).catch(error => {
-            console.error("❌ Error Sending Message:", error);
-        });
+    if (message === "") {
+        console.warn("⚠️ Empty message - Not Sending");
+        return;
     }
+
+    console.log("📤 Attempting to Send Message:", message);
+
+    // ✅ Use `window.db` to access Firestore
+    window.db.collection("messages").add({
+        text: message,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        console.log("✅ Message Sent Successfully!");
+        messageInput.value = ""; // Clear input after sending
+    }).catch(error => {
+        console.error("❌ Error Sending Message:", error);
+    });
+}
+
 </script>
 
 </body>
