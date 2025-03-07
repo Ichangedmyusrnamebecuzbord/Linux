@@ -1,0 +1,416 @@
+ <!DOCTYPE html>
+<html lang="en">
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script>
+        function openGame() {
+    var win = window.open();
+    var url = "Oneture.html";
+    win.document.write('<html><head><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
+    var iframe = win.document.createElement('iframe');
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.src = url;
+    win.document.body.appendChild(iframe);
+}
+
+window.onload = openGame;
+           
+    </script>
+     <script>
+           document.addEventListener("contextmenu", (event) => event.preventDefault());
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "F12" || (event.ctrlKey && event.shiftKey && event.key === "I")) {
+      event.preventDefault();
+    }
+  });
+     </script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mally's Sus gaming</title>
+    <style>
+        * {
+            margin: 0;
+            padding:0;
+            box-sizing: border-box;
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: url('Backround.gif') no-repeat center center fixed; 
+            background-size: cover; 
+            color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center; 
+            align-items: flex-start;
+            height: 100vh; 
+            padding-right: 48%;
+        }
+
+ 
+
+
+ .Home {
+    position: absolute;  
+    right: 400px;  
+    top: 10px;    
+    width: 100px;  
+}
+
+.Games {
+    position: absolute; 
+    right: 300px;  
+    top: 10px;    
+    width: 100px;  
+}
+
+.Proxy {
+    position: absolute;
+    right: 245px;
+    top: 10px;
+}
+
+.Forms {
+    position: absolute;  
+    right: 145px;
+    top: 10px;   
+} 
+.Links {
+position: absolute;
+right: 45px;
+top: 10px;
+}
+
+            
+
+       .Links img, .LOL img, .Bl img, .Nitro img, .Schol img, .SM64 img, .Duck img, .Oop img, .poop img, .R img, .un img, .DC img, .Rob img, .FN img, .Fo img, .Op img, .B1 img, .R img, .Di img, .Mex img, .Hub img, .G img, .H img, .Mo img, .Y img, .G img, .A img, .Mi img, .M img, .D img, .Proxy img, .Games img, .Home img, .Forms img {
+            display: block;
+            width: 100%; 
+            filter: brightness(1); 
+            box-shadow: none; 
+            transition: filter 0.3s ease, box-shadow 0.3s ease;
+              border-radius: 10px;
+        }
+
+       .Links:hover img, .LOL:hover img, .Nitro:hover img, .Schol:hover img, .SM64:hover img, .Duck:hover img, .Oop:hover img, .poop:hover img, .R:hover img, .un:hover img, .DC:hover img, .Rob:hover img, .FN:hover img, .Fo:hover img, .Op:hover img, .Bl:hover img, .Di:hover img, .Mex:hover img, .Hub:hover img, .G:hover img, .H:hover img, .Mo:hover img, .Y:hover img, .G:hover img, .A:hover img, .Mi:hover img, .M:hover img, .D:hover img, .R:hover img, .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
+            filter: brightness(1.2); 
+            box-shadow: 0 0 10px 6px gray; 
+        }
+        .iframe-wrapper {
+            position: absolute;
+            top: 52%;  
+            left: 50%; 
+            transform: translate(-50%, -50%);  
+            background-color: white;  
+            width: 675px; 
+            height: 400px;  
+
+            
+        }
+
+         iframe {
+            width: 100%;  
+            height: 100%;  
+            border: none;  
+        }
+      #searchBar {
+            width: 800px;
+            padding: 10px;
+            margin: 10px auto;
+            display: block;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            position: absolute;
+            top: 20%;
+            left: 18%;
+        }
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+
+          .music-buttons-container {
+            position: absolute;
+            top: 2%; 
+            left: 54%; 
+            display: flex;
+            flex-direction: column; 
+            gap: 10px; 
+          }
+
+   
+        .music-buttons-container button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .music-buttons-container button:hover {
+            background-color: #555; 
+        }
+            <style>
+.LOL {
+    width: 150px;
+    height: 150px;
+    display: block;
+}
+             .LOL img {
+    display: block;
+    max-width: 100%; /* Ensure the image doesn't exceed its container */
+    width: 150px; /* Adjust default width */
+    height: auto; /* Maintain aspect ratio */
+    margin: 10px auto; /* Add some spacing and center images */
+    filter: brightness(1);
+    border-radius: 10px;
+    box-shadow: none;
+    transition: filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.LOL:hover img {
+    filter: brightness(1.2);
+    box-shadow: 0 0 10px 6px gray;
+}
+.LOL {
+    width: 150px;
+    height: 150px;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+} 
+</style>
+    </style>
+     <style>
+    #searchBar {
+        width: 800px;
+        padding: 10px;
+        margin: 10px auto;
+        font-size: 16px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #555;
+        border-radius: 5px;
+        position: absolute;
+        top: 20%;
+        left: 18%;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .sticky {
+    position: fixed !important;
+    top: 17;
+    left: 18%;
+    transform: translateX(-50%);
+    width: 800px; /* Ensure width stays consistent */
+    max-width: 800px;
+    z-index: 1000;
+    background-color: #222;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    text-align: center; /* Keep content centered */
+}
+</style>
+
+</head>
+<body>
+
+    <div class="music-buttons-container">
+        <button onclick="document.getElementById('background-music').play()">Play Music</button>
+        <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
+    </div>
+
+
+    <audio id="background-music" loop>
+        <source src="CS.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+</body>
+      
+
+
+
+    </style>
+</head>
+<body>  
+     <img src="IMGS/MSG.png" alt="Image" style="width: 150px;">
+
+
+
+
+    <div>
+        <h1 style="font-size:6vw; white-space: nowrap;" onclick="openGame()";>Mally's Gaming</h1>
+
+    
+
+        <h2>Have fun,be cool, and spread the word</h2>
+    </div>
+</body>
+
+
+<div class="Home">
+<a href="Home.html">
+<img src="IMGS/home.png" alt="Image" style="width: 90px;"></a></div>
+<div class="Proxy">
+<a href="Proxy.html">
+<img src="IMGS/Proxy.png" alt="Image" style="width: 75px;"></a></div>
+<div class="Games">
+<a href="Oneture.html">
+<img src="IMGS/Wgames.png" alt="Image" style="width: 91px;"></a></div>
+<div class="Forms">
+<a href="Halloffame.html">
+<img src="IMGS/HOF.png" alt="Image" style="width: 100px;"></a></div>
+        <div class="Links">
+<a href="Links.html">
+<img src="IMGS/Links.png" alt="Image" style="width: 100px;"></a></div>
+
+    <body>
+
+
+
+    </body> 
+  <script>
+    function openpage(game) {
+      const gamePages = {
+        RSG: "Games/RSG.html",
+        DogeUnblocker: "Games/DogeUnblocker.html",
+        Minecraft: "Games/Minecraft.html",
+        Acorn13: "Games/Acorn13.html",
+        Gams: "Games/Gams.html",
+        Yexex2: "Games/Yexex2.html",
+        MonkeyGG2: "Games/MonkeyGG2.html",
+        HubPro: "Games/Hub-Pro.html",
+        GlacierArcade: "Games/GlacierArcade.html",
+        RizzyGaming: "Games/RizzyGaming.html",
+        MexisMath: "Games/Mexi'sMath.html",
+        DiddyGames: "Games/Slope3d.html",
+        Ghost: "Games/Ghost.html",
+        Op1um: "Games/Op1um.html",
+        Forms: "Games/Forms.html",
+        FN: "Games/FN.html",
+        Roblox: "Games/Roblox.html",
+        Foss: "Games/Foss.html",
+        Subway: "Games/Subway.html",
+        KrishyDaFishy: "Games/KrishyDaFishy.html",
+        DuckHTML: "Games/DuckHTML.html",
+        Utopia: "Games/Utopia.html",
+        SM64: "Games/SM64.html",
+        Schoology: "Games/Schoology.html",
+        IdleBreakout: "Games/IdleBreakout.html",
+        DriftBoss: "Games/DriftBoss.html",
+        Poki: "Games/Poki.html",
+        Crazy: "Games/Crazy.html",
+        Slope: "Games/Slope.html",
+        SZVY: "Games/SZVY.html",
+        IQUtest: "Games/IQUtest.html",
+        "1v1LOL": "Games/1v1LOL.html",
+        Intersteller: "Games/Intersteller.html",
+        SR3D: "Games/SR3D.html",
+        FCMG: "Games/FCMG.html",
+        ShadowBrowser: "Games/ShadowBrowser.html",
+        Ironsnout: "Games/Ironsnout.html",
+        Funnyshooter: "Games/Funnyshooter.html",
+        UC: "Games/UC.html",
+        RetroBowl: "Games/Retrobowl.html",
+        SpaceHuggers: "Games/SpaceHuggers.html",
+        JustFall: "Games/JustFall.html",
+        BasketRandom: "Games/BasketRandom.html",
+        BurgerBounty: "Games/BurgerBounty.html",
+        NintendoBoi: "Games/NintendoBoi.html",
+        Blooket: "Games/Blooket.pages.dev.html",
+        Bolt: "Games/Bolt.html",
+        GeometryDash: "Games/GeometryDash.html",
+        BlockBlast: "Games/BlockBlast.html",
+        BurritoBison: "Games/BurritoBison.html",
+        SSP2: "Games/SSP2.html",
+        FlappyBird: "Games/FlappyBird.html",
+        Appel: "Games/Appel.html",
+        LegalizeNuclearBombs: "Games/LegalizeNuclearBombs.html",
+        AbsurdAppel: "Games/AbsurdAppel.html",
+        BallBlast: "Games/BallBlast.html",
+        Fortnite: "Games/Fortnite.html",
+        "Slither.io": "Games/Slither.io.html",
+        Slope3d: "Games/Slope3d.html",
+        "Agar.io": "Games/Agar.io.html",
+          BB2: "Games/BurritoBison",
+          Slots: "Games/Slots.html",
+          BaconMD: "Games/BaconMD.html",
+          Gliddi: "Games/Gladdi.html",
+          Slope2: "Games/Slope2.html",
+          FNF: "Games/FNF.html",
+          GoogleIsland: "Games/GoogleIsland.html",
+          Paperio: "Games/Paperio.html",
+          Monkey: "Games/Monkey.html",
+          Poly: "Games/Poly.html",
+          Holeio: "Games/Holeio.html",
+          PaperClip: "Games/PaperClip.html",
+          Yohoho: "Games/Yohoho.html",
+          Cookie: "Games/Cookie.html",
+           Dino: "Games/Dino.html",
+          Snowballio: "Games/Snowballio.html",
+           Space: "Games/Space.html",
+           Tomb: "Games/Tomb.html",
+           "N-gon": "Games/N-gon",
+           LTF: "Games/LTF.html",
+           LTF2: "Games/LTF2.html",
+           LTF3: "Games/LTF3.html",
+           BadTime: "Games/BadTime.html",
+           "B-stars": "Games/B-Stars.html",
+           Heartive: "Games/Heartive.html",
+           V3: "Games/V3.html",
+           V4: "Games/V4.html",
+           V5: "Games/V5.html",
+           V6: "Games/V6.html",
+           V7: "Games/V7.html",
+           Bitlife: "Games/Bitlife.html",
+           Duck: "Games/Duck.html",
+           Duck2: "Games/Duck2.html",
+           Duck3: "Games/Duck3.html",
+           Duck4: "Games/Duck4.html",
+           Duck5: "Games/Duck5.html",
+           Time: "Games/Time.html",
+           Time3: "Games/Time3.html",
+           WHG: "Games/WHG.html",
+           Fishing: "Games/Fishing.html",
+           SMhook: "Games/SMhook.html",
+           MotoX3M: "Games/Moto.html",
+           
+           
+      };
+
+      // Open the corresponding game page
+      window.location.href = gamePages[game];
+    }
+
+  </script>
+   <body>
+
+     <input type="text" id="searchBar" placeholder="Search for a game..."
+style="width: 800px; padding: 10px; margin: 10px auto; display: block; font-size: 16px;
+background-color: #333; color: white; border: 1px solid #555; border-radius: 5px;
+position: absolute; top: 17%; left: 18%;">   
+        
+<div class="game-container">
+     
+     <div class="LOL" data-name="Ryan's Sussy Gaming">
+  <a href="#" onclick="openpage('RSG')">
+    <img src="IMGS/RSG.png" width="150px" alt="Ryan's Sus Gaming">
+  </a>
+        </div>
