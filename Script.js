@@ -240,10 +240,3 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".play-music").forEach(btn => btn.addEventListener("click", () => audio.play()));
     document.querySelectorAll(".pause-music").forEach(btn => btn.addEventListener("click", () => audio.pause()));
 });
-
-   document.addEventListener("keydown", function(event) {
-    
-            if (event.key === "q") {
-  location.replace("https://launchpad.classlink.com/lwsd");
-            }
-        });
