@@ -72,21 +72,28 @@
   <!-- Display the temporary username -->
   <div id="username-display"></div>
   <div id="chat-box"></div>
-  <!-- Added onkeydown event listener to send on Enter key -->
+  <!-- When pressing Enter in the message input, send the message -->
   <input type="text" id="message" placeholder="Type your message..." 
-         onkeydown="if(event.key === 'Enter') { event.preventDefault(); sendMessage(); }">
+         onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // Generate or retrieve a temporary username
+    // Generate or retrieve a temporary username (persistent across sessions)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
-      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000); // e.g., User1234
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
       localStorage.setItem("tempUsername", tempUsername);
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // Wait for DOM content to load
+    // Generate or retrieve a chat session ID from sessionStorage (ephemeral per tab)
+    let chatSession = sessionStorage.getItem("chatSession");
+    if (!chatSession) {
+      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem("chatSession", chatSession);
+    }
+    console.log("Chat Session ID:", chatSession);
+
     document.addEventListener("DOMContentLoaded", function() {
       // Firebase configuration (replace with your actual config)
       const firebaseConfig = {
@@ -107,12 +114,13 @@
         console.log("ℹ️ Firebase already initialized.");
       }
 
-      // Initialize Firestore and assign to global variable
+      // Initialize Firestore
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for new messages and update the chat box in real time
+      // Listen for messages only in the current chat session
       window.db.collection("messages")
+        .where("session", "==", chatSession)
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
@@ -129,7 +137,7 @@
         });
     });
 
-    // Function to send a message with the temporary username attached
+    // Function to send a message with username and session ID attached
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -140,6 +148,7 @@
       window.db.collection("messages").add({
         username: tempUsername,
         text: message,
+        session: chatSession,  // attach the current session id
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
