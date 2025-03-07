@@ -69,10 +69,12 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back to Home</a>
   <h1>Chat Room</h1>
-  <!-- Show the temporary username -->
+  <!-- Display the temporary username -->
   <div id="username-display"></div>
   <div id="chat-box"></div>
-  <input type="text" id="message" placeholder="Type your message...">
+  <!-- Added onkeydown event listener to send on Enter key -->
+  <input type="text" id="message" placeholder="Type your message..." 
+         onkeydown="if(event.key === 'Enter') { event.preventDefault(); sendMessage(); }">
   <button onclick="sendMessage()">Send</button>
 
   <script>
@@ -109,12 +111,12 @@
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for new messages and update the chat box
+      // Listen for new messages and update the chat box in real time
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = ""; // Clear messages
+          chatBox.innerHTML = ""; // Clear current messages
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
             const p = document.createElement("p");
