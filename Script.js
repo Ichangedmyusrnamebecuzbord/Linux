@@ -74,7 +74,7 @@ if (window.location.href.startsWith("view-source:")) {
 
 
 
-ddocument.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const gameContainer = document.querySelector(".game-container");
     let games = Array.from(document.querySelectorAll(".LOL"));
     const searchInput = document.getElementById("searchBar");
