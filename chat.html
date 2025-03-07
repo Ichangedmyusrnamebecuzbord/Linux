@@ -69,15 +69,13 @@
     <input type="text" id="message" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
 
-    <!-- Firebase SDK -->
-<!-- ✅ Correct Firebase SDK Import (No 'module' needed) -->
+ <!-- ✅ Correct Firebase SDK Import -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
 <script>
-    // ✅ Prevent Duplicate Firebase Config Declaration
+    // ✅ Ensure Firebase is only initialized once
     if (!firebase.apps.length) {
-        // 🔹 Replace this with your actual Firebase config from Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
   authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -92,20 +90,39 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
     }
 
-    // ✅ Initialize Firestore
+    // ✅ Initialize Firestore and Assign `db`
     const db = firebase.firestore();
 
     console.log("✅ Firebase Initialized:", firebase);
     console.log("✅ Firestore Ready:", db);
 </script>
-    <script>
-        function testFirestore() {
-    db.collection("messages").get().then((snapshot) => {
-        console.log("Firestore Connection Success!", snapshot.docs.length);
-    }).catch(error => {
-        console.error("Firestore Connection Error:", error);
-    });
-}
+
+<!-- ✅ Ensure `sendMessage()` is declared AFTER Firebase is initialized -->
+<script>
+    function sendMessage() {
+        let messageInput = document.getElementById("message");
+        let message = messageInput.value.trim();
+
+        if (message === "") {
+            console.warn("⚠️ Empty message - Not Sending");
+            return;
+        }
+
+        console.log("📤 Attempting to Send Message:", message);
+
+        // ✅ Use `db` only after it's initialized
+        db.collection("messages").add({
+            text: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            console.log("✅ Message Sent Successfully!");
+            messageInput.value = ""; // Clear input after sending
+        }).catch(error => {
+            console.error("❌ Error Sending Message:", error);
+        });
+    }
+</script>
+
 testFirestore();
 
 
