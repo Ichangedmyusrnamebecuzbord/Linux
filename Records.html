@@ -44,56 +44,6 @@ window.onload = openGame;
 
  
 
-
- .Home {
-            position: fixed;
-            right: 400px;  
-            top: 10px;   
-            width: 100px;  
-    
-        }
-        
-        .Games {
-            position: fixed;
-            right: 300px;  
-            top: 10px;    
-            width: 100px;  
-                }    
-             .Proxy {
-            position: fixed;
-            right: 245px;
-            top: 10px;
-          
-        }
-        .Forms{
-          position: fixed;
-            right: 145px;
-            top: 10px;   }
-
-            
-            .Links {
-            position: fixed;
-            right: 45px;
-            top: 10px;
-          
-        }
-
-            
-
-        .Links img, .Proxy img, .Games img, .Home img, .Forms img {
-            display: block;
-            width: 100%; 
-            filter: brightness(1); 
-            box-shadow: none; 
-            transition: filter 0.3s ease, box-shadow 0.3s ease;
-              border-radius: 10px; 
-        }
-
-       .Links:hover img, .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
-            filter: brightness(1.2); 
-            box-shadow: 0 0 10px 6px gray;
-        }
-
         
           .music-buttons-container {
             position: fixed;
@@ -133,7 +83,6 @@ window.onload = openGame;
    <div class="music-buttons-container">
     <button onclick="document.getElementById('background-music').play()">Play Music</button>
     <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
-    <button onclick="toggleMusicList()">Show Music List</button>
 </div>
 
 
@@ -158,24 +107,8 @@ window.onload = openGame;
     }
 </style>
 
-<script>
-function toggleMusicList() {
-    var musicList = document.getElementById("music-list");
-    if (musicList.style.display === "none") {
-        musicList.style.display = "block";
-    } else {
-        musicList.style.display = "none";
-    }
-}
 
-function playSong(song) {
-    var audio = document.getElementById("background-music");
-    var source = document.getElementById("audio-source");
-    source.src = song;
-    audio.load();
-    audio.play();
-}
-</script>
+
 
  <a href="chat.html?prev=Links.html" style="
     position: fixed;
@@ -213,24 +146,6 @@ function playSong(song) {
 
         <h2>Have fun,be cool, and spread the word</h2>
     </div>
-</body>
-
-
-<div class="Home">
-<a href="Home.html">
-<img src="IMGS/home.png" alt="Image" style="width: 90px;"></a></div>
-<div class="Proxy">
-<a href="Proxy.html">
-<img src="IMGS/Proxy.png" alt="Image" style="width: 75px;"></a></div>
-<div class="Games">
-<a href="Oneture.html">
-<img src="IMGS/Games.png" alt="Image" style="width: 91px;"></a></div>
-<div class="Forms">
-<a href="Halloffame.html">
-<img src="IMGS/HOF.png" alt="Image" style="width: 100px;"></a></div>
-    <div class="Links">
-<a href="Links.html">
-<img src="IMGS/Links.png" alt="Image" style="width: 100px;"></a></div>
 
 <body>
 <h3 style="position: absolute;top: 28%;left: 41%;transform: translateY(-50%);margin: 0;font-size: 3.4vw;font-family: Arial, sans-serif;text-align: left;"><strong>  🏆 Records  🏆 </strong></h3>
