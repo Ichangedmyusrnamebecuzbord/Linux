@@ -67,44 +67,59 @@
       gap: 10px;
     }
 
-    /* Modal overlay (hidden by default) */
-    .modal-overlay {
-      display: none; /* We'll show it via JS */
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 9999; /* On top of everything */
-    }
-    /* Modal box */
-    .modal-box {
-      background: #333;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      text-align: left;
-    }
-    .modal-box h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .modal-box input {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-    .modal-buttons {
-      text-align: right;
-      margin-top: 10px;
-    }
-    .error-message {
-      color: #ff5555;
-      margin: 5px 0 0 0;
-      font-size: 0.9rem;
-      min-height: 1em;
-    }
+  /* Modal overlay (hidden by default) */
+.modal-overlay {
+  display: none; /* We'll show it via JS */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* On top of everything */
+}
+
+/* Modal box */
+.modal-box {
+  background: #333;
+  padding: 20px;
+  border-radius: 10px;
+  width: 320px; /* slightly wider */
+  box-sizing: border-box; /* ensure padding doesn't overflow */
+  text-align: center;
+}
+
+.modal-box h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* The username input field */
+.modal-box input {
+  width: 100%;
+  box-sizing: border-box; /* ensures padding fits in 100% width */
+  margin-bottom: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background: #444;
+  color: #fff;
+}
+
+/* Error message inside the modal */
+.error-message {
+  color: #ff5555;
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  min-height: 1em;
+}
+
+/* Buttons container at the bottom */
+.modal-buttons {
+  text-align: right;
+  margin-top: 10px;
+}
   </style>
 
   <!-- Firebase in Compatibility Mode (no "import/export") -->
