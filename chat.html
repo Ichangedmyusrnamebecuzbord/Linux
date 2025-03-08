@@ -79,18 +79,18 @@
       align-self: flex-end;
       text-align: right;
     }
-    /* Default styling for my messages; if privileged, light-blue styling will be added */
+    /* Default styling for my messages (for privileged users) */
     .my-bubble {
       background: #1f1f1f;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
-      /* By default, text color will inherit (white) */
+      /* Inherited text color (white) */
     }
-    /* New class for non-privileged user's own messages to force white text */
+    /* New class for non-privileged user's own messages: white bubble with dark gray text */
     .my-bubble-nonprivileged {
-      background: #1f1f1f;
-      color: white;
+      background: white;
+      color: #222; /* very dark gray */
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
@@ -124,7 +124,8 @@
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0;
+      top: 0; 
+      left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -315,7 +316,7 @@
             messageDiv.classList.add("message-line");
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              // For own messages: if non-privileged, use white text class.
+              // Use a white bubble with dark grey text for non-privileged users, else light-blue styling
               let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
               messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
