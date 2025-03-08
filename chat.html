@@ -260,7 +260,7 @@
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
-    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Login (for admin use)</button>
+    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Become Privileged</button>
   </div>
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
@@ -271,6 +271,7 @@
     <div class="modal-box">
       <h2>Feature Request</h2>
       <textarea id="feature-text" placeholder="Describe your feature request..."></textarea>
+      <p id="feature-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="submit-feature-button">Submit</button>
         <button id="cancel-feature-button">Cancel</button>
@@ -306,7 +307,7 @@
   <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2>Enter Login Code</h2>
+      <h2>Enter Privileged Code</h2>
       <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -530,68 +531,59 @@
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
-saveUsernameButton.addEventListener("click", function() {
-  let newUsername = newUsernameInput.value.trim();
-  if (!newUsername) {
-    usernameError.textContent = "Username cannot be empty.";
-    return;
-  }
-  let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-  
-  // Check for blocked substring "admin" for non-privileged users
-  const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-  if (!isPrivileged && normalizedNewUsername.includes("admin")) {
-    usernameError.textContent = "That username is reserved for privileged users.";
-    return;
-  }
-  
-  for (let blocked of blockedNames) {
-    if (normalizedNewUsername.includes(blocked)) {
-      usernameError.textContent = "That username is blocked.";
-      return;
-    }
-  }
-  
-  if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-    usernameError.textContent = "That username is reserved for privileged users.";
-    return;
-  }
-  
-  window.db.collection("activeUsers")
-    .where("username", "==", newUsername)
-    .get()
-    .then(snapshot => {
-      let conflict = false;
-      snapshot.forEach(doc => {
-        if (doc.id !== activeUserDocId) {
-          conflict = true;
-        }
-      });
-      if (conflict) {
-        usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-      } else {
-        window.db.collection("activeUsers").doc(activeUserDocId)
-          .update({
-            username: newUsername,
-            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-          })
-          .then(() => {
-            tempUsername = newUsername;
-            sessionStorage.setItem("tempUsername", tempUsername);
-            document.getElementById("username-display").textContent = "You are: " + tempUsername;
-            usernameModal.style.display = "none";
-          })
-          .catch(error => {
-            console.error("Error updating username:", error);
-            usernameError.textContent = "Error updating username. Please try again.";
-          });
+    saveUsernameButton.addEventListener("click", function() {
+      let newUsername = newUsernameInput.value.trim();
+      if (!newUsername) {
+        usernameError.textContent = "Username cannot be empty.";
+        return;
       }
-    })
-    .catch(error => {
-      console.error("Error checking username uniqueness:", error);
-      usernameError.textContent = "Error checking username. Please try again.";
+      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+      for (let blocked of blockedNames) {
+        if (normalizedNewUsername.includes(blocked)) {
+          usernameError.textContent = "That username is blocked.";
+          return;
+        }
+      }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
+        usernameError.textContent = "That username is reserved for privileged users.";
+        return;
+      }
+      window.db.collection("activeUsers")
+        .where("username", "==", newUsername)
+        .get()
+        .then(snapshot => {
+          let conflict = false;
+          snapshot.forEach(doc => {
+            if (doc.id !== activeUserDocId) {
+              conflict = true;
+            }
+          });
+          if (conflict) {
+            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+          } else {
+            window.db.collection("activeUsers").doc(activeUserDocId)
+              .update({
+                username: newUsername,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .then(() => {
+                tempUsername = newUsername;
+                sessionStorage.setItem("tempUsername", tempUsername);
+                document.getElementById("username-display").textContent = "You are: " + tempUsername;
+                usernameModal.style.display = "none";
+              })
+              .catch(error => {
+                console.error("Error updating username:", error);
+                usernameError.textContent = "Error updating username. Please try again.";
+              });
+          }
+        })
+        .catch(error => {
+          console.error("Error checking username uniqueness:", error);
+          usernameError.textContent = "Error checking username. Please try again.";
+        });
     });
-});
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
@@ -638,11 +630,15 @@ saveUsernameButton.addEventListener("click", function() {
     });
     document.getElementById("submit-feature-button").addEventListener("click", function() {
       const featureText = document.getElementById("feature-text").value.trim();
+      const featureErrorEl = document.getElementById("feature-error");
       if (!featureText) {
-        alert("Please enter your feature request.");
+        featureErrorEl.textContent = "Please enter your feature request.";
         return;
       }
-      const currentDate = new Date().toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      featureErrorEl.textContent = "";
+      const currentDate = new Date().toLocaleString(undefined, { 
+        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
       const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
       const body = encodeURIComponent(featureText);
       window.featureEmailSubject = subject;
