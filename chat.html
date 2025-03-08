@@ -467,5 +467,35 @@
       });
     }
   </script>
+  <script>
+  // Block right-click context menu
+  document.addEventListener("contextmenu", event => event.preventDefault());
+
+  // Block common developer shortcuts
+  document.addEventListener("keydown", event => {
+    if (
+      event.key === "F12" ||
+      (event.ctrlKey && event.shiftKey && (event.key === "I" || event.key === "J" || event.key === "C")) ||
+      (event.ctrlKey && event.key === "U")
+    ) {
+      event.preventDefault();
+    }
+  });
+
+  // Detect if devtools are open based on window dimensions and redirect if so
+  let devtoolsOpen = false;
+  const checkDevTools = () => {
+    const threshold = 160;
+    const widthDiff = window.outerWidth - window.innerWidth;
+    const heightDiff = window.outerHeight - window.innerHeight;
+    if (widthDiff > threshold || heightDiff > threshold) {
+      devtoolsOpen = true;
+      window.location.replace("https://www.google.com");
+    } else {
+      devtoolsOpen = false;
+    }
+  };
+  setInterval(checkDevTools, 1000);
+</script>
 </body>
 </html>
