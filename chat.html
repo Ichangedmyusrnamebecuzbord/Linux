@@ -281,10 +281,12 @@
   <div id="email-provider-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Select Your Email Provider</h2>
-      <div class="modal-buttons">
+      <div id="provider-buttons-container" style="display: flex; justify-content: center; gap: 10px;">
         <button class="email-provider-btn gmail-btn" onclick="sendEmail('gmail')">Gmail</button>
         <button class="email-provider-btn outlook-btn" onclick="sendEmail('outlook')">Outlook</button>
         <button class="email-provider-btn yahoo-btn" onclick="sendEmail('yahoo')">Yahoo!</button>
+      </div>
+      <div id="cancel-button-container" style="margin-top: 10px; text-align: right;">
         <button class="email-provider-btn" onclick="closeEmailModal()">Cancel</button>
       </div>
     </div>
@@ -334,11 +336,9 @@
     </div>
   </div>
   <script>
-    // Global variables for timestamp toggle and caching messages
     let showTimestamps = false;
     let cachedMessages = [];
     
-    // ---------- 1. "Back" Button Setup ----------
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -348,7 +348,6 @@
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
     });
-    // ---------- 2. Session & Username Setup (username resets per tab) ----------
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -369,7 +368,6 @@
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
     console.log("Chat Start Time:", chatStartTime);
-    // ---------- 3. Initialize Firebase & Cache Messages ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -405,11 +403,10 @@
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
-          cachedMessages = snapshot.docs; // Cache messages for re-rendering
+          cachedMessages = snapshot.docs;
           renderMessages();
         });
     });
-    // ---------- Render Messages Function ----------
     function renderMessages() {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
@@ -455,14 +452,12 @@
       });
       chatBox.scrollTop = chatBox.scrollHeight;
     }
-    // ---------- Timestamp Toggle: Only Toggle When Chat Box Background is Clicked ----------
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
         renderMessages();
       }
     });
-    // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -483,7 +478,6 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
-    // ---------- 5. Privileged Upgrade Modal ----------
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -515,12 +509,10 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
-    // ---------- 5.1 Privileged Success Modal Dismissal ----------
     const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
-    // ---------- 6. Save New Username (with external blacklist file) ----------
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -584,14 +576,12 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-    // ---------- 7. New Modal for Message Block Error ----------
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
-    // ---------- 8. Send a Message (with content filtering) ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -621,7 +611,6 @@
         console.error("❌ Error Sending Message:", error);
       });
     }
-    // ---------- Feature Request Modal Functions ----------
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
@@ -637,18 +626,14 @@
         alert("Please enter your feature request.");
         return;
       }
-      // Prepare subject and body
       const currentDate = new Date().toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
       const body = encodeURIComponent(featureText);
-      // Store these values globally for use when a provider is chosen
       window.featureEmailSubject = subject;
       window.featureEmailBody = body;
-      // Close the feature modal and open the email provider modal
       document.getElementById("feature-modal").style.display = "none";
       document.getElementById("email-provider-modal").style.display = "flex";
     });
-    // Function to send email via chosen provider
     function sendEmail(provider) {
       const recipient = "jacetompsonex6@gmail.com";
       let composeURL = "";
