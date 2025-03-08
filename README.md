@@ -4,7 +4,7 @@ https://meet.google.com/kfm-izxh-xwt
 
 call through discord or gooogle meets at 2:00pm
 
-<h8> Can you add me as a memeber to your cloudflare site? it lets me manage the bandwith better <h8>
+<h8>Can you add me as a memeber to your cloudflare site? it lets me manage the bandwith better<h8>
 
 **To add a member to your account:**
 
