@@ -103,7 +103,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged styling: Light blue background and dark text */
+    /* Privileged styling: Light blue */
     .privileged {
       background-color: lightblue !important;
       color: black !important;
@@ -114,7 +114,7 @@
     }
     /* Modal overlay */
     .modal-overlay {
-      display: none; 
+      display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -158,12 +158,12 @@
       margin-top: 10px;
     }
   </style>
-  <!-- Firebase in Compatibility Mode -->
+  <!-- Firebase in Compatibility Mode (no "import/export") -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button (set via query parameter or default to Home.html) -->
+  <!-- Back button set by ?prev= or default to Home.html -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
     Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
@@ -286,16 +286,13 @@
             if (msgTime < parseInt(chatStartTime)) return;
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message-line");
-            // Check if the message was sent by the current user
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              // If the message is privileged, add privileged styling
               let bubbleClass = "my-bubble";
               if (msgData.isPrivileged) { bubbleClass += " privileged"; }
               messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
               messageDiv.classList.add("other-message");
-              // For messages from others, show their username above the bubble
               let usernameHTML = `<div class="other-username`;
               if (msgData.isPrivileged) { usernameHTML += " privileged-username"; }
               usernameHTML += `">${msgData.username}</div>`;
@@ -351,7 +348,7 @@
       privilegedModal.style.display = "none";
     });
     // Secret code for privileged upgrade
-    const secretCode = "secret123";
+    const secretCode = "mally1.0.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -362,9 +359,17 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
-    // ---------- 6. Save New Username ----------
-    const blockedNames = ["bob", "alice", "admin"];
-    const privilegedNames = ["mally", "ij"]; // Already privileged names
+    // ---------- 6. Save New Username (with block list from external file) ----------
+    let blockedNames = [];
+    // Fetch blocked names from an external text file ("blocked_names.txt")
+    fetch("blacklistwords.txt")
+      .then(response => response.text())
+      .then(data => {
+        blockedNames = data.split(",").map(s => s.trim().toLowerCase()).filter(word => word.length > 0);
+        console.log("Blocked names loaded:", blockedNames);
+      })
+      .catch(err => console.error("Failed to load blocked names:", err));
+    const privilegedNames = ["mally", "ij","malcom","Mally","Malcom","IJ"]; // Already privileged names
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
