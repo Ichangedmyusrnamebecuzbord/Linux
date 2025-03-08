@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Proxy Search</title>
   <style>
+    /* Dark theme similar to chat.html */
     body {
       font-family: Arial, sans-serif;
       background-color: #121212;
@@ -12,14 +13,7 @@
       margin: 0;
       padding: 20px;
     }
-    .container {
-      max-width: 800px;
-      margin: 60px auto 0 auto;
-      text-align: center;
-    }
-    .header {
-      margin-bottom: 20px;
-    }
+    /* Back button in top-left */
     .back-button {
       position: fixed;
       top: 20px;
@@ -35,6 +29,28 @@
     .back-button:hover {
       background: #0033aa;
     }
+    /* Centered container for the rest */
+    .container {
+      max-width: 800px;
+      margin: 60px auto 0 auto;
+      text-align: center;
+    }
+    /* Header styling */
+    .header {
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin: 0;
+    }
+    /* Version text matches chat.html style (0.6em) */
+    .header span {
+      font-size: 0.6em;
+      color: #aaa;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    /* URL input + button styling */
     input[type="text"] {
       width: 70%;
       padding: 10px;
@@ -55,6 +71,7 @@
     button:hover {
       background: #0033aa;
     }
+    /* Iframe styling */
     iframe {
       width: 100%;
       height: 600px;
@@ -72,19 +89,19 @@
   <div class="container">
     <div class="header">
       <h1>
-        Proxy Search 
-        <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
+        Proxy Search
+        <span>v1.0.0</span>
       </h1>
     </div>
     
-    <!-- Input for URL and a button to load the proxy -->
-    <input type="text" id="urlInput" placeholder="Enter a URL (include http:// or https://)">
+    <!-- User input for the URL -->
+    <input type="text" id="urlInput" placeholder="Enter a URL (http:// or https://)">
     <button onclick="loadProxy()">Load</button>
     
-    <!-- The iframe where the proxied page will be displayed -->
+    <!-- Iframe to display the site (if allowed) -->
     <iframe id="proxyFrame" title="Proxy Content"></iframe>
   </div>
-  
+
   <script>
     function loadProxy() {
       const url = document.getElementById('urlInput').value.trim();
@@ -92,8 +109,8 @@
         alert("Please enter a valid URL.");
         return;
       }
-      // Set the iframe src to your PHP proxy script. Adjust the path if needed.
-      document.getElementById('proxyFrame').src = 'proxy.php?url=' + encodeURIComponent(url);
+      // Load the site directly in the iframe
+      document.getElementById('proxyFrame').src = url;
     }
   </script>
 </body>
