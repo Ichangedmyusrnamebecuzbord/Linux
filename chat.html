@@ -156,12 +156,12 @@
       margin-top: 10px;
     }
   </style>
-  <!-- Firebase in Compatibility Mode (no "import/export") -->
+  <!-- Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button (set via query parameter or default to Home.html) -->
+  <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
     Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
@@ -221,7 +221,6 @@
     }
     console.log("Assigned username:", tempUsername);
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
-    // Unique chat session
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
@@ -229,7 +228,6 @@
     }
     console.log("Chat Session ID:", chatSession);
     const activeUserDocId = "active_" + chatSession;
-    // Chat start time for filtering messages
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
       chatStartTime = Date.now().toString();
@@ -255,7 +253,6 @@
       }
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
-      // Create/update activeUsers doc
       window.db.collection("activeUsers").doc(activeUserDocId).set({
         username: tempUsername,
         session: chatSession,
@@ -265,13 +262,11 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
-      // Remove active user doc when leaving
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
       });
-      // Listen for messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -345,7 +340,6 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    // Secret code for privileged upgrade
     const secretCode = "secret123";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
@@ -357,16 +351,16 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
-    // ---------- 6. Save New Username (with blocked names from external file) ----------
+    // ---------- 6. Save New Username (with external blacklist file) ----------
     let blockedNames = [];
-    // Fetch blocked names from "blocked_names.txt"
-    fetch("blocked_names.txt")
+    fetch("blacklistwords.txt")
       .then(response => response.text())
       .then(data => {
-        blockedNames = data.split(",").map(s => s.trim().toLowerCase()).filter(word => word.length > 0);
-        console.log("Blocked names loaded:", blockedNames);
+        // Split by newlines since each word is on its own line
+        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(word => word.length > 0);
+        console.log("Blocked words loaded:", blockedNames);
       })
-      .catch(err => console.error("Failed to load blocked names:", err));
+      .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
@@ -414,7 +408,7 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-    // ---------- 7. Send a Message (with message content filtering) ----------
+    // ---------- 7. Send a Message (with content filtering) ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -422,7 +416,7 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-      // Check if the message contains any blocked words
+      // Check if the message contains any blocked word
       for (let blocked of blockedNames) {
         if (message.toLowerCase().includes(blocked)) {
           alert("Your message contains a blocked word (" + blocked + ") and cannot be sent.");
