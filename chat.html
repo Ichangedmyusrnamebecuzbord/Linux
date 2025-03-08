@@ -164,7 +164,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.4</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.5</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -371,16 +371,22 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"]; // Not used now since blocked names are always blocked
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
-      // Normalize the entered username (lowercase, remove trailing slash)
+      // Normalize entered username for check
       let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      // Always block if the normalized username is in the blocked list
+      // Block if it's in forbidden list regardless of privilege
+      const forbiddenNames = ["mally", "ij", "malcom"];
+      if (forbiddenNames.includes(normalizedNewUsername)) {
+        usernameError.textContent = "That username is reserved for privileged users.";
+        return;
+      }
+      // Also check against the loaded blocked words
       if (blockedNames.includes(normalizedNewUsername)) {
         usernameError.textContent = "That username is blocked.";
         return;
