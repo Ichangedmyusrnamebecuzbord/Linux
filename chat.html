@@ -164,7 +164,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.4</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -350,7 +350,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    const secretCode = "secret123";
+    const secretCode = "mally1.0.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -371,7 +371,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij"]; // Not used now since blocked names are always blocked
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"]; // Not used now since blocked names are always blocked
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
