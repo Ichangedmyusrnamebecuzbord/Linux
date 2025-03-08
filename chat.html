@@ -168,6 +168,33 @@
       margin-top: 10px;
     }
   </style>
+  <!-- Developer Tools Blocking Script -->
+  <script>
+    // Prevent right-click context menu
+    document.addEventListener("contextmenu", event => event.preventDefault());
+    // Block common developer tool shortcuts
+    document.addEventListener("keydown", (event) => {
+      if (
+          event.key === "F12" ||
+          (event.ctrlKey && event.shiftKey && (event.key === "I" || event.key === "J" || event.key === "C")) ||
+          (event.ctrlKey && event.key === "U")
+      ) {
+          event.preventDefault();
+      }
+    });
+    // Detect devtools open by checking window dimension differences
+    let devtoolsOpen = false;
+    const checkDevTools = () => {
+      const threshold = 160;
+      if ((window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold)) {
+        devtoolsOpen = true;
+        window.location.replace("https://www.google.com");
+      } else {
+        devtoolsOpen = false;
+      }
+    };
+    setInterval(checkDevTools, 1000);
+  </script>
   <!-- Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -372,7 +399,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    const secretCode = "mally1.0.0";
+    const secretCode = "theLandbefore4.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -399,7 +426,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","ADMIN","Admin"];
     const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
