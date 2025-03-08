@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
+
+  <!-- Basic styling -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -74,7 +76,7 @@
       max-width: 70%;
       word-wrap: break-word;
     }
-    /* My messages (aligned right, no username) */
+    /* My messages (aligned right) */
     .my-message {
       align-self: flex-end;
       text-align: right;
@@ -85,7 +87,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Others' messages (aligned left, username above bubble) */
+    /* Others' messages (aligned left) */
     .other-message {
       align-self: flex-start;
       text-align: left;
@@ -101,9 +103,18 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Modal overlay (for username change and privileged upgrade) */
+    /* Privileged styling: Light blue background and dark text */
+    .privileged {
+      background-color: lightblue !important;
+      color: black !important;
+    }
+    .privileged-username {
+      color: lightblue !important;
+      font-weight: bold;
+    }
+    /* Modal overlay */
     .modal-overlay {
-      display: none;
+      display: none; 
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -152,7 +163,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button set by ?prev= or default to Home.html -->
+  <!-- Back button (set via query parameter or default to Home.html) -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
     Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
@@ -169,7 +180,6 @@
   <input type="text" id="message" placeholder="Type your message..."
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
-
   <!-- Modal for changing username -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
@@ -182,7 +192,6 @@
       </div>
     </div>
   </div>
-
   <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
@@ -195,7 +204,6 @@
       </div>
     </div>
   </div>
-
   <script>
     // ---------- 1. "Back" Button Setup ----------
     function getQueryParam(param) {
@@ -207,7 +215,6 @@
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
     });
-
     // ---------- 2. Session & Username Setup (username resets per tab) ----------
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
@@ -231,7 +238,6 @@
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
     console.log("Chat Start Time:", chatStartTime);
-
     // ---------- 3. Initialize Firebase ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
@@ -261,7 +267,7 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
-      // Remove active user doc when leaving
+      // Remove active user doc when user leaves
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
@@ -280,19 +286,28 @@
             if (msgTime < parseInt(chatStartTime)) return;
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message-line");
+            // Check if the message was sent by the current user
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              messageDiv.innerHTML = `<div class="my-bubble">${msgData.text}</div>`;
+              // If the message is privileged, add privileged styling
+              let bubbleClass = "my-bubble";
+              if (msgData.isPrivileged) { bubbleClass += " privileged"; }
+              messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
               messageDiv.classList.add("other-message");
-              messageDiv.innerHTML = `<div class="other-username">${msgData.username}</div><div class="other-bubble">${msgData.text}</div>`;
+              // For messages from others, show their username above the bubble
+              let usernameHTML = `<div class="other-username`;
+              if (msgData.isPrivileged) { usernameHTML += " privileged-username"; }
+              usernameHTML += `">${msgData.username}</div>`;
+              let bubbleClass = "other-bubble";
+              if (msgData.isPrivileged) { bubbleClass += " privileged"; }
+              messageDiv.innerHTML = usernameHTML + `<div class="${bubbleClass}">${msgData.text}</div>`;
             }
             chatBox.appendChild(messageDiv);
           });
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
-
     // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
@@ -320,7 +335,6 @@
     const privilegedError = document.getElementById("privileged-error");
     const savePrivilegedButton = document.getElementById("save-privileged-button");
     const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
-    // Make Enter key in privileged modal trigger submit
     privilegedCodeInput.addEventListener("keydown", function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -336,7 +350,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    // Secret code for privileged upgrade (change this to your desired secret)
+    // Secret code for privileged upgrade
     const secretCode = "secret123";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
@@ -350,20 +364,18 @@
     });
     // ---------- 6. Save New Username ----------
     const blockedNames = ["bob", "alice", "admin"];
-    const privilegedNames = ["mally", "ij"]; // These names are allowed for privileged users by default
+    const privilegedNames = ["mally", "ij"]; // Already privileged names
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
-      // Check blocked status unless the user is privileged
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       if (blockedNames.includes(newUsername.toLowerCase()) && !isPrivileged) {
         usernameError.textContent = "That username is blocked for non-privileged users.";
         return;
       }
-      // Check activeUsers for conflict
       window.db.collection("activeUsers")
         .where("username", "==", newUsername)
         .get()
@@ -407,9 +419,11 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       window.db.collection("messages").add({
         username: tempUsername,
         text: message,
+        isPrivileged: isPrivileged,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
