@@ -6,6 +6,7 @@ can you call through google meets?
 if so thats the link:
 
 https://meet.google.com/kfm-izxh-xwt
-U there my computer died :(
 
-U ONLINE? :) do google call thingy again pls 🙏🙏🙏🙏🙏🙏🙏🙏🙏
+can u google meet call me please 🙏🙏🙏🙏🙏 6:03 pm
+
+
