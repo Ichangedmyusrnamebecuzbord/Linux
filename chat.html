@@ -156,15 +156,15 @@
       margin-top: 10px;
     }
   </style>
-  <!-- Firebase in Compatibility Mode -->
+  <!-- Firebase in Compatibility Mode (no "import/export") -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button (set via query parameter or default to Home.html) -->
+  <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.3</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -350,7 +350,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    const secretCode = "mally1.0.0";
+    const secretCode = "secret123";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -366,20 +366,23 @@
     fetch("blacklistwords.txt")
       .then(response => response.text())
       .then(data => {
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(word => word.length > 0);
+        // Normalize: split by newlines, trim, lowercase, remove trailing slashes
+        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij","Mally","IJ","Malcom","malcom"];
+    const privilegedNames = ["mally", "ij"]; // Not used now since blocked names are always blocked
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (blockedNames.includes(newUsername.toLowerCase()) && !isPrivileged) {
-        usernameError.textContent = "That username is blocked for non-privileged users.";
+      // Normalize the entered username (lowercase, remove trailing slash)
+      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+      // Always block if the normalized username is in the blocked list
+      if (blockedNames.includes(normalizedNewUsername)) {
+        usernameError.textContent = "That username is blocked.";
         return;
       }
       window.db.collection("activeUsers")
@@ -432,7 +435,7 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-      // Check if the message contains any blocked word
+      // Check if the message contains any blocked word (normalized check)
       for (let blocked of blockedNames) {
         if (message.toLowerCase().includes(blocked)) {
           messageErrorText.textContent = "Your message contains a blocked word: " + blocked;
