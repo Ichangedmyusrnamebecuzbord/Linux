@@ -100,10 +100,9 @@
         alert("Please enter a valid URL.");
         return;
       }
-      // Instead of loading the URL directly, point to your Node server rewriting proxy
-      // If your Node server is on localhost:3000, do:
+      // Replace 'your-service.your-username.workers.dev' with your actual Worker URL
       document.getElementById('proxyFrame').src =
-        'http://localhost:3000/proxy?url=' + encodeURIComponent(url);
+        'https://your-service.your-username.workers.dev?url=' + encodeURIComponent(url);
     }
   </script>
 </body>
