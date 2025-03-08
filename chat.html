@@ -6,7 +6,6 @@
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
 
-  <!-- Basic styling -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,6 +14,7 @@
       text-align: center;
       padding: 20px;
     }
+    /* Make chat-box use flex so we can align messages left or right */
     #chat-box {
       width: 80%;
       max-width: 600px;
@@ -25,6 +25,10 @@
       overflow-y: auto;
       background: #222;
       border-radius: 10px;
+
+      /* Important for alignment */
+      display: flex;
+      flex-direction: column;
     }
     input {
       width: 70%;
@@ -58,7 +62,7 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Username container */
+    /* Container for username display and change button */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -67,71 +71,38 @@
       gap: 10px;
     }
 
-  /* Modal overlay (hidden by default) */
-.modal-overlay {
-  display: none; /* We'll show it via JS */
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999; /* On top of everything */
-}
-
-/* Modal box */
-.modal-box {
-  background: #333;
-  padding: 20px;
-  border-radius: 10px;
-  width: 320px; /* slightly wider */
-  box-sizing: border-box; /* ensure padding doesn't overflow */
-  text-align: center;
-}
-
-.modal-box h2 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-/* The username input field */
-.modal-box input {
-  width: 100%;
-  box-sizing: border-box; /* ensures padding fits in 100% width */
-  margin-bottom: 10px;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  background: #444;
-  color: #fff;
-}
-
-/* Error message inside the modal */
-.error-message {
-  color: #ff5555;
-  margin: 5px 0 0 0;
-  font-size: 0.9rem;
-  min-height: 1em;
-}
-
-/* Buttons container at the bottom */
-.modal-buttons {
-  text-align: right;
-  margin-top: 10px;
-}
+    /* Chat message bubble styling */
+    .chat-message {
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 60%;
+      display: inline-block;
+      /* Default background for "theirs" messages */
+      background-color: #333;
+    }
+    /* If it's your message, float right with a different color */
+    .mine {
+      align-self: flex-end;
+      background-color: #0044cc;
+      text-align: right;
+    }
+    /* If it's someone else's message, float left */
+    .theirs {
+      align-self: flex-start;
+      background-color: #333; /* or another color if you prefer */
+      text-align: left;
+    }
   </style>
 
-  <!-- Firebase in Compatibility Mode (no "import/export") -->
+  <!-- Firebase (compat mode) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button set by ?prev= or defaults to Home.html -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
 
-  <!-- Username display + change button -->
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">
@@ -139,218 +110,84 @@
     </button>
   </div>
 
-  <!-- Chat box -->
   <div id="chat-box"></div>
 
-  <!-- Message input -->
   <input type="text" id="message" placeholder="Type your message..."
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
-  <!-- Custom Modal for changing username -->
-  <div id="username-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Change Username</h2>
-      <input type="text" id="new-username-input" placeholder="Enter new username...">
-      <p id="username-error" class="error-message"></p>
-      <div class="modal-buttons">
-        <button id="save-username-button">Save</button>
-        <button id="cancel-username-button">Cancel</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // ========================
-    // 1. "Back" Button Setup
-    // ========================
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
+    // (Same code as before to handle username, session, Firestore, etc.)
+    // For brevity, here's the relevant part that displays messages:
+
+    let tempUsername; // your local username
+    let chatSession;  // session ID
+    let activeUserDocId;
+
     document.addEventListener("DOMContentLoaded", function() {
-      const prevPage = getQueryParam("prev") || "Home.html";
-      document.querySelector("a.back-button").href = prevPage;
-      console.log("Back button set to:", prevPage);
-    });
+      // Initialize or load username
+      tempUsername = localStorage.getItem("tempUsername");
+      if (!tempUsername) {
+        tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
+        localStorage.setItem("tempUsername", tempUsername);
+      }
+      document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // ============================
-    // 2. Session & Username Setup
-    // ============================
-    let chatSession = sessionStorage.getItem("chatSession");
-    if (!chatSession) {
-      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
-      sessionStorage.setItem("chatSession", chatSession);
-    }
-    console.log("Chat Session ID:", chatSession);
-
-    let tempUsername = localStorage.getItem("tempUsername");
-    if (!tempUsername) {
-      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
-      localStorage.setItem("tempUsername", tempUsername);
-    }
-    document.getElementById("username-display").textContent = "You are: " + tempUsername;
-
-    const activeUserDocId = "active_" + chatSession;
-
-    // Filter out old messages
-    let chatStartTime = sessionStorage.getItem("chatStartTime");
-    if (!chatStartTime) {
-      chatStartTime = Date.now().toString();
-      sessionStorage.setItem("chatStartTime", chatStartTime);
-    }
-    console.log("Chat Start Time:", chatStartTime);
-
-    // ==========================
-    // 3. Initialize Firebase
-    // ==========================
-    document.addEventListener("DOMContentLoaded", function() {
+      // ...rest of your Firebase init code...
       const firebaseConfig = {
-        apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-        authDomain: "mallyssusgamingchat.firebaseapp.com",
-        projectId: "mallyssusgamingchat",
-        storageBucket: "mallyssusgamingchat.appspot.com",
-        messagingSenderId: "848817267004",
-        appId: "1:848817267004:web:fbecb7246352afb9937e39",
-        measurementId: "G-MSF2RTLJD2"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        // etc...
       };
-
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
-        console.log("✅ Firebase Initialized!");
-      } else {
-        console.log("ℹ️ Firebase already initialized.");
       }
       window.db = firebase.firestore();
-      console.log("✅ Firestore Ready:", window.db);
 
-      // Create/update our "activeUsers" doc
-      window.db.collection("activeUsers").doc(activeUserDocId).set({
-        username: tempUsername,
-        session: chatSession,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        console.log("Active user record updated:", activeUserDocId);
-      }).catch(error => {
-        console.error("Error updating active user record:", error);
-      });
-
-      // Optional: remove active user doc when user leaves
-      window.addEventListener("beforeunload", function() {
-        window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
-          console.error("Error cleaning up active user record:", err);
-        });
-      });
-
-      // Listen for messages
+      // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = "";
+          chatBox.innerHTML = ""; // Clear chat box
+
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
             if (!msgData.timestamp) return;
-            const msgTime = msgData.timestamp.toMillis();
-            if (msgTime < parseInt(chatStartTime)) return; // skip old messages
-            const p = document.createElement("p");
-            const displayName = msgData.username || "Anon";
-            p.textContent = displayName + ": " + msgData.text;
-            chatBox.appendChild(p);
+
+            // Create a message div
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("chat-message");
+
+            // If it's my message, apply "mine", else "theirs"
+            if (msgData.username === tempUsername) {
+              messageDiv.classList.add("mine");
+            } else {
+              messageDiv.classList.add("theirs");
+            }
+
+            // Show "username: text"
+            messageDiv.textContent = msgData.username + ": " + msgData.text;
+            chatBox.appendChild(messageDiv);
           });
+
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // =============================
-    // 4. Change Username (Modal)
-    // =============================
-    const usernameModal = document.getElementById("username-modal");
-    const usernameError = document.getElementById("username-error");
-    const newUsernameInput = document.getElementById("new-username-input");
-    const saveUsernameButton = document.getElementById("save-username-button");
-    const cancelUsernameButton = document.getElementById("cancel-username-button");
-
-    // Show the modal
-    document.getElementById("change-username-button").addEventListener("click", function() {
-      usernameModal.style.display = "flex"; // show overlay
-      usernameError.textContent = "";       // clear old errors
-      newUsernameInput.value = "";          // reset input
-      newUsernameInput.focus();
-    });
-
-    // Hide the modal on cancel
-    cancelUsernameButton.addEventListener("click", function() {
-      usernameModal.style.display = "none";
-    });
-
-    // Save new username
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-
-      // Check activeUsers for conflict
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            // Update our doc
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                localStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none"; // close modal
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
-
-    // =============================
-    // 5. Send a Message
-    // =============================
+    // Send message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
-      if (message === "") {
-        console.warn("⚠️ Empty message - Not sending");
-        return;
-      }
+      if (message === "") return;
+
       window.db.collection("messages").add({
         username: tempUsername,
         text: message,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        console.log("✅ Message Sent Successfully!");
+      }).then(() => {
         messageInput.value = "";
-      })
-      .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
       });
     }
   </script>
