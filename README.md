@@ -18,7 +18,7 @@ https://meet.google.com/kfm-izxh-xwt
 
 ![Image](https://github.com/user-attachments/assets/5afc9787-ae33-4bc5-8269-f191fb1104d6)
 
-**Fill out the following information:**
+## **Fill out the following information:**
 
 **Invite members: Enter "jacetompsonex6@gmail.com"**
 
