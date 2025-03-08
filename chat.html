@@ -350,7 +350,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
-    const secretCode = "secret123";
+    const secretCode = "mally1.0.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -370,7 +370,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij"];
+    const privilegedNames = ["mally", "ij","Mally","IJ","Malcom","malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
