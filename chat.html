@@ -400,7 +400,7 @@
       })
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","ADMIN","Admin"];
-    const reservedNames = ["mally", "ij", "malcom"];
+    const reservedNames = ["mally", "ij", "malcom","admin"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
