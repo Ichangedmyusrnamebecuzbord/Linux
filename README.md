@@ -5,7 +5,7 @@ https://meet.google.com/kfm-izxh-xwt
 call through discord or gooogle meets at 2:00pm
 
 ## Can you add me as a memeber to your cloudflare site? It lets me manage the bandwith better and see ping
-
+ ok yeah lenmme do that can u call?
 **To add a member to your account:**
 
 **Log in to the Cloudflare dashboard and select your account.**
