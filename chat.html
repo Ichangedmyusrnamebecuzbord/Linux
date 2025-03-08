@@ -530,59 +530,68 @@
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
+saveUsernameButton.addEventListener("click", function() {
+  let newUsername = newUsernameInput.value.trim();
+  if (!newUsername) {
+    usernameError.textContent = "Username cannot be empty.";
+    return;
+  }
+  let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+  
+  // Check for blocked substring "admin" for non-privileged users
+  const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+  if (!isPrivileged && normalizedNewUsername.includes("admin")) {
+    usernameError.textContent = "That username is reserved for privileged users.";
+    return;
+  }
+  
+  for (let blocked of blockedNames) {
+    if (normalizedNewUsername.includes(blocked)) {
+      usernameError.textContent = "That username is blocked.";
+      return;
+    }
+  }
+  
+  if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
+    usernameError.textContent = "That username is reserved for privileged users.";
+    return;
+  }
+  
+  window.db.collection("activeUsers")
+    .where("username", "==", newUsername)
+    .get()
+    .then(snapshot => {
+      let conflict = false;
+      snapshot.forEach(doc => {
+        if (doc.id !== activeUserDocId) {
+          conflict = true;
         }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
+      });
+      if (conflict) {
+        usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+      } else {
+        window.db.collection("activeUsers").doc(activeUserDocId)
+          .update({
+            username: newUsername,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => {
+            tempUsername = newUsername;
+            sessionStorage.setItem("tempUsername", tempUsername);
+            document.getElementById("username-display").textContent = "You are: " + tempUsername;
+            usernameModal.style.display = "none";
+          })
+          .catch(error => {
+            console.error("Error updating username:", error);
+            usernameError.textContent = "Error updating username. Please try again.";
           });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
+      }
+    })
+    .catch(error => {
+      console.error("Error checking username uniqueness:", error);
+      usernameError.textContent = "Error checking username. Please try again.";
     });
+});
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
