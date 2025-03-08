@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
-
-  <!-- Basic styling -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -68,8 +66,7 @@
       align-items: center;
       gap: 10px;
     }
-
-    /* Container for each message (no background here) */
+    /* Container for each message */
     .message-line {
       margin: 5px 0;
       display: flex;
@@ -77,8 +74,7 @@
       max-width: 70%;
       word-wrap: break-word;
     }
-
-    /* Your messages aligned to the right */
+    /* My messages (aligned right, no username) */
     .my-message {
       align-self: flex-end;
       text-align: right;
@@ -89,8 +85,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-
-    /* Others' messages aligned to the left */
+    /* Others' messages (aligned left, username above bubble) */
     .other-message {
       align-self: flex-start;
       text-align: left;
@@ -106,17 +101,16 @@
       border-radius: 5px;
       display: inline-block;
     }
-
-    /* Modal overlay (hidden by default) */
+    /* Modal overlay (for username change and privileged upgrade) */
     .modal-overlay {
-      display: none; /* We'll show it via JS */
+      display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
-      z-index: 9999; /* On top of everything */
+      z-index: 9999;
     }
     /* Modal box */
     .modal-box {
@@ -153,40 +147,30 @@
       margin-top: 10px;
     }
   </style>
-
-  <!-- Firebase in Compatibility Mode (no "import/export") -->
+  <!-- Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <audio id="background-music" loop>
-    <source src="CS.mp3" type="audio/mpeg">
-</audio>
-<script src="Script.js"></script> <!-- Ensure this script runs -->
-  <!-- Back button set by ?prev= or defaults to Home.html -->
+  <!-- Back button set by ?prev= or default to Home.html -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-  Chat Room 
-  <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
-</h1>
-  
-  <!-- Username display + change button -->
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
+  </h1>
+  <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
     <span id="username-display"></span>
-    <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">
-      Change Username
-    </button>
+    <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
+    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Become Privileged</button>
   </div>
-
   <!-- Chat box -->
   <div id="chat-box"></div>
-
   <!-- Message input -->
   <input type="text" id="message" placeholder="Type your message..."
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
-  <!-- Custom Modal for changing username -->
+  <!-- Modal for changing username -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
@@ -199,10 +183,21 @@
     </div>
   </div>
 
+  <!-- Modal for privileged upgrade -->
+  <div id="privileged-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Enter Privileged Code</h2>
+      <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
+      <p id="privileged-error" class="error-message"></p>
+      <div class="modal-buttons">
+        <button id="save-privileged-button">Submit</button>
+        <button id="cancel-privileged-button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ========================
-    // 1. "Back" Button Setup
-    // ========================
+    // ---------- 1. "Back" Button Setup ----------
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -213,29 +208,23 @@
       console.log("Back button set to:", prevPage);
     });
 
-    // ============================
-    // 2. Session & Username Setup
-    // ============================
+    // ---------- 2. Session & Username Setup (username resets per tab) ----------
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
       sessionStorage.setItem("tempUsername", tempUsername);
     }
     console.log("Assigned username:", tempUsername);
-
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
-
-    // A unique doc in activeUsers for each browser tab
+    // Unique chat session
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
       sessionStorage.setItem("chatSession", chatSession);
     }
     console.log("Chat Session ID:", chatSession);
-
     const activeUserDocId = "active_" + chatSession;
-
-    // We'll filter out old messages using chatStartTime
+    // Chat start time for filtering messages
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
       chatStartTime = Date.now().toString();
@@ -243,9 +232,7 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // ==========================
-    // 3. Initialize Firebase
-    // ==========================
+    // ---------- 3. Initialize Firebase ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -256,7 +243,6 @@
         appId: "1:848817267004:web:fbecb7246352afb9937e39",
         measurementId: "G-MSF2RTLJD2"
       };
-
       if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         console.log("✅ Firebase Initialized!");
@@ -265,8 +251,7 @@
       }
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
-
-      // Create/update our "activeUsers" doc
+      // Create/update activeUsers doc
       window.db.collection("activeUsers").doc(activeUserDocId).set({
         username: tempUsername,
         session: chatSession,
@@ -276,17 +261,13 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
-
-      // Optional: remove active user doc when user leaves
+      // Remove active user doc when leaving
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
       });
-
-      // ============================
-      // 4. Listen for messages
-      // ============================
+      // Listen for messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -296,72 +277,92 @@
             const msgData = doc.data();
             if (!msgData.timestamp) return;
             const msgTime = msgData.timestamp.toMillis();
-            // Skip older messages
             if (msgTime < parseInt(chatStartTime)) return;
-
-            // Create a container for each message
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message-line");
-
             if (msgData.username === tempUsername) {
-              // My message => right side, no username
               messageDiv.classList.add("my-message");
-              messageDiv.innerHTML = `
-                <div class="my-bubble">${msgData.text}</div>
-              `;
+              messageDiv.innerHTML = `<div class="my-bubble">${msgData.text}</div>`;
             } else {
-              // Other user's => left side, show username above bubble
               messageDiv.classList.add("other-message");
-              messageDiv.innerHTML = `
-                <div class="other-username">${msgData.username}</div>
-                <div class="other-bubble">${msgData.text}</div>
-              `;
+              messageDiv.innerHTML = `<div class="other-username">${msgData.username}</div><div class="other-bubble">${msgData.text}</div>`;
             }
-
             chatBox.appendChild(messageDiv);
           });
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // =============================
-    // 5. Change Username (Modal)
-    // =============================
+    // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
     const saveUsernameButton = document.getElementById("save-username-button");
     const cancelUsernameButton = document.getElementById("cancel-username-button");
-
-    // Make Enter key = Save
     newUsernameInput.addEventListener("keydown", function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
         saveUsernameButton.click();
       }
     });
-
-    // Show the modal
     document.getElementById("change-username-button").addEventListener("click", function() {
       usernameModal.style.display = "flex";
       usernameError.textContent = "";
       newUsernameInput.value = "";
       newUsernameInput.focus();
     });
-
-    // Hide the modal on cancel
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
-
-    // Save new username
+    // ---------- 5. Privileged Upgrade Modal ----------
+    const privilegedModal = document.getElementById("privileged-modal");
+    const privilegedCodeInput = document.getElementById("privileged-code-input");
+    const privilegedError = document.getElementById("privileged-error");
+    const savePrivilegedButton = document.getElementById("save-privileged-button");
+    const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
+    // Make Enter key in privileged modal trigger submit
+    privilegedCodeInput.addEventListener("keydown", function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        savePrivilegedButton.click();
+      }
+    });
+    document.getElementById("privileged-button").addEventListener("click", function() {
+      privilegedModal.style.display = "flex";
+      privilegedError.textContent = "";
+      privilegedCodeInput.value = "";
+      privilegedCodeInput.focus();
+    });
+    cancelPrivilegedButton.addEventListener("click", function() {
+      privilegedModal.style.display = "none";
+    });
+    // Secret code for privileged upgrade (change this to your desired secret)
+    const secretCode = "secret123";
+    savePrivilegedButton.addEventListener("click", function() {
+      const enteredCode = privilegedCodeInput.value.trim();
+      if (enteredCode === secretCode) {
+        sessionStorage.setItem("isPrivileged", "true");
+        privilegedModal.style.display = "none";
+        alert("You are now privileged!");
+      } else {
+        privilegedError.textContent = "Incorrect code. Please try again.";
+      }
+    });
+    // ---------- 6. Save New Username ----------
+    const blockedNames = ["bob", "alice", "admin"];
+    const privilegedNames = ["mally", "ij"]; // These names are allowed for privileged users by default
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
-
+      // Check blocked status unless the user is privileged
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      if (blockedNames.includes(newUsername.toLowerCase()) && !isPrivileged) {
+        usernameError.textContent = "That username is blocked for non-privileged users.";
+        return;
+      }
       // Check activeUsers for conflict
       window.db.collection("activeUsers")
         .where("username", "==", newUsername)
@@ -376,7 +377,6 @@
           if (conflict) {
             usernameError.textContent = "That username is already taken by an active user. Please choose another.";
           } else {
-            // Update our doc
             window.db.collection("activeUsers").doc(activeUserDocId)
               .update({
                 username: newUsername,
@@ -399,10 +399,7 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-
-    // =============================
-    // 6. Send a Message
-    // =============================
+    // ---------- 7. Send a Message ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
