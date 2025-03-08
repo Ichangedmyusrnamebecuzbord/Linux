@@ -182,20 +182,34 @@ function playSong(song) {
 }
 </script>
 
-     <a href="chat.html?prev=Home.html" style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0044cc;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 18px;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-">💬 Chat Room</a> 
+<a href="chat.html?prev=Home.html" class="chat-button" style="position: fixed; bottom: 20px; right: 20px; background: #0044cc; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+  💬 Chat Room 
+  <span class="notification-dot" style="display:none; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:12px; position:absolute; top:0; right:0;"></span>
+</a>
     
+<script>
+  function updateChatNotification() {
+    const count = parseInt(localStorage.getItem("chatUnreadCount") || "0");
+    const chatButton = document.querySelector(".chat-button");
+    if (!chatButton) return;
+    const dot = chatButton.querySelector(".notification-dot");
+    if (count > 0) {
+      dot.style.display = "inline-block";
+      dot.textContent = count;
+    } else {
+      dot.style.display = "none";
+    }
+  }
+  
+  // Listen for changes in localStorage (triggered when the chat page updates the count)
+  window.addEventListener("storage", updateChatNotification);
+  
+  // Also update immediately when the page loads
+  updateChatNotification();
+  
+  // Optionally, update periodically (e.g. every 2 seconds) in case the storage event isn’t fired:
+  setInterval(updateChatNotification, 2000);
+</script>
 
 </body>
       
