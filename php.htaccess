@@ -1,4 +1,0 @@
-# Test directive: Deny access to this file
-<Files "denyme.txt">
-  Deny from all
-</Files>
