@@ -66,30 +66,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- The back button will have its href updated via JavaScript -->
+  <!-- The back button's href is set based on the "prev" query parameter -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
   <div id="username-display"></div>
   <div id="chat-box"></div>
-  <input type="text" id="message" placeholder="Type your message..." 
+  <input type="text" id="message" placeholder="Type your message..."
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // Function to get a query parameter from the URL
+    // Get a query parameter from the URL (for the back button)
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
 
-    // Update the back button based on the "prev" query parameter (default to Home.html)
+    // Update the back button (default to Home.html if "prev" is not provided)
     document.addEventListener("DOMContentLoaded", function() {
       const prevPage = getQueryParam("prev") || "Home.html";
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
     });
 
-    // Temporary username stored in localStorage (persists across sessions)
+    // Generate or retrieve a temporary username (persisted via localStorage)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -97,7 +97,7 @@
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // Session-based chat: new session per browser tab
+    // Session-based chat: store a chat start time in sessionStorage (only show messages after this time)
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
       chatStartTime = Date.now().toString();
@@ -105,7 +105,18 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // Initialize Firebase
+    // Function to clear unread message count (when chat page is visible)
+    function clearUnreadCount() {
+      localStorage.setItem("chatUnreadCount", "0");
+      localStorage.setItem("chatLastRead", Date.now().toString());
+    }
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        clearUnreadCount();
+      }
+    });
+
+    // Initialize Firebase and set up real-time listener for messages
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -127,22 +138,40 @@
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for messages and only display those posted after chatStartTime
+      // Set initial last-read time and unread count
+      localStorage.setItem("chatLastRead", Date.now().toString());
+      localStorage.setItem("chatUnreadCount", "0");
+
+      // Listen for messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
           chatBox.innerHTML = "";
+          let unreadCount = parseInt(localStorage.getItem("chatUnreadCount") || "0");
+          let lastRead = parseInt(localStorage.getItem("chatLastRead") || "0");
+
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
             if (!msgData.timestamp) return;
             const msgTime = msgData.timestamp.toMillis();
+            // Only display messages after this session started
             if (msgTime < parseInt(chatStartTime)) return;
             const p = document.createElement("p");
             const displayName = msgData.username || "Anon";
             p.textContent = displayName + ": " + msgData.text;
             chatBox.appendChild(p);
+
+            // If the page is not visible and this message is newer than the last-read time, count it
+            if (document.visibilityState !== "visible" && msgTime > lastRead) {
+              unreadCount++;
+            }
           });
+          if (document.visibilityState !== "visible") {
+            localStorage.setItem("chatUnreadCount", unreadCount.toString());
+          } else {
+            clearUnreadCount();
+          }
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
