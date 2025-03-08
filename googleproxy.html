@@ -7,53 +7,84 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #121212;
+      color: white;
       margin: 0;
       padding: 20px;
     }
     .container {
       max-width: 800px;
-      margin: 0 auto;
+      margin: 60px auto 0 auto;
       text-align: center;
     }
-    input[type="text"] {
-      width: 70%;
-      padding: 10px;
-      font-size: 16px;
-      margin-right: 5px;
+    .header {
+      margin-bottom: 20px;
     }
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
+    .header h1 {
+      display: inline-block;
+      margin: 0;
+      font-size: 2em;
+    }
+    .header span {
+      font-size: 0.6em;
+      color: #aaa;
+      vertical-align: middle;
+      margin-left: 10px;
     }
     .back-button {
-      display: inline-block;
-      margin-bottom: 20px;
+      position: fixed;
+      top: 20px;
+      left: 20px;
       padding: 10px 15px;
+      background: #0044cc;
+      color: white;
       text-decoration: none;
       font-size: 16px;
-      background: #0044cc;
-      color: #fff;
       border-radius: 4px;
       transition: background 0.3s;
     }
     .back-button:hover {
       background: #0033aa;
     }
+    input[type="text"] {
+      width: 70%;
+      padding: 10px;
+      font-size: 16px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background: #0044cc;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0033aa;
+    }
     iframe {
       width: 100%;
       height: 600px;
-      border: 1px solid #ccc;
+      border: 1px solid #444;
       margin-top: 20px;
+      border-radius: 4px;
+      background: #fff;
     }
   </style>
 </head>
 <body>
+  <!-- Back Button -->
+  <a href="Home.html" class="back-button">← Back</a>
+  
   <div class="container">
-    <!-- Back Button -->
-    <a href="Home.html" class="back-button">← Back</a>
-    
-    <h1>Proxy Search</h1>
+    <div class="header">
+      <h1>Proxy Search</h1>
+      <span>v1.0.0</span>
+    </div>
     
     <!-- Input for URL and a button to load the proxy -->
     <input type="text" id="urlInput" placeholder="Enter a URL (include http:// or https://)">
@@ -62,7 +93,7 @@
     <!-- The iframe where the proxied page will be displayed -->
     <iframe id="proxyFrame" title="Proxy Content"></iframe>
   </div>
-
+  
   <script>
     function loadProxy() {
       const url = document.getElementById('urlInput').value.trim();
@@ -70,8 +101,7 @@
         alert("Please enter a valid URL.");
         return;
       }
-      // Set the iframe src to the PHP proxy script.
-      // If proxy.php is in the same directory, use a relative URL:
+      // Set the iframe src to your PHP proxy script. Adjust the path if needed.
       document.getElementById('proxyFrame').src = 'proxy.php?url=' + encodeURIComponent(url);
     }
   </script>
