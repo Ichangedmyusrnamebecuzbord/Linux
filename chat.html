@@ -25,6 +25,7 @@
       border-radius: 10px;
       display: flex;
       flex-direction: column;
+      cursor: pointer;
     }
     input {
       width: 70%;
@@ -86,7 +87,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* New class for non-privileged user's own messages: white bubble with dark grey text */
+    /* Class for non-privileged user's own messages: white bubble with dark gray text */
     .my-bubble-nonprivileged {
       background: white;
       color: #222;
@@ -121,11 +122,20 @@
       text-shadow: 0 0 5px yellow;
       font-weight: bold;
     }
+    /* Timestamp styling */
+    .timestamp {
+      font-size: 0.7em;
+      color: #aaa;
+      align-self: center;
+      margin: 0 5px;
+      white-space: nowrap;
+    }
     /* Modal overlay (common for all modals) */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0;
+      top: 0; 
+      left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -214,8 +224,7 @@
   <!-- Chat box -->
   <div id="chat-box"></div>
   <!-- Message input -->
-  <input type="text" id="message" placeholder="Type your message..."
-         onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+  <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
   <!-- Modal for changing username -->
   <div id="username-modal" class="modal-overlay">
@@ -262,6 +271,10 @@
     </div>
   </div>
   <script>
+    // Global variables for timestamp toggle
+    let showTimestamps = false;
+    let cachedMessages = [];
+    
     // ---------- 1. "Back" Button Setup ----------
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -293,7 +306,7 @@
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
     console.log("Chat Start Time:", chatStartTime);
-    // ---------- 3. Initialize Firebase ----------
+    // ---------- 3. Initialize Firebase & Message Rendering ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -329,33 +342,58 @@
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
-          const chatBox = document.getElementById("chat-box");
-          chatBox.innerHTML = "";
-          // Check privileged status for the current client
-          const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-          snapshot.forEach(function(doc) {
-            const msgData = doc.data();
-            if (!msgData.timestamp) return;
-            const msgTime = msgData.timestamp.toMillis();
-            // For non-privileged users, only show messages sent after chatStartTime.
-            if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
-            const messageDiv = document.createElement("div");
-            messageDiv.classList.add("message-line");
-            if (msgData.username === tempUsername) {
-              messageDiv.classList.add("my-message");
-              // For own messages: if non-privileged, use white bubble with dark grey text; privileged uses orange styling.
-              let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
-              messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
-            } else {
-              messageDiv.classList.add("other-message");
-              let usernameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
-              let bubbleClass = "other-bubble" + (msgData.isPrivileged ? " privileged" : "");
-              messageDiv.innerHTML = usernameHTML + `<div class="${bubbleClass}">${msgData.text}</div>`;
-            }
-            chatBox.appendChild(messageDiv);
-          });
-          chatBox.scrollTop = chatBox.scrollHeight;
+          cachedMessages = snapshot.docs; // Cache snapshot for re-rendering
+          renderMessages();
         });
+    });
+    // Render messages function with timestamp toggle support
+    function renderMessages() {
+      const chatBox = document.getElementById("chat-box");
+      chatBox.innerHTML = "";
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      cachedMessages.forEach(function(doc) {
+        const msgData = doc.data();
+        if (!msgData.timestamp) return;
+        const msgTime = msgData.timestamp.toMillis();
+        if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message-line");
+        // Format timestamp using toLocaleString
+        const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString();
+        if (msgData.username === tempUsername) {
+          messageDiv.classList.add("my-message");
+          // For own messages: if non-privileged, use white bubble with dark grey text; if privileged, use privileged styling.
+          let bubbleContent = msgData.text;
+          if (showTimestamps) {
+            // Own messages: timestamp on right
+            messageDiv.innerHTML = `<div style="display:flex; justify-content: space-between; align-items: center;">
+              <div class="${isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged"}">${bubbleContent}</div>
+              <div class="timestamp">${timestamp}</div>
+            </div>`;
+          } else {
+            messageDiv.innerHTML = `<div class="${isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged"}">${bubbleContent}</div>`;
+          }
+        } else {
+          messageDiv.classList.add("other-message");
+          let bubbleContent = msgData.text;
+          if (showTimestamps) {
+            // Others' messages: timestamp on left
+            messageDiv.innerHTML = `<div style="display:flex; justify-content: space-between; align-items: center;">
+              <div class="timestamp">${timestamp}</div>
+              <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${bubbleContent}</div>
+            </div>`;
+          } else {
+            messageDiv.innerHTML = `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${bubbleContent}</div>`;
+          }
+        }
+        chatBox.appendChild(messageDiv);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    // Toggle timestamp view when chat box is clicked
+    document.getElementById("chat-box").addEventListener("click", function() {
+      showTimestamps = !showTimestamps;
+      renderMessages();
     });
     // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
@@ -426,7 +464,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","ADMIN","Admin"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","Admin"];
     const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
