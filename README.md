@@ -24,7 +24,7 @@ Can you add me as a memeber to your cloudflare site? it lets me manage the bandw
 
 **Scope: Choose Inlcude, then All domains**
 
-**Roles: Select "Administrator**
+**Roles: Select "Administrator"**
 
 **Select Continue to summary.**
 
