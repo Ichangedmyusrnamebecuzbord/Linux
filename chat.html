@@ -164,7 +164,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.6</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.7</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -372,60 +372,59 @@
   })
   .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcolm", "malcolm"];
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      // Normalize entered username for check
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      // Block if it's in forbidden list regardless of privilege
-      const forbiddenNames = ["mally", "ij", "malcom"];
-      if (forbiddenNames.includes(normalizedNewUsername)) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      // Also check against the loaded blocked words
-      if (blockedNames.includes(normalizedNewUsername)) {
-        usernameError.textContent = "That username is blocked.";
-        return;
-      }
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
+saveUsernameButton.addEventListener("click", function() {
+  let newUsername = newUsernameInput.value.trim();
+  if (!newUsername) {
+    usernameError.textContent = "Username cannot be empty.";
+    return;
+  }
+  // Normalize entered username (lowercase and remove trailing slashes)
+  let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+  
+  // Check if the normalized username contains any blocked word as a substring
+  for (let blocked of blockedNames) {
+    if (normalizedNewUsername.includes(blocked)) {
+      usernameError.textContent = "That username is blocked.";
+      return;
+    }
+  }
+  
+  // Continue with checking activeUsers for uniqueness
+  window.db.collection("activeUsers")
+    .where("username", "==", newUsername)
+    .get()
+    .then(snapshot => {
+      let conflict = false;
+      snapshot.forEach(doc => {
+        if (doc.id !== activeUserDocId) {
+          conflict = true;
+        }
+      });
+      if (conflict) {
+        usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+      } else {
+        window.db.collection("activeUsers").doc(activeUserDocId)
+          .update({
+            username: newUsername,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+          })
+          .then(() => {
+            tempUsername = newUsername;
+            sessionStorage.setItem("tempUsername", tempUsername);
+            document.getElementById("username-display").textContent = "You are: " + tempUsername;
+            usernameModal.style.display = "none";
+          })
+          .catch(error => {
+            console.error("Error updating username:", error);
+            usernameError.textContent = "Error updating username. Please try again.";
           });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
+      }
+    })
+    .catch(error => {
+      console.error("Error checking username uniqueness:", error);
+      usernameError.textContent = "Error checking username. Please try again.";
     });
+});
     // ---------- 7. New Modal for Message Block Error ----------
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
