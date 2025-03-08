@@ -182,11 +182,14 @@ function playSong(song) {
 }
 </script>
 
- <a href="chat.html?prev=Home.html" id="chat-button" style="position: relative; display: inline-block; text-decoration: none; color: white; font-size: 18px;">
+<!-- Chat Room Button with Unread Badge -->
+<a href="chat.html?prev=Home.html" id="chat-button" style="position: relative; display: inline-block; text-decoration: none; color: white; font-size: 18px; padding: 10px; background: #0044cc; border-radius: 5px;">
   💬 Chat Room
   <span id="chat-unread-badge" style="display: none; position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px;">0</span>
 </a>
+
 <script>
+  // Function to update the unread badge count
   function updateChatBadge() {
     var unreadCount = parseInt(localStorage.getItem("chatUnreadCount"), 10) || 0;
     var badge = document.getElementById("chat-unread-badge");
@@ -197,8 +200,9 @@ function playSong(song) {
       badge.style.display = "none";
     }
   }
+  // Initial update
   updateChatBadge();
-  // Update badge periodically (every 5 seconds) to catch any changes
+  // Update badge every 5 seconds
   setInterval(updateChatBadge, 5000);
 </script>
 
