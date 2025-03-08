@@ -56,9 +56,13 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    #username-display {
+    /* Container for username display and change button */
+    #username-container {
       margin-bottom: 15px;
       font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
     }
   </style>
   <!-- Use Firebase in Compatibility Mode -->
@@ -66,30 +70,28 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- The back button will have its href updated via JavaScript -->
+  <!-- Back button (its URL can be set via query parameter as needed) -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
-  <div id="username-display"></div>
+  <div id="username-container">
+    <span id="username-display"></span>
+    <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
+  </div>
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message..." 
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    // Function to get a query parameter from the URL
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+    // STEP 1: Generate a unique session ID (ephemeral per tab)
+    let chatSession = sessionStorage.getItem("chatSession");
+    if (!chatSession) {
+      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem("chatSession", chatSession);
     }
+    console.log("Chat Session ID:", chatSession);
 
-    // Update the back button based on the "prev" query parameter (default to Home.html)
-    document.addEventListener("DOMContentLoaded", function() {
-      const prevPage = getQueryParam("prev") || "Home.html";
-      document.querySelector("a.back-button").href = prevPage;
-      console.log("Back button set to:", prevPage);
-    });
-
-    // Temporary username stored in localStorage (persists across sessions)
+    // STEP 2: Set up default username (stored in localStorage)
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -97,7 +99,10 @@
     }
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // Session-based chat: new session per browser tab
+    // STEP 3: Define our active user document ID
+    const activeUserDocId = "active_" + chatSession;
+
+    // STEP 4: Record chat start time (to filter out older messages)
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
       chatStartTime = Date.now().toString();
@@ -105,16 +110,16 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // Initialize Firebase
+    // STEP 5: Initialize Firebase and Firestore
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
-        apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-        authDomain: "mallyssusgamingchat.firebaseapp.com",
-        projectId: "mallyssusgamingchat",
-        storageBucket: "mallyssusgamingchat.appspot.com",
-        messagingSenderId: "848817267004",
-        appId: "1:848817267004:web:fbecb7246352afb9937e39",
-        measurementId: "G-MSF2RTLJD2"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID",
+        measurementId: "YOUR_MEASUREMENT_ID"
       };
 
       if (!firebase.apps.length) {
@@ -123,11 +128,28 @@
       } else {
         console.log("ℹ️ Firebase already initialized.");
       }
-
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Listen for messages and only display those posted after chatStartTime
+      // STEP 6: Create/update our active user document in "activeUsers"
+      window.db.collection("activeUsers").doc(activeUserDocId).set({
+        username: tempUsername,
+        session: chatSession,
+        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        console.log("Active user record updated:", activeUserDocId);
+      }).catch(error => {
+        console.error("Error updating active user record:", error);
+      });
+
+      // (Optional) Clean up on unload so this user’s record is removed when they leave.
+      window.addEventListener("beforeunload", function() {
+        window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
+          console.error("Error cleaning up active user record:", err);
+        });
+      });
+
+      // STEP 7: Listen for messages and display only those after chatStartTime
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -147,7 +169,54 @@
         });
     });
 
-    // Function to send a message
+    // STEP 8: Set up the Change Username button
+    document.getElementById("change-username-button").addEventListener("click", function() {
+      const newUsername = prompt("Enter new username:");
+      if (!newUsername || newUsername.trim() === "") {
+        alert("Username cannot be empty.");
+        return;
+      }
+      const trimmedUsername = newUsername.trim();
+
+      // Check the "activeUsers" collection (excluding our own document) for conflict.
+      window.db.collection("activeUsers")
+        .where("username", "==", trimmedUsername)
+        .get()
+        .then(snapshot => {
+          let conflict = false;
+          snapshot.forEach(doc => {
+            if (doc.id !== activeUserDocId) {
+              conflict = true;
+            }
+          });
+          if (conflict) {
+            alert("That username is already taken by an active user. Please choose another.");
+          } else {
+            // Update our activeUsers document and localStorage
+            window.db.collection("activeUsers").doc(activeUserDocId)
+              .update({
+                username: trimmedUsername,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .then(() => {
+                tempUsername = trimmedUsername;
+                localStorage.setItem("tempUsername", tempUsername);
+                document.getElementById("username-display").textContent = "You are: " + tempUsername;
+                alert("Username changed to " + tempUsername);
+              })
+              .catch(error => {
+                console.error("Error updating username:", error);
+                alert("Error updating username. Please try again.");
+              });
+          }
+        })
+        .catch(error => {
+          console.error("Error checking username uniqueness:", error);
+          alert("Error checking username uniqueness. Please try again later.");
+        });
+    });
+
+    // STEP 9: Function to send a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
