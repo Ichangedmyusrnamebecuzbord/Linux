@@ -299,34 +299,36 @@
         });
       });
       window.db.collection("messages")
-  .orderBy("timestamp")
-  .onSnapshot(function(snapshot) {
-    const chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML = "";
-    // Check privileged status for the current client
-    const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-    snapshot.forEach(function(doc) {
-      const msgData = doc.data();
-      if (!msgData.timestamp) return;
-      const msgTime = msgData.timestamp.toMillis();
-      // For non-privileged users, only show messages sent after chatStartTime.
-      if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
-      const messageDiv = document.createElement("div");
-      messageDiv.classList.add("message-line");
-      if (msgData.username === tempUsername) {
-        messageDiv.classList.add("my-message");
-        let bubbleClass = (isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged");
-        messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
-      } else {
-        messageDiv.classList.add("other-message");
-        let usernameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
-        let bubbleClass = "other-bubble" + (msgData.isPrivileged ? " privileged" : "");
-        messageDiv.innerHTML = usernameHTML + `<div class="${bubbleClass}">${msgData.text}</div>`;
-      }
-      chatBox.appendChild(messageDiv);
+        .orderBy("timestamp")
+        .onSnapshot(function(snapshot) {
+          const chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML = "";
+          // Check privileged status for the current client
+          const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+          snapshot.forEach(function(doc) {
+            const msgData = doc.data();
+            if (!msgData.timestamp) return;
+            const msgTime = msgData.timestamp.toMillis();
+            // For non-privileged users, only show messages sent after chatStartTime.
+            if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message-line");
+            if (msgData.username === tempUsername) {
+              messageDiv.classList.add("my-message");
+              // For my messages, if I'm non-privileged, force white text.
+              let bubbleClass = (isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged");
+              messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
+            } else {
+              messageDiv.classList.add("other-message");
+              let usernameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+              let bubbleClass = "other-bubble" + (msgData.isPrivileged ? " privileged" : "");
+              messageDiv.innerHTML = usernameHTML + `<div class="${bubbleClass}">${msgData.text}</div>`;
+            }
+            chatBox.appendChild(messageDiv);
+          });
+          chatBox.scrollTop = chatBox.scrollHeight;
+        });
     });
-    chatBox.scrollTop = chatBox.scrollHeight;
-  });
     // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
