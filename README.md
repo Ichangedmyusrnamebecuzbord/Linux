@@ -7,6 +7,4 @@ if so thats the link:
 
 https://meet.google.com/kfm-izxh-xwt
 
-can u google meet call me please 🙏🙏🙏🙏🙏 6:03 pm
-
-
+call through discord or gooogle meets at 2:00pm
