@@ -411,14 +411,19 @@
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      // For non-privileged users, only show messages whose PST date is equal to the current PST date.
+      const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-        if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
+        if (!isPrivileged) {
+          const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+          if (msgPSTDate !== currentPSTDate) return;
+        }
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString(undefined, {
+        const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
         const formattedText = formatMessageText(msgData.text);
