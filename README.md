@@ -12,7 +12,11 @@ Can you add me as a memeber to your cloudflare site? it lets me manage the bandw
 
 **Account home > Click the three dots > Members.**
 
+![Image](https://github.com/user-attachments/assets/ad53d5f2-fd08-4af6-8477-e972f3cedd33)
+
 **Select Invite.**
+
+![Image](https://github.com/user-attachments/assets/5afc9787-ae33-4bc5-8269-f191fb1104d6)
 
 **Fill out the following information:**
 
