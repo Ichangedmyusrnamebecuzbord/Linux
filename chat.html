@@ -79,8 +79,18 @@
       align-self: flex-end;
       text-align: right;
     }
+    /* For privileged users, use the normal my-bubble styling */
     .my-bubble {
       background: #1f1f1f;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+      /* (Assuming default text color is white) */
+    }
+    /* New class for non-privileged user's own messages: force text white */
+    .my-bubble-nonprivileged {
+      background: #1f1f1f;
+      color: white;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
@@ -114,8 +124,7 @@
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -294,25 +303,25 @@
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
           chatBox.innerHTML = "";
+          // Check privileged status for the current client
+          const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
             if (!msgData.timestamp) return;
             const msgTime = msgData.timestamp.toMillis();
-            if (msgTime < parseInt(chatStartTime)) return;
+            // For non-privileged users, only show messages sent after chatStartTime.
+            if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message-line");
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              let bubbleClass = "my-bubble";
-              if (msgData.isPrivileged) { bubbleClass += " privileged"; }
+              // For my messages, if I'm non-privileged, force white text.
+              let bubbleClass = (isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged");
               messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
               messageDiv.classList.add("other-message");
-              let usernameHTML = `<div class="other-username`;
-              if (msgData.isPrivileged) { usernameHTML += " privileged-username"; }
-              usernameHTML += `">${msgData.username}</div>`;
-              let bubbleClass = "other-bubble";
-              if (msgData.isPrivileged) { bubbleClass += " privileged"; }
+              let usernameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+              let bubbleClass = "other-bubble" + (msgData.isPrivileged ? " privileged" : "");
               messageDiv.innerHTML = usernameHTML + `<div class="${bubbleClass}">${msgData.text}</div>`;
             }
             chatBox.appendChild(messageDiv);
@@ -368,7 +377,7 @@
       if (enteredCode === secretCode) {
         sessionStorage.setItem("isPrivileged", "true");
         privilegedModal.style.display = "none";
-        // Instead of alert, show a custom success modal:
+        // Show custom privileged success modal instead of alert
         document.getElementById("privileged-success-modal").style.display = "flex";
       } else {
         privilegedError.textContent = "Incorrect code. Please try again.";
