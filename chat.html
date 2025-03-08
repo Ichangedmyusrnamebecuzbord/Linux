@@ -209,7 +209,6 @@
     // ============================
     // 2. Session & Username Setup
     // ============================
-    // -- USERNAME NOW STORED IN sessionStorage, so it resets each time you close/reopen the tab --
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -326,6 +325,14 @@
     const newUsernameInput = document.getElementById("new-username-input");
     const saveUsernameButton = document.getElementById("save-username-button");
     const cancelUsernameButton = document.getElementById("cancel-username-button");
+
+    // Make Enter key = Save
+    newUsernameInput.addEventListener("keydown", function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveUsernameButton.click();
+      }
+    });
 
     // Show the modal
     document.getElementById("change-username-button").addEventListener("click", function() {
