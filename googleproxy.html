@@ -2,22 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Proxy Search</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f4f4f4;
       margin: 0;
       padding: 20px;
-      background: #f4f4f4;
     }
     .container {
       max-width: 800px;
       margin: 0 auto;
       text-align: center;
     }
-    h1 {
-      margin-bottom: 20px;
+    input[type="text"] {
+      width: 70%;
+      padding: 10px;
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
     }
     .back-button {
       display: inline-block;
@@ -33,17 +40,40 @@
     .back-button:hover {
       background: #0033aa;
     }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
   </style>
-  <!-- Load your Google Custom Search Engine script -->
-  <script async src="https://cse.google.com/cse.js?cx=513b66f8a13074f8b"></script>
 </head>
 <body>
   <div class="container">
     <!-- Back Button -->
     <a href="Home.html" class="back-button">← Back</a>
-    <h1>Search the Web</h1>
-    <!-- This div will render the custom search box and results -->
-    <div class="gcse-search"></div>
+    
+    <h1>Proxy Search</h1>
+    
+    <!-- Input for URL and a button to load the proxy -->
+    <input type="text" id="urlInput" placeholder="Enter a URL (include http:// or https://)">
+    <button onclick="loadProxy()">Load</button>
+    
+    <!-- The iframe where the proxied page will be displayed -->
+    <iframe id="proxyFrame" title="Proxy Content"></iframe>
   </div>
+
+  <script>
+    function loadProxy() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) {
+        alert("Please enter a valid URL.");
+        return;
+      }
+      // Set the iframe src to your server-side proxy endpoint.
+      // Make sure to URL-encode the user input.
+      document.getElementById('proxyFrame').src = '/proxy?url=' + encodeURIComponent(url);
+    }
+  </script>
 </body>
 </html>
