@@ -87,7 +87,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Class for non-privileged user's own messages: white bubble with dark gray text */
+    /* Non-privileged user's own messages: white bubble with dark gray text */
     .my-bubble-nonprivileged {
       background: white;
       color: #222;
@@ -215,7 +215,8 @@
   <script>
     // Helper function to convert URLs in text to clickable links
     function formatMessageText(text) {
-      const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
+      // Updated regex: match any http:// or https:// URL up to a whitespace
+      const urlRegex = /(\bhttps?:\/\/[^\s]+)/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
@@ -369,11 +370,11 @@
         if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        // Format timestamp without seconds:
+        // Format timestamp without seconds
         const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
-        // Process message text to convert URLs to clickable links
+        // Process message text to auto-link URLs
         const formattedText = formatMessageText(msgData.text);
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
@@ -479,7 +480,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","Admin","ADMIN"];
     const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
@@ -573,7 +574,7 @@
     }
     // ---------- Helper: Format message text to auto-link URLs ----------
     function formatMessageText(text) {
-      const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
+      const urlRegex = /(\bhttps?:\/\/[^\s]+)/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
