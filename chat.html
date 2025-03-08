@@ -85,7 +85,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Class for non-privileged user's own messages: white bubble with dark gray text */
+    /* For non-privileged users: white bubble with dark gray text */
     .my-bubble-nonprivileged {
       background: white;
       color: #222;
@@ -118,7 +118,7 @@
       color: lightblue !important;
       font-weight: bold;
     }
-    /* Modal overlay (common for all modals) */
+    /* Modal overlay */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -143,7 +143,6 @@
     .modal-box h2 {
       margin-top: 0;
       margin-bottom: 10px;
-      text-align: center;
     }
     .modal-box input {
       width: 100%;
@@ -165,7 +164,7 @@
       text-align: right;
       margin-top: 10px;
     }
-    /* Underline links within messages */
+    /* Underline for links */
     a.message-link {
       text-decoration: underline;
       color: inherit;
@@ -201,7 +200,6 @@
   <!-- Helper: Auto-link URLs -->
   <script>
     function formatMessageText(text) {
-      // Simple regex to detect full URLs
       return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
@@ -264,8 +262,20 @@
     </div>
   </div>
   <script>
+    // Global variables for timestamp toggle and unread tracking
     let showTimestamps = false;
     let cachedMessages = [];
+    let lastVisibleMessageCount = 0;
+    
+    // Unread count handling using Page Visibility API
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        // When returning to chat, reset unread count and update baseline.
+        lastVisibleMessageCount = cachedMessages.length;
+        localStorage.setItem("chatUnreadCount", "0");
+      }
+    });
+    
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -331,11 +341,9 @@
         if (msgTime < parseInt(chatStartTime)) return;
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        // Format timestamp without seconds:
         const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
-        // Process message text to auto-link URLs:
         const formattedText = formatMessageText(msgData.text);
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
@@ -366,13 +374,22 @@
         chatBox.appendChild(messageDiv);
       });
       chatBox.scrollTop = chatBox.scrollHeight;
+      
+      // Update unread count when page is hidden
+      if (document.visibilityState !== "visible") {
+        const totalMessages = cachedMessages.length;
+        const unread = Math.max(totalMessages - lastVisibleMessageCount, 0);
+        localStorage.setItem("chatUnreadCount", unread.toString());
+      }
     }
+    // Toggle timestamps only when chat-box background is clicked
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
         renderMessages();
       }
     });
+    // Change Username Modal
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -393,6 +410,7 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
+    // Privileged Upgrade Modal
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -428,6 +446,7 @@
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
+    // Save New Username (with blacklist)
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
