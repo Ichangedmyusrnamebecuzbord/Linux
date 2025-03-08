@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Proxy Search</title>
   <style>
+    /* Dark theme similar to your chat.html */
     body {
       font-family: Arial, sans-serif;
       background-color: #121212;
@@ -12,6 +13,7 @@
       margin: 0;
       padding: 20px;
     }
+    /* Fixed back button at the top-left */
     .back-button {
       position: fixed;
       top: 20px;
@@ -27,14 +29,13 @@
     .back-button:hover {
       background: #0033aa;
     }
+    /* Centered container */
     .container {
       max-width: 800px;
       margin: 60px auto 0 auto;
       text-align: center;
     }
-    .header {
-      margin-bottom: 20px;
-    }
+    /* Header with version text */
     .header h1 {
       font-size: 2em;
       margin: 0;
@@ -45,6 +46,7 @@
       vertical-align: middle;
       margin-left: 10px;
     }
+    /* URL input and button styling */
     input[type="text"] {
       width: 70%;
       padding: 10px;
@@ -65,6 +67,7 @@
     button:hover {
       background: #0033aa;
     }
+    /* Iframe styling */
     iframe {
       width: 100%;
       height: 600px;
@@ -82,14 +85,15 @@
   <div class="container">
     <div class="header">
       <h1>
-        Proxy Search
-        <span>v1.0.0</span>
+        Proxy Search <span>v1.0.0</span>
       </h1>
     </div>
     
+    <!-- Input for URL and a button to load the proxy -->
     <input type="text" id="urlInput" placeholder="Enter a URL (http:// or https://)">
     <button onclick="loadProxy()">Load</button>
     
+    <!-- Iframe to display the proxied page -->
     <iframe id="proxyFrame" title="Proxy Content"></iframe>
   </div>
 
@@ -100,9 +104,9 @@
         alert("Please enter a valid URL.");
         return;
       }
-      // Replace 'your-service.your-username.workers.dev' with your actual Worker URL
+      // Point to your Cloudflare Worker to fetch the content.
       document.getElementById('proxyFrame').src =
-        'https://your-service.your-username.workers.dev?url=' + encodeURIComponent(url);
+        'https://rewriting-proxy.malds61798.workers.dev/?url=' + encodeURIComponent(url);
     }
   </script>
 </body>
