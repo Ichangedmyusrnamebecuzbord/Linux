@@ -1,4 +1,4 @@
-# Tell Apache to treat .php files as PHP scripts
-<FilesMatch "\.php$">
-  SetHandler application/x-httpd-php
-</FilesMatch>
+# Test directive: Deny access to this file
+<Files "denyme.txt">
+  Deny from all
+</Files>
