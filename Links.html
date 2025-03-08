@@ -134,19 +134,25 @@ window.onload = openGame;
         <button onclick="document.getElementById('background-music').play()">Play Music</button>
         <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
     </div>
-     <a href="chat.html?prev=Links.html" style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0044cc;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 18px;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-">💬 Chat Room</a>
+<a href="chat.html?prev=Links.html" id="chat-button" style="position: relative; display: inline-block; text-decoration: none; color: white; font-size: 18px;">
+  💬 Chat Room
+  <span id="chat-unread-badge" style="display: none; position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px;">0</span>
+</a>
+<script>
+  function updateChatBadge() {
+    var unreadCount = parseInt(localStorage.getItem("chatUnreadCount"), 10) || 0;
+    var badge = document.getElementById("chat-unread-badge");
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount;
+      badge.style.display = "block";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+  updateChatBadge();
+  // Update badge periodically (every 5 seconds) to catch any changes
+  setInterval(updateChatBadge, 5000);
+</script>
 
 </body>
       
