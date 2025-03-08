@@ -85,12 +85,11 @@
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
-      /* Inherited text color (white) */
     }
-    /* New class for non-privileged user's own messages: white bubble with dark gray text */
+    /* New class for non-privileged user's own messages: white bubble with dark grey text */
     .my-bubble-nonprivileged {
       background: white;
-      color: #222; /* very dark gray */
+      color: #222;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
@@ -111,21 +110,22 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged styling: Light blue */
+    /* Privileged styling: Orange background with yellow glow */
     .privileged {
-      background-color: lightblue !important;
-      color: black !important;
+      background-color: orange !important;
+      color: white !important;
+      box-shadow: 0 0 10px yellow !important;
     }
     .privileged-username {
-      color: lightblue !important;
+      color: orange !important;
+      text-shadow: 0 0 5px yellow;
       font-weight: bold;
     }
     /* Modal overlay (common for all modals) */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; 
-      left: 0;
+      top: 0; left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -176,7 +176,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.1</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -316,7 +316,7 @@
             messageDiv.classList.add("message-line");
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              // Use a white bubble with dark grey text for non-privileged users, else light-blue styling
+              // For own messages: if non-privileged, use white bubble with dark grey text; privileged uses orange styling.
               let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
               messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
@@ -399,8 +399,8 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","ADMIN","Admin"];
-    const reservedNames = ["mally", "ij", "malcom","admin"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
+    const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
