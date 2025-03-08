@@ -27,7 +27,7 @@
       flex-direction: column;
       cursor: pointer;
     }
-    input {
+    input[type="text"] {
       width: 70%;
       padding: 10px;
       margin-top: 10px;
@@ -43,6 +43,7 @@
       color: white;
       cursor: pointer;
       border-radius: 5px;
+      margin-top: 10px;
     }
     button:hover {
       background: #0033aa;
@@ -80,14 +81,12 @@
       align-self: flex-end;
       text-align: right;
     }
-    /* Default styling for my messages (for privileged users) */
     .my-bubble {
       background: #1f1f1f;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
     }
-    /* Non-privileged user's own messages: white bubble with dark gray text */
     .my-bubble-nonprivileged {
       background: white;
       color: #222;
@@ -137,7 +136,7 @@
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -156,7 +155,7 @@
       margin-bottom: 10px;
       text-align: center;
     }
-    .modal-box input {
+    .modal-box input, .modal-box textarea {
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 10px;
@@ -165,6 +164,10 @@
       border-radius: 5px;
       background: #444;
       color: #fff;
+    }
+    .modal-box textarea {
+      height: 120px;
+      resize: vertical;
     }
     .error-message {
       color: #ff5555;
@@ -175,6 +178,19 @@
     .modal-buttons {
       text-align: right;
       margin-top: 10px;
+    }
+    /* Request Feature button styling */
+    #request-feature-button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background: #006600;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #request-feature-button:hover {
+      background: #004400;
     }
     /* Underline for links in messages */
     a.message-link {
@@ -215,8 +231,7 @@
   <script>
     // Helper function to convert URLs in text to clickable links
     function formatMessageText(text) {
-      // Updated regex: match any http:// or https:// URL up to a whitespace
-      const urlRegex = /(\bhttps?:\/\/[^\s]+)/ig;
+      const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
@@ -225,7 +240,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.2</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -238,6 +253,19 @@
   <!-- Message input -->
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
+  <!-- Request a Feature Button -->
+  <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
+  <!-- Modal for Feature Request -->
+  <div id="feature-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Feature Request</h2>
+      <textarea id="feature-text" placeholder="Describe your feature request..."></textarea>
+      <div class="modal-buttons">
+        <button id="submit-feature-button">Submit</button>
+        <button id="cancel-feature-button">Cancel</button>
+      </div>
+    </div>
+  </div>
   <!-- Modal for changing username -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
@@ -370,11 +398,10 @@
         if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        // Format timestamp without seconds
+        // Format timestamp without seconds:
         const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
-        // Process message text to auto-link URLs
         const formattedText = formatMessageText(msgData.text);
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
@@ -480,7 +507,7 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","ADMIN","admin","Admin"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
     const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
@@ -572,11 +599,26 @@
         console.error("❌ Error Sending Message:", error);
       });
     }
-    // ---------- Helper: Format message text to auto-link URLs ----------
-    function formatMessageText(text) {
-      const urlRegex = /(\bhttps?:\/\/[^\s]+)/ig;
-      return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
+    // ---------- Feature Request Modal Functions ----------
+    function openFeatureModal() {
+      document.getElementById("feature-modal").style.display = "flex";
     }
+    document.getElementById("cancel-feature-button").addEventListener("click", function() {
+      document.getElementById("feature-modal").style.display = "none";
+    });
+    document.getElementById("submit-feature-button").addEventListener("click", function() {
+      const featureText = document.getElementById("feature-text").value.trim();
+      if (!featureText) {
+        alert("Please enter your feature request.");
+        return;
+      }
+      const currentDate = new Date().toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
+      const body = encodeURIComponent(featureText);
+      // Open the mail client with the pre-filled subject and body
+      window.location.href = "mailto:jacetompsonex6@gmail.com?subject=" + subject + "&body=" + body;
+      document.getElementById("feature-modal").style.display = "none";
+    });
   </script>
 </body>
 </html>
