@@ -69,37 +69,48 @@
       gap: 10px;
     }
 
-    /* Common message bubble container */
+    /* Container for each message (no background here) */
     .message-line {
-      display: inline-block;
-      max-width: 70%;
       margin: 5px 0;
-      padding: 8px;
-      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
       word-wrap: break-word;
     }
-    /* Your messages (aligned right) */
+
+    /* Your messages aligned to the right */
     .my-message {
       align-self: flex-end;
-      background: #1f1f1f;
       text-align: right;
     }
-    /* Others' messages (aligned left) */
+
+    /* Others' messages aligned to the left */
     .other-message {
       align-self: flex-start;
-      background: #333;
       text-align: left;
     }
 
-    /* For other people's username (smaller font above their message) */
+    /* Smaller font for other people's usernames */
     .other-username {
       font-size: 0.8rem;
       color: #aaa;
       margin-bottom: 2px;
     }
-    /* The actual text portion for others */
-    .other-message-text {
-      /* bigger font if you like, or keep as default */
+
+    /* The bubble for others' messages */
+    .other-bubble {
+      background: #333;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    /* The bubble for your own messages */
+    .my-bubble {
+      background: #1f1f1f;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
     }
 
     /* Modal overlay (hidden by default) */
@@ -149,7 +160,7 @@
     }
   </style>
 
-  <!-- Firebase in Compatibility Mode -->
+  <!-- Firebase in Compatibility Mode (no "import/export") -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
@@ -188,7 +199,9 @@
   </div>
 
   <script>
+    // ========================
     // 1. "Back" Button Setup
+    // ========================
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -199,7 +212,9 @@
       console.log("Back button set to:", prevPage);
     });
 
+    // ============================
     // 2. Session & Username Setup
+    // ============================
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
@@ -224,7 +239,9 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
+    // ==========================
     // 3. Initialize Firebase
+    // ==========================
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -263,7 +280,9 @@
         });
       });
 
-      // Listen for messages
+      // ============================
+      // 4. Listen for messages
+      // ============================
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -276,30 +295,34 @@
             // Skip older messages
             if (msgTime < parseInt(chatStartTime)) return;
 
-            // Create a div for each message
-            const div = document.createElement("div");
-            div.classList.add("message-line");
+            // Create a container for each message
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message-line");
 
             if (msgData.username === tempUsername) {
-              // My message => right side, no username displayed
-              div.classList.add("my-message");
-              div.textContent = msgData.text;
+              // My message => right side, no username
+              messageDiv.classList.add("my-message");
+              messageDiv.innerHTML = `
+                <div class="my-bubble">${msgData.text}</div>
+              `;
             } else {
-              // Other user's message => left side, username on top
-              div.classList.add("other-message");
-              div.innerHTML = `
+              // Other user's => left side, show username above bubble
+              messageDiv.classList.add("other-message");
+              messageDiv.innerHTML = `
                 <div class="other-username">${msgData.username}</div>
-                <div class="other-message-text">${msgData.text}</div>
+                <div class="other-bubble">${msgData.text}</div>
               `;
             }
 
-            chatBox.appendChild(div);
+            chatBox.appendChild(messageDiv);
           });
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // 4. Change Username (Modal)
+    // =============================
+    // 5. Change Username (Modal)
+    // =============================
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -365,7 +388,9 @@
         });
     });
 
-    // 5. Send a Message
+    // =============================
+    // 6. Send a Message
+    // =============================
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
