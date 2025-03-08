@@ -1,10 +1,23 @@
-<!DOCTYPE html>
-<html lang="en"> 
-<head>
+<html><head>
+        <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
+      <script>
+        function openGame() {
+    var win = window.open();
+    var url = "Home.html";
+    win.document.write('<html><head><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
+    var iframe = win.document.createElement('iframe');
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.src = url;
+    win.document.body.appendChild(iframe);
+}
+
+window.onload = openGame;
+
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<head>
     <title>Mally's Sus gaming</title>
     <style>
         * {
@@ -18,14 +31,14 @@
 
         body {
             font-family: Arial, sans-serif;
-            background: url('Backround.gif') no-repeat center center fixed; /* Full-screen galaxy background */
-            background-size: cover; /* Ensure the background covers the entire viewport */
+            background: url('Backround.gif') no-repeat center center fixed; 
+            background-size: cover; 
             color: white;
             text-align: center;
             display: flex;
-            justify-content: center; /* Align text to the top */
-            align-items: flex-start; /* Align text to the top */
-            height: 100vh; /* Full height of the viewport */
+            justify-content: center; 
+            align-items: flex-start; 
+            height: 100vh; 
             padding-right: 48%;
         }
 
@@ -34,17 +47,17 @@
 
  .Home {
             position: fixed;
-            right: 400px;  /* Adjust distance from the right edge */
-            top: 10px;    /* Adjust distance from the top edge */
-            width: 100px;  /* Set the size of the icon */
+            right: 400px;  
+            top: 10px;   
+            width: 100px;  
     
         }
         
         .Games {
             position: fixed;
-            right: 300px;  /* Adjust distance from the right edge */
-            top: 10px;    /* Adjust distance from the top edge */
-            width: 100px;  /* Set the size of the icon */
+            right: 300px;  
+            top: 10px;    
+            width: 100px;  
                 }    
              .Proxy {
             position: fixed;
@@ -56,41 +69,120 @@
           position: fixed;
             right: 145px;
             top: 10px;   }
-                 .Links {
+
+            
+            .Links {
             position: fixed;
             right: 45px;
             top: 10px;
           
         }
+
             
 
         .Links img, .Proxy img, .Games img, .Home img, .Forms img {
             display: block;
-            width: 100%; /* Ensure the image fits within the container */
-            filter: brightness(1); /* Initial brightness */
-            box-shadow: none; /* No shadow initially */
+            width: 100%; 
+            filter: brightness(1); 
+            box-shadow: none; 
             transition: filter 0.3s ease, box-shadow 0.3s ease;
-              border-radius: 10px; /* Curved edges for the image itself */
+              border-radius: 10px; 
         }
 
-      .Links:hover img,  .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
-            filter: brightness(1.2); /* Brighter on hover */
-            box-shadow: 0 0 10px 6px gray; /* Gray outline on hover */
+       .Links:hover img, .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
+            filter: brightness(1.2); 
+            box-shadow: 0 0 10px 6px gray;
         }
-</script>
+
+        
+          .music-buttons-container {
+            position: fixed;
+            top: 2%; 
+            left: 54%;
+            display: flex;
+            flex-direction: column; 
+            gap: 10px;
+        }
+   
 
 
+         .counter-container {
+           position: absolute;
+            left: 0.1%;  
+            top: 24%;
 
+     
+        }
+        .music-buttons-container button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-
-
-          
-
+        .music-buttons-container button:hover {
+            background-color: #555;
+        }
+    </style>
 </head>
 <body>
+<script src="Script.js"></script>
+   <div class="music-buttons-container">
+    <button onclick="document.getElementById('background-music').play()">Play Music</button>
+    <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
+    <button onclick="toggleMusicList()">Show Music List</button>
+</div>
 
-    </div>
-     <a href="chat.html?prev=Halloffame.html" style="
+<!-- Music List with Scroll -->
+<div id="music-list">
+    <h3>Music List</h3>
+    <ul>
+        <li><a href="#" onclick="playSong('https://kasperisalittlebitch.github.io/uoprjetlshoershrieghireghyiuth-ewoirfhrieutgbuiktyewo9rti-tnry8we0o-hWIUEGH9Q/idk.mp3')">Travis Scott : FE!N (feat. Playboi Carti)</a></li>
+
+    </ul>
+</div>
+
+<audio id="background-music" controls>
+    <source id="audio-source" src="your-music-file.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+</audio>
+
+<style>
+    #music-list {
+        display: none;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        width: 250px;
+        height: 150px; /* Set a fixed height */
+        overflow-y: auto; /* Enable vertical scrolling */
+        background: #f9f9f9;
+    }
+</style>
+
+<script>
+function toggleMusicList() {
+    var musicList = document.getElementById("music-list");
+    if (musicList.style.display === "none") {
+        musicList.style.display = "block";
+    } else {
+        musicList.style.display = "none";
+    }
+}
+
+function playSong(song) {
+    var audio = document.getElementById("background-music");
+    var source = document.getElementById("audio-source");
+    source.src = song;
+    audio.load();
+    audio.play();
+}
+</script>
+
+ <a href="chat.html?prev=Links.html" style="
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -108,18 +200,20 @@
       
 
 
-
     </style>
 </head>
 <body>  
-     <img src="IMGS/MSG.png" alt="Image" style="width: 150px;">
-
+     <img  onclick="openGame()" src="IMGS/MSG.png" alt="Image" style="width: 150px;">
+     <div class="counter-container">
+<div id="sfcu2hew4jed5tmc16k3mmt6eua6eg8182x"></div>
+<script type="text/javascript" src="https://counter6.optistats.ovh/private/counter.js?c=u2hew4jed5tmc16k3mmt6eua6eg8182x&down=async" async></script>
+<br></a><noscript><a href="https://www.freecounterstat.com" title="free stat counter"><img src="https://counter6.optistats.ovh/private/freecounterstat.php?c=u2hew4jed5tmc16k3mmt6eua6eg8182x" border="0" title="free stat counter" alt="free stat counter"></a></noscript>
+          </div>
 
 
 
     <div>
-        <h1 style="font-size:6vw; white-space: nowrap;" onclick="openGame()">Mally's Gaming</h1>
-
+        <h1 style="font-size:6vw; white-space: nowrap;";>Mally's Gaming</h1>
     
 
         <h2>Have fun,be cool, and spread the word</h2>
@@ -138,30 +232,74 @@
 <img src="IMGS/Games.png" alt="Image" style="width: 91px;"></a></div>
 <div class="Forms">
 <a href="Halloffame.html">
-<img src="IMGS/WHOF.png" alt="Image" style="width: 100px;"></a></div>
-        <div class="Links">
+<img src="IMGS/HOF.png" alt="Image" style="width: 100px;"></a></div>
+    <div class="Links">
 <a href="Links.html">
 <img src="IMGS/Links.png" alt="Image" style="width: 100px;"></a></div>
-</head>
+
 <body>
-  <ul>
-<li style="position: absolute; top: 30%;left: 10%;transform: translateY(-50%);margin: 0;font-size: 2vw;white-space: nowrap;font-family: Arial, sans-serif;text-align: left;">Appel level 1 <br>21.1 seconds</li>               
-<li style="position: absolute; top: 35%;left: 10%;transform: translateY(-50%);margin: 0;font-size: 2vw;white-space: nowrap;font-family: Arial, sans-serif;text-align: left;">Appel level 2 <br>58.4 seconds</li>
-<li style="position: absolute; top: 40%;left: 10%;transform: translateY(-50%);margin: 0;font-size: 2vw;white-space: nowrap;font-family: Arial, sans-serif;text-align: left;">Appel level 3 <br>34.6 seconds</li> 
-    
+<h3 style="position: absolute;top: 28%;left: 41%;transform: translateY(-50%);margin: 0;font-size: 3.4vw;font-family: Arial, sans-serif;text-align: left;"><strong>  🏆 Records  🏆 </strong></h3>
+    <ul>
+        <li style="position: absolute;top: 34%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong> Records!! if you have a record send a sceenshot to <a href="mailto:msg2records@outlook.com" target="_blank">msg2records@outlook.com</a> and a name/nickname too.</strong></li>
+        <li style="position: absolute;top: 42%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Appel level 1 : 21.1 seconds -Mally</strong></li>
+        <li style="position: absolute;top: 49%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Appel level 2 : 53.9 seconds -Mally</strong></li>
+        <li style="position: absolute;top: 56%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Appel level 3 : 47.3 seconds -Mally</strong></li>
+        <li style="position: absolute;top: 56%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Cookies In Cookie Clicker : 1,783 -Mally</strong></li>
+    </ul>
+        </body>
+      <h5 style="
+        position: absolute;
+        top: 62%;
+        left: 20%;
+        transform: translateY(-50%);
+        margin: 0;
+        font-size: 1.2vw;
+        font-family: Arial, sans-serif;
+        text-align: left;
+    ">
+       This is an about:blank cloaker put in a website (put https:// at the start) and it cloaks it but, sadly some websites wont work </h5>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .Rizz {
+      text-align: center;
+    }
 
-  
-  </ul>
+    
+ .container {
+      position: absolute;
+      top: 71%;
+      left: 50%;
+      text-align: center;
+      transform: translate(-50%, -50%);
+    }
  
-  
-     
-      
 
+    input[type="text"] {
+      padding: 10px;
+      width: 500px;
+      height: 40px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1e1e1e;
+      color: white;
+      outline: none;
+    }
 
-         
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
-
-         <script src="Script.js"></script>
+    button:hover {
+      background-color: #444;
+    }
+  </style>
 </html>
-    
-
