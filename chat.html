@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
+
+  <!-- Basic styling -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -56,7 +58,7 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Container for username display and change button */
+    /* Username container */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -64,17 +66,57 @@
       align-items: center;
       gap: 10px;
     }
+
+    /* Modal overlay (hidden by default) */
+    .modal-overlay {
+      display: none; /* We'll show it via JS */
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999; /* On top of everything */
+    }
+    /* Modal box */
+    .modal-box {
+      background: #333;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: left;
+    }
+    .modal-box h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .modal-box input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .modal-buttons {
+      text-align: right;
+      margin-top: 10px;
+    }
+    .error-message {
+      color: #ff5555;
+      margin: 5px 0 0 0;
+      font-size: 0.9rem;
+      min-height: 1em;
+    }
   </style>
-  <!-- Use Firebase in Compatibility Mode (NO "import" or "export") -->
+
+  <!-- Firebase in Compatibility Mode (no "import/export") -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button set by ?prev= parameter or default to Home.html -->
+  <!-- Back button set by ?prev= or defaults to Home.html -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room</h1>
 
-  <!-- Username display + "Change Username" button -->
+  <!-- Username display + change button -->
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">
@@ -82,16 +124,31 @@
     </button>
   </div>
 
-  <!-- The chat box -->
+  <!-- Chat box -->
   <div id="chat-box"></div>
 
-  <!-- Message input + Send button (Enter key also sends) -->
+  <!-- Message input -->
   <input type="text" id="message" placeholder="Type your message..."
          onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
 
+  <!-- Custom Modal for changing username -->
+  <div id="username-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Change Username</h2>
+      <input type="text" id="new-username-input" placeholder="Enter new username...">
+      <p id="username-error" class="error-message"></p>
+      <div class="modal-buttons">
+        <button id="save-username-button">Save</button>
+        <button id="cancel-username-button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Parse ?prev= to set the Back button (optional)
+    // ========================
+    // 1. "Back" Button Setup
+    // ========================
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -102,7 +159,9 @@
       console.log("Back button set to:", prevPage);
     });
 
-    // Generate or retrieve a unique chatSession ID for this browser tab
+    // ============================
+    // 2. Session & Username Setup
+    // ============================
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
@@ -110,19 +169,16 @@
     }
     console.log("Chat Session ID:", chatSession);
 
-    // Generate or retrieve a persistent username from localStorage
     let tempUsername = localStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
       localStorage.setItem("tempUsername", tempUsername);
     }
-    // Display the current username
     document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-    // We'll store active user doc with ID "active_{chatSession}"
     const activeUserDocId = "active_" + chatSession;
 
-    // chatStartTime ensures we only see new messages
+    // Filter out old messages
     let chatStartTime = sessionStorage.getItem("chatStartTime");
     if (!chatStartTime) {
       chatStartTime = Date.now().toString();
@@ -130,7 +186,9 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // Initialize Firebase + Firestore
+    // ==========================
+    // 3. Initialize Firebase
+    // ==========================
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -151,7 +209,7 @@
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
 
-      // Create/update our activeUsers document so others can't take this username
+      // Create/update our "activeUsers" doc
       window.db.collection("activeUsers").doc(activeUserDocId).set({
         username: tempUsername,
         session: chatSession,
@@ -162,32 +220,24 @@
         console.error("Error updating active user record:", error);
       });
 
-      // Optional cleanup: remove active user doc when user leaves
+      // Optional: remove active user doc when user leaves
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
       });
 
-      // Real-time listener for all messages, sorted by timestamp
-      // We'll client-side filter out older ones (before chatStartTime).
+      // Listen for messages
       window.db.collection("messages")
-        .orderBy("timestamp") // Single field sort => no composite index needed
+        .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           const chatBox = document.getElementById("chat-box");
           chatBox.innerHTML = "";
-
           snapshot.forEach(function(doc) {
             const msgData = doc.data();
-            if (!msgData.timestamp) return; // skip invalid docs
-
+            if (!msgData.timestamp) return;
             const msgTime = msgData.timestamp.toMillis();
-            if (msgTime < parseInt(chatStartTime)) {
-              // This message is older than when we opened the chat
-              return;
-            }
-
-            // Display message
+            if (msgTime < parseInt(chatStartTime)) return; // skip old messages
             const p = document.createElement("p");
             const displayName = msgData.username || "Anon";
             p.textContent = displayName + ": " + msgData.text;
@@ -197,54 +247,77 @@
         });
     });
 
-    // Change Username button logic
+    // =============================
+    // 4. Change Username (Modal)
+    // =============================
+    const usernameModal = document.getElementById("username-modal");
+    const usernameError = document.getElementById("username-error");
+    const newUsernameInput = document.getElementById("new-username-input");
+    const saveUsernameButton = document.getElementById("save-username-button");
+    const cancelUsernameButton = document.getElementById("cancel-username-button");
+
+    // Show the modal
     document.getElementById("change-username-button").addEventListener("click", function() {
-      const newUsername = prompt("Enter new username:");
-      if (!newUsername || newUsername.trim() === "") {
-        alert("Username cannot be empty.");
+      usernameModal.style.display = "flex"; // show overlay
+      usernameError.textContent = "";       // clear old errors
+      newUsernameInput.value = "";          // reset input
+      newUsernameInput.focus();
+    });
+
+    // Hide the modal on cancel
+    cancelUsernameButton.addEventListener("click", function() {
+      usernameModal.style.display = "none";
+    });
+
+    // Save new username
+    saveUsernameButton.addEventListener("click", function() {
+      let newUsername = newUsernameInput.value.trim();
+      if (!newUsername) {
+        usernameError.textContent = "Username cannot be empty.";
         return;
       }
-      const trimmedUsername = newUsername.trim();
 
-      // Check activeUsers for any doc with that username (except our own doc)
+      // Check activeUsers for conflict
       window.db.collection("activeUsers")
-        .where("username", "==", trimmedUsername)
+        .where("username", "==", newUsername)
         .get()
         .then(snapshot => {
           let conflict = false;
           snapshot.forEach(doc => {
             if (doc.id !== activeUserDocId) {
-              conflict = true; // someone else is using that username
+              conflict = true;
             }
           });
           if (conflict) {
-            alert("That username is already taken by an active user. Please choose another.");
+            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
           } else {
-            // Update our active user doc with the new name
+            // Update our doc
             window.db.collection("activeUsers").doc(activeUserDocId)
               .update({
-                username: trimmedUsername,
+                username: newUsername,
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
               })
               .then(() => {
-                tempUsername = trimmedUsername;
+                tempUsername = newUsername;
                 localStorage.setItem("tempUsername", tempUsername);
                 document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                alert("Username changed to " + tempUsername);
+                usernameModal.style.display = "none"; // close modal
               })
               .catch(error => {
                 console.error("Error updating username:", error);
-                alert("Error updating username. Please try again.");
+                usernameError.textContent = "Error updating username. Please try again.";
               });
           }
         })
         .catch(error => {
           console.error("Error checking username uniqueness:", error);
-          alert("Error checking username uniqueness. Please try again later.");
+          usernameError.textContent = "Error checking username. Please try again.";
         });
     });
 
-    // Send a message (attaches current username + server timestamp)
+    // =============================
+    // 5. Send a Message
+    // =============================
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
