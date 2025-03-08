@@ -69,7 +69,7 @@
       gap: 10px;
     }
 
-    /* Message bubble container */
+    /* Common message bubble container */
     .message-line {
       display: inline-block;
       max-width: 70%;
@@ -78,17 +78,28 @@
       border-radius: 5px;
       word-wrap: break-word;
     }
-    /* Bubbles for other users (on the LEFT) */
+    /* Your messages (aligned right) */
+    .my-message {
+      align-self: flex-end;
+      background: #1f1f1f;
+      text-align: right;
+    }
+    /* Others' messages (aligned left) */
     .other-message {
-      align-self: flex-start;  /* left side */
+      align-self: flex-start;
       background: #333;
       text-align: left;
     }
-    /* Bubbles for your messages (on the RIGHT) */
-    .my-message {
-      align-self: flex-end;    /* right side */
-      background: #1f1f1f;
-      text-align: right;
+
+    /* For other people's username (smaller font above their message) */
+    .other-username {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+    /* The actual text portion for others */
+    .other-message-text {
+      /* bigger font if you like, or keep as default */
     }
 
     /* Modal overlay (hidden by default) */
@@ -107,7 +118,7 @@
       background: #333;
       padding: 20px;
       border-radius: 10px;
-      width: 320px; /* slightly wider */
+      width: 320px;
       box-sizing: border-box;
       text-align: center;
     }
@@ -138,7 +149,7 @@
     }
   </style>
 
-  <!-- Firebase in Compatibility Mode (no "import/export") -->
+  <!-- Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
@@ -177,9 +188,7 @@
   </div>
 
   <script>
-    // ========================
     // 1. "Back" Button Setup
-    // ========================
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -190,9 +199,7 @@
       console.log("Back button set to:", prevPage);
     });
 
-    // ============================
     // 2. Session & Username Setup
-    // ============================
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
@@ -217,9 +224,7 @@
     }
     console.log("Chat Start Time:", chatStartTime);
 
-    // ==========================
     // 3. Initialize Firebase
-    // ==========================
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -275,24 +280,26 @@
             const div = document.createElement("div");
             div.classList.add("message-line");
 
-            // Decide if it's "my-message" or "other-message"
             if (msgData.username === tempUsername) {
+              // My message => right side, no username displayed
               div.classList.add("my-message");
+              div.textContent = msgData.text;
             } else {
+              // Other user's message => left side, username on top
               div.classList.add("other-message");
+              div.innerHTML = `
+                <div class="other-username">${msgData.username}</div>
+                <div class="other-message-text">${msgData.text}</div>
+              `;
             }
 
-            // Add text content
-            div.textContent = (msgData.username || "Anon") + ": " + msgData.text;
             chatBox.appendChild(div);
           });
           chatBox.scrollTop = chatBox.scrollHeight;
         });
     });
 
-    // =============================
     // 4. Change Username (Modal)
-    // =============================
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -301,9 +308,9 @@
 
     // Show the modal
     document.getElementById("change-username-button").addEventListener("click", function() {
-      usernameModal.style.display = "flex"; // show overlay
-      usernameError.textContent = "";       // clear old errors
-      newUsernameInput.value = "";          // reset input
+      usernameModal.style.display = "flex";
+      usernameError.textContent = "";
+      newUsernameInput.value = "";
       newUsernameInput.focus();
     });
 
@@ -344,7 +351,7 @@
                 tempUsername = newUsername;
                 localStorage.setItem("tempUsername", tempUsername);
                 document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none"; // close modal
+                usernameModal.style.display = "none";
               })
               .catch(error => {
                 console.error("Error updating username:", error);
@@ -358,9 +365,7 @@
         });
     });
 
-    // =============================
     // 5. Send a Message
-    // =============================
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
