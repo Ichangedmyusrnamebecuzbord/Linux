@@ -2,7 +2,7 @@
 
 https://meet.google.com/kfm-izxh-xwt
 
-call through discord or gooogle meets at 2:00pm
+### call through discord or gooogle meets at 2:00pm
 
 ## Can you add me as a memeber to your cloudflare site? it lets me manage the bandwith better
 
