@@ -192,6 +192,22 @@
     #request-feature-button:hover {
       background: #004400;
     }
+    /* Email Provider Modal styling */
+    #email-provider-modal .modal-box {
+      width: 320px;
+    }
+    #email-provider-modal button {
+      margin: 5px;
+      padding: 8px 12px;
+      background: #0044cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #email-provider-modal button:hover {
+      background: #0033aa;
+    }
     /* Underline for links in messages */
     a.message-link {
       text-decoration: underline;
@@ -200,9 +216,7 @@
   </style>
   <!-- Developer Tools Blocking Script -->
   <script>
-    // Prevent right-click context menu
     document.addEventListener("contextmenu", event => event.preventDefault());
-    // Block common developer tool shortcuts
     document.addEventListener("keydown", (event) => {
       if (
           event.key === "F12" ||
@@ -212,7 +226,6 @@
           event.preventDefault();
       }
     });
-    // Detect devtools open by checking window dimension differences
     let devtoolsOpen = false;
     const checkDevTools = () => {
       const threshold = 160;
@@ -229,7 +242,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
-    // Helper function to convert URLs in text to clickable links
+    // Helper: Convert URLs in text to clickable, underlined links
     function formatMessageText(text) {
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
@@ -237,25 +250,21 @@
   </script>
 </head>
 <body>
-  <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
     Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
-  <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Become Privileged</button>
   </div>
-  <!-- Chat box -->
   <div id="chat-box"></div>
-  <!-- Message input -->
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
-  <!-- Request a Feature Button -->
   <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
-  <!-- Modal for Feature Request -->
+  
+  <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Feature Request</h2>
@@ -266,6 +275,21 @@
       </div>
     </div>
   </div>
+  
+  <!-- Email Provider Modal -->
+  <div id="email-provider-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Select Your Email Provider</h2>
+      <div class="modal-buttons">
+        <button id="gmail-button">Gmail</button>
+        <button id="outlook-button">Outlook</button>
+      </div>
+      <div class="modal-buttons">
+        <button id="cancel-email-button">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- Modal for changing username -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
@@ -278,6 +302,7 @@
       </div>
     </div>
   </div>
+  
   <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
@@ -290,6 +315,7 @@
       </div>
     </div>
   </div>
+  
   <!-- Modal for privileged success message -->
   <div id="privileged-success-modal" class="modal-overlay">
     <div class="modal-box">
@@ -300,6 +326,7 @@
       </div>
     </div>
   </div>
+  
   <!-- Modal for message block error -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
@@ -310,6 +337,7 @@
       </div>
     </div>
   </div>
+  
   <script>
     // Global variable for timestamp toggle
     let showTimestamps = false;
@@ -325,6 +353,7 @@
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
     });
+    
     // ---------- 2. Session & Username Setup (username resets per tab) ----------
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
@@ -346,6 +375,7 @@
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
     console.log("Chat Start Time:", chatStartTime);
+    
     // ---------- 3. Initialize Firebase & Cache Messages ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
@@ -386,6 +416,7 @@
           renderMessages();
         });
     });
+    
     // ---------- Render Messages Function ----------
     function renderMessages() {
       const chatBox = document.getElementById("chat-box");
@@ -398,7 +429,6 @@
         if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        // Format timestamp without seconds:
         const timestamp = new Date(msgData.timestamp.toMillis()).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
@@ -433,6 +463,7 @@
       });
       chatBox.scrollTop = chatBox.scrollHeight;
     }
+    
     // ---------- Timestamp Toggle: Only Toggle When Chat Box Background is Clicked ----------
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
@@ -440,6 +471,7 @@
         renderMessages();
       }
     });
+    
     // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
@@ -461,6 +493,7 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
+    
     // ---------- 5. Privileged Upgrade Modal ----------
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
@@ -493,11 +526,13 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
+    
     // ---------- 5.1 Privileged Success Modal Dismissal ----------
     const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
+    
     // ---------- 6. Save New Username (with external blacklist file) ----------
     let blockedNames = [];
     fetch("blacklistwords.txt")
@@ -507,8 +542,8 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
-    const reservedNames = ["mally", "ij", "malcom"];
+    const privilegedNames = ["mally", "ij", "malcom", "admin"];
+    const reservedNames = ["mally", "ij", "malcom", "admin"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
@@ -562,6 +597,7 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
+    
     // ---------- 7. New Modal for Message Block Error ----------
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
@@ -569,6 +605,7 @@
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
+    
     // ---------- 8. Send a Message (with content filtering) ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
@@ -599,6 +636,7 @@
         console.error("❌ Error Sending Message:", error);
       });
     }
+    
     // ---------- Feature Request Modal Functions ----------
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
@@ -612,12 +650,37 @@
         alert("Please enter your feature request.");
         return;
       }
-      const currentDate = new Date().toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      // Prepare subject and body
+      const currentDate = new Date().toLocaleString(undefined, {
+        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
       const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
       const body = encodeURIComponent(featureText);
-      // Open the mail client with the pre-filled subject and body
-      window.location.href = "mailto:jacetompsonex6@gmail.com?subject=" + subject + "&body=" + body;
+      // Hide feature modal and show email provider modal
       document.getElementById("feature-modal").style.display = "none";
+      // Store subject and body for later use
+      sessionStorage.setItem("featureSubject", subject);
+      sessionStorage.setItem("featureBody", body);
+      document.getElementById("email-provider-modal").style.display = "flex";
+    });
+    
+    document.getElementById("cancel-email-button").addEventListener("click", function() {
+      document.getElementById("email-provider-modal").style.display = "none";
+    });
+    
+    // Email provider buttons
+    document.getElementById("gmail-button").addEventListener("click", function() {
+      const subject = sessionStorage.getItem("featureSubject");
+      const body = sessionStorage.getItem("featureBody");
+      window.location.href = "https://mail.google.com/mail/?view=cm&fs=1&to=jacetompsonex6@gmail.com&su=" + subject + "&body=" + body;
+      document.getElementById("email-provider-modal").style.display = "none";
+    });
+    
+    document.getElementById("outlook-button").addEventListener("click", function() {
+      const subject = sessionStorage.getItem("featureSubject");
+      const body = sessionStorage.getItem("featureBody");
+      window.location.href = "https://outlook.live.com/owa/?path=/mail/action/compose&to=jacetompsonex6@gmail.com&subject=" + subject + "&body=" + body;
+      document.getElementById("email-provider-modal").style.display = "none";
     });
   </script>
 </body>
