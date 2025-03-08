@@ -164,7 +164,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.4.9</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v0.4.12</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -371,25 +371,26 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
+    // List of reserved names for privileged users
+    const reservedNames = ["mally", "ij", "malcom"];
+    // When saving username, check that if the normalized username is in the reserved list, user must be privileged
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
-      // Normalize entered username (lowercase and remove trailing slashes)
       let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      // Check if the normalized username includes any forbidden substring from the blacklist
+      // Check if the normalized username includes any blocked word as a substring
       for (let blocked of blockedNames) {
         if (normalizedNewUsername.includes(blocked)) {
           usernameError.textContent = "That username is blocked.";
           return;
         }
       }
-      // Additionally, if the username is one of the reserved names, block it for non-privileged users
-      const reservedNames = ["mally", "ij", "malcom"];
-      if (reservedNames.includes(normalizedNewUsername)) {
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      // If the normalized username is one of the reserved names, only allow if privileged
+      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
         usernameError.textContent = "That username is reserved for privileged users.";
         return;
       }
@@ -467,35 +468,5 @@
       });
     }
   </script>
-  <script>
-  // Block right-click context menu
-  document.addEventListener("contextmenu", event => event.preventDefault());
-
-  // Block common developer shortcuts
-  document.addEventListener("keydown", event => {
-    if (
-      event.key === "F12" ||
-      (event.ctrlKey && event.shiftKey && (event.key === "I" || event.key === "J" || event.key === "C")) ||
-      (event.ctrlKey && event.key === "U")
-    ) {
-      event.preventDefault();
-    }
-  });
-
-  // Detect if devtools are open based on window dimensions and redirect if so
-  let devtoolsOpen = false;
-  const checkDevTools = () => {
-    const threshold = 160;
-    const widthDiff = window.outerWidth - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    if (widthDiff > threshold || heightDiff > threshold) {
-      devtoolsOpen = true;
-      window.location.replace("https://www.google.com");
-    } else {
-      devtoolsOpen = false;
-    }
-  };
-  setInterval(checkDevTools, 1000);
-</script>
 </body>
 </html>
