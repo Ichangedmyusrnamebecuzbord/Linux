@@ -83,31 +83,25 @@
       align-self: flex-end;
       text-align: right;
     }
+    .my-bubble {
+      background: #1f1f1f;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+    }
 
     /* Others' messages aligned to the left */
     .other-message {
       align-self: flex-start;
       text-align: left;
     }
-
-    /* Smaller font for other people's usernames */
     .other-username {
       font-size: 0.8rem;
       color: #aaa;
       margin-bottom: 2px;
     }
-
-    /* The bubble for others' messages */
     .other-bubble {
       background: #333;
-      padding: 8px;
-      border-radius: 5px;
-      display: inline-block;
-    }
-
-    /* The bubble for your own messages */
-    .my-bubble {
-      background: #1f1f1f;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
@@ -215,19 +209,23 @@
     // ============================
     // 2. Session & Username Setup
     // ============================
+    // -- USERNAME NOW STORED IN sessionStorage, so it resets each time you close/reopen the tab --
+    let tempUsername = sessionStorage.getItem("tempUsername");
+    if (!tempUsername) {
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
+      sessionStorage.setItem("tempUsername", tempUsername);
+    }
+    console.log("Assigned username:", tempUsername);
+
+    document.getElementById("username-display").textContent = "You are: " + tempUsername;
+
+    // A unique doc in activeUsers for each browser tab
     let chatSession = sessionStorage.getItem("chatSession");
     if (!chatSession) {
       chatSession = "session_" + Math.random().toString(36).substr(2, 9);
       sessionStorage.setItem("chatSession", chatSession);
     }
     console.log("Chat Session ID:", chatSession);
-
-    let tempUsername = localStorage.getItem("tempUsername");
-    if (!tempUsername) {
-      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
-      localStorage.setItem("tempUsername", tempUsername);
-    }
-    document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
     const activeUserDocId = "active_" + chatSession;
 
@@ -372,7 +370,7 @@
               })
               .then(() => {
                 tempUsername = newUsername;
-                localStorage.setItem("tempUsername", tempUsername);
+                sessionStorage.setItem("tempUsername", tempUsername);
                 document.getElementById("username-display").textContent = "You are: " + tempUsername;
                 usernameModal.style.display = "none";
               })
