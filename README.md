@@ -28,6 +28,6 @@ Can you add me as a memeber to your cloudflare site? it lets me manage the bandw
 
 **Select Continue to summary.**
 
-**Review the information, then select Invite.**
-
 ![Image](https://github.com/user-attachments/assets/2d59afa0-96f8-47d7-8360-02465ab3ebc5)
+
+**Review the information, then select Invite.**
