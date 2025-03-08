@@ -79,15 +79,15 @@
       align-self: flex-end;
       text-align: right;
     }
-    /* For privileged users, use the normal my-bubble styling */
+    /* Default styling for my messages; if privileged, light-blue styling will be added */
     .my-bubble {
       background: #1f1f1f;
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
-      /* (Assuming default text color is white) */
+      /* By default, text color will inherit (white) */
     }
-    /* New class for non-privileged user's own messages: force text white */
+    /* New class for non-privileged user's own messages to force white text */
     .my-bubble-nonprivileged {
       background: #1f1f1f;
       color: white;
@@ -175,7 +175,7 @@
   <!-- Back button -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.1</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
   <!-- Username container with Change Username and Become Privileged buttons -->
   <div id="username-container">
@@ -315,8 +315,8 @@
             messageDiv.classList.add("message-line");
             if (msgData.username === tempUsername) {
               messageDiv.classList.add("my-message");
-              // For my messages, if I'm non-privileged, force white text.
-              let bubbleClass = (isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged");
+              // For own messages: if non-privileged, use white text class.
+              let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
               messageDiv.innerHTML = `<div class="${bubbleClass}">${msgData.text}</div>`;
             } else {
               messageDiv.classList.add("other-message");
