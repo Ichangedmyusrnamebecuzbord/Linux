@@ -130,10 +130,57 @@ window.onload = openGame;
 </head>
 <body>
 <script src="Script.js"></script>
-    <div class="music-buttons-container">
-        <button onclick="document.getElementById('background-music').play()">Play Music</button>
-        <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
-    </div>
+   <div class="music-buttons-container">
+    <button onclick="document.getElementById('background-music').play()">Play Music</button>
+    <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
+    <button onclick="toggleMusicList()">Show Music List</button>
+</div>
+
+<!-- Music List with Scroll -->
+<div id="music-list">
+    <h3>Music List</h3>
+    <ul>
+        <li><a href="#" onclick="playSong('https://kasperisalittlebitch.github.io/uoprjetlshoershrieghireghyiuth-ewoirfhrieutgbuiktyewo9rti-tnry8we0o-hWIUEGH9Q/idk.mp3')">Travis Scott : FE!N (feat. Playboi Carti)</a></li>
+
+    </ul>
+</div>
+
+<audio id="background-music" controls>
+    <source id="audio-source" src="your-music-file.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+</audio>
+
+<style>
+    #music-list {
+        display: none;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        width: 250px;
+        height: 150px; /* Set a fixed height */
+        overflow-y: auto; /* Enable vertical scrolling */
+        background: #f9f9f9;
+    }
+</style>
+
+<script>
+function toggleMusicList() {
+    var musicList = document.getElementById("music-list");
+    if (musicList.style.display === "none") {
+        musicList.style.display = "block";
+    } else {
+        musicList.style.display = "none";
+    }
+}
+
+function playSong(song) {
+    var audio = document.getElementById("background-music");
+    var source = document.getElementById("audio-source");
+    source.src = song;
+    audio.load();
+    audio.play();
+}
+</script>
 
      <a href="chat.html?prev=Home.html" style="
     position: fixed;
