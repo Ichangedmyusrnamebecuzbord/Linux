@@ -6,47 +6,266 @@
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
   <style>
-    /* ... your existing styles ... */
-    /* (No changes needed to the styling except that you may remove seconds from timestamps, etc.) */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    #chat-box {
+      width: 80%;
+      max-width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      margin: 20px auto;
+      padding: 10px;
+      overflow-y: auto;
+      background: #222;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    input {
+      width: 70%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      background: #333;
+      color: white;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      background: #0044cc;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #0033aa;
+    }
+    a.back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #cc0000;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 18px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    /* Username container */
+    #username-container {
+      margin-bottom: 15px;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    /* Container for each message */
+    .message-line {
+      margin: 5px 0;
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    /* My messages (aligned right) */
+    .my-message {
+      align-self: flex-end;
+      text-align: right;
+    }
+    .my-bubble {
+      background: #1f1f1f;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    /* Class for non-privileged user's own messages: white bubble with dark gray text */
+    .my-bubble-nonprivileged {
+      background: white;
+      color: #222;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    /* Others' messages (aligned left) */
+    .other-message {
+      align-self: flex-start;
+      text-align: left;
+    }
+    .other-username {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+    .other-bubble {
+      background: #333;
+      padding: 8px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+    /* Privileged styling: Light blue */
+    .privileged {
+      background-color: lightblue !important;
+      color: black !important;
+    }
+    .privileged-username {
+      color: lightblue !important;
+      font-weight: bold;
+    }
+    /* Modal overlay (common for all modals) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    /* Modal box styling */
+    .modal-box {
+      background: #333;
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .modal-box h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .modal-box input {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #444;
+      color: #fff;
+    }
+    .error-message {
+      color: #ff5555;
+      margin: 5px 0 0 0;
+      font-size: 0.9rem;
+      min-height: 1em;
+    }
+    .modal-buttons {
+      text-align: right;
+      margin-top: 10px;
+    }
+    /* Underline links within messages */
+    a.message-link {
+      text-decoration: underline;
+      color: inherit;
+    }
   </style>
   <!-- Developer Tools Blocking Script -->
   <script>
-    // (Your existing dev tools blocking code)
+    document.addEventListener("contextmenu", event => event.preventDefault());
+    document.addEventListener("keydown", (event) => {
+      if (
+          event.key === "F12" ||
+          (event.ctrlKey && event.shiftKey && (event.key === "I" || event.key === "J" || event.key === "C")) ||
+          (event.ctrlKey && event.key === "U")
+      ) {
+          event.preventDefault();
+      }
+    });
+    let devtoolsOpen = false;
+    const checkDevTools = () => {
+      const threshold = 160;
+      if ((window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold)) {
+        devtoolsOpen = true;
+        window.location.replace("https://www.google.com");
+      } else {
+        devtoolsOpen = false;
+      }
+    };
+    setInterval(checkDevTools, 1000);
   </script>
   <!-- Firebase in Compatibility Mode -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <!-- Helper: Auto-link URLs -->
   <script>
-    // Helper: Convert URLs in text to clickable links
     function formatMessageText(text) {
-      const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
-      return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
+      // Simple regex to detect full URLs
+      return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
 </head>
 <body>
-  <!-- Your header, username container, chat box, input, modals, etc. remain unchanged -->
-  <!-- ... -->
+  <a href="Home.html" class="back-button">⬅ Back</a>
+  <h1>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
+  </h1>
+  <div id="username-container">
+    <span id="username-display"></span>
+    <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
+    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Become Privileged</button>
+  </div>
   <div id="chat-box"></div>
-  <!-- ... (other HTML elements) ... -->
+  <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+  <button onclick="sendMessage()">Send</button>
+  <!-- Modal for changing username -->
+  <div id="username-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Change Username</h2>
+      <input type="text" id="new-username-input" placeholder="Enter new username...">
+      <p id="username-error" class="error-message"></p>
+      <div class="modal-buttons">
+        <button id="save-username-button">Save</button>
+        <button id="cancel-username-button">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for privileged upgrade -->
+  <div id="privileged-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Enter Privileged Code</h2>
+      <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
+      <p id="privileged-error" class="error-message"></p>
+      <div class="modal-buttons">
+        <button id="save-privileged-button">Submit</button>
+        <button id="cancel-privileged-button">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for privileged success message -->
+  <div id="privileged-success-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Success</h2>
+      <p id="privileged-success-text">You are now privileged!</p>
+      <div class="modal-buttons">
+        <button id="dismiss-privileged-success-button">OK</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for message block error -->
+  <div id="message-error-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Message Blocked</h2>
+      <p id="message-error-text" class="error-message"></p>
+      <div class="modal-buttons">
+        <button id="dismiss-message-error-button">OK</button>
+      </div>
+    </div>
+  </div>
   <script>
-    // Global variable for timestamp toggle and caching messages
     let showTimestamps = false;
     let cachedMessages = [];
-    
-    // Initialize unread count in localStorage if not already set
-    if (!localStorage.getItem("chatUnreadCount")) {
-      localStorage.setItem("chatUnreadCount", "0");
-    }
-    
-    // Listen for page visibility changes: reset unread count when user returns
-    document.addEventListener("visibilitychange", function() {
-      if (document.visibilityState === "visible") {
-        localStorage.setItem("chatUnreadCount", "0");
-      }
-    });
-    
-    // ---------- 1. "Back" Button Setup ----------
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -54,10 +273,7 @@
     document.addEventListener("DOMContentLoaded", function() {
       const prevPage = getQueryParam("prev") || "Home.html";
       document.querySelector("a.back-button").href = prevPage;
-      console.log("Back button set to:", prevPage);
     });
-    
-    // ---------- 2. Session & Username Setup (username resets per tab) ----------
     let tempUsername = sessionStorage.getItem("tempUsername");
     if (!tempUsername) {
       tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -75,8 +291,6 @@
       chatStartTime = Date.now().toString();
       sessionStorage.setItem("chatStartTime", chatStartTime);
     }
-    
-    // ---------- 3. Initialize Firebase & Render Messages with Unread Count Tracking ----------
     document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
@@ -106,8 +320,6 @@
           renderMessages();
         });
     });
-    
-    // ---------- Render Messages Function with Unread Count Tracking ----------
     function renderMessages() {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
@@ -116,7 +328,7 @@
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-        if (!isPrivileged && msgTime < parseInt(chatStartTime)) return;
+        if (msgTime < parseInt(chatStartTime)) return;
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
         // Format timestamp without seconds:
@@ -154,26 +366,13 @@
         chatBox.appendChild(messageDiv);
       });
       chatBox.scrollTop = chatBox.scrollHeight;
-      
-      // If the document is hidden, count new messages as unread.
-      if (document.visibilityState !== "visible") {
-        let currentCount = parseInt(localStorage.getItem("chatUnreadCount"), 10);
-        // Increase the count by the number of messages that were rendered that are "new"
-        // (For simplicity, we set unread count to total messages rendered minus ones seen when chat became visible)
-        currentCount += 1; // (You might adjust this logic as needed)
-        localStorage.setItem("chatUnreadCount", currentCount.toString());
-      }
     }
-    
-    // ---------- Timestamp Toggle: Only Toggle When Chat Box Background is Clicked ----------
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
         renderMessages();
       }
     });
-    
-    // ---------- 4. Change Username Modal ----------
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -194,8 +393,6 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
-    
-    // ---------- 5. Privileged Upgrade Modal ----------
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -227,23 +424,18 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
-    
-    // ---------- 5.1 Privileged Success Modal Dismissal ----------
     const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
-    
-    // ---------- 6. Save New Username (with external blacklist file) ----------
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
       .then(data => {
         blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom","admin","ADMIN","Admin"];
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
     const reservedNames = ["mally", "ij", "malcom"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
@@ -288,33 +480,24 @@
                 usernameModal.style.display = "none";
               })
               .catch(error => {
-                console.error("Error updating username:", error);
                 usernameError.textContent = "Error updating username. Please try again.";
               });
           }
         })
         .catch(error => {
-          console.error("Error checking username uniqueness:", error);
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-    
-    // ---------- 7. New Modal for Message Block Error ----------
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
-    
-    // ---------- 8. Send a Message (with content filtering) ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
-      if (message === "") {
-        console.warn("⚠️ Empty message - Not sending");
-        return;
-      }
+      if (message === "") return;
       for (let blocked of blockedNames) {
         if (message.toLowerCase().includes(blocked)) {
           messageErrorText.textContent = "Your message contains a blocked word: " + blocked;
@@ -330,18 +513,14 @@
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
-        console.log("✅ Message Sent Successfully!");
         messageInput.value = "";
       })
       .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
+        console.error("Error Sending Message:", error);
       });
     }
-    
-    // ---------- Helper: Format message text to auto-link URLs ----------
     function formatMessageText(text) {
-      const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
-      return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
+      return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
 </body>
