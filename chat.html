@@ -364,14 +364,14 @@
     // ---------- 6. Save New Username (with external blacklist file) ----------
     let blockedNames = [];
     fetch("blacklistwords.txt")
-      .then(response => response.text())
-      .then(data => {
-        // Normalize: split by newlines, trim, lowercase, remove trailing slashes
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
-      })
-      .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcom", "malcom"];
+  .then(response => response.text())
+  .then(data => {
+    // Normalize: split by newlines, trim, lowercase, remove trailing slashes
+    blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
+    console.log("Blocked words file loaded.");
+  })
+  .catch(err => console.error("Failed to load blocked words:", err));
+    const privilegedNames = ["mally", "ij", "Mally", "IJ", "Malcolm", "malcolm"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
