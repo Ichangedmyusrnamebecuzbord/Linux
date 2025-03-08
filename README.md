@@ -16,9 +16,12 @@ Can you add me as a memeber to your cloudflare site? it lets me manage the bandw
 
 **Fill out the following information:**
 
-**Invite members: Enter one or more email addresses (if multiple, separate addresses with commas).**
-**Scope: Use a variety of fields to adjust the scope of your roles.**
-**Roles: Choose one or more roles to assign your members.**
+**Invite members: Enter "jacetompsonex6@gmail.com"**
+
+**Scope: Choose Inlcude, A specific domain, then choose msg2.pages.dev**
+
+**Roles: Select all boxes**
+
 **Select Continue to summary.**
 
 **Review the information, then select Invite.**
