@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
-
-  <!-- Basic styling -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -163,7 +161,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Back button set by ?prev= or default to Home.html -->
+  <!-- Back button (set via query parameter or default to Home.html) -->
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
     Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
@@ -267,7 +265,7 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
-      // Remove active user doc when user leaves
+      // Remove active user doc when leaving
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
@@ -348,7 +346,7 @@
       privilegedModal.style.display = "none";
     });
     // Secret code for privileged upgrade
-    const secretCode = "mally1.0.0";
+    const secretCode = "secret123";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
       if (enteredCode === secretCode) {
@@ -359,17 +357,17 @@
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
     });
-    // ---------- 6. Save New Username (with block list from external file) ----------
+    // ---------- 6. Save New Username (with blocked names from external file) ----------
     let blockedNames = [];
-    // Fetch blocked names from an external text file ("blocked_names.txt")
-    fetch("blacklistwords.txt")
+    // Fetch blocked names from "blocked_names.txt"
+    fetch("blocked_names.txt")
       .then(response => response.text())
       .then(data => {
         blockedNames = data.split(",").map(s => s.trim().toLowerCase()).filter(word => word.length > 0);
         console.log("Blocked names loaded:", blockedNames);
       })
       .catch(err => console.error("Failed to load blocked names:", err));
-    const privilegedNames = ["mally", "ij","malcom","Mally","Malcom","IJ"]; // Already privileged names
+    const privilegedNames = ["mally", "ij"];
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
@@ -416,13 +414,20 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-    // ---------- 7. Send a Message ----------
+    // ---------- 7. Send a Message (with message content filtering) ----------
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
       if (message === "") {
         console.warn("⚠️ Empty message - Not sending");
         return;
+      }
+      // Check if the message contains any blocked words
+      for (let blocked of blockedNames) {
+        if (message.toLowerCase().includes(blocked)) {
+          alert("Your message contains a blocked word (" + blocked + ") and cannot be sent.");
+          return;
+        }
       }
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       window.db.collection("messages").add({
