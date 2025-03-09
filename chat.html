@@ -48,7 +48,7 @@
     #chat-box {
       width: 70%;
       max-width: 600px;
-      height: 400px;
+      height: 400px; /* fixed height for chat box */
       border: 1px solid #ccc;
       padding: 10px;
       overflow-y: auto;
@@ -58,16 +58,15 @@
       flex-direction: column;
       cursor: pointer;
     }
-    /* Active Users list */
+    /* Active Users list (same height as chat box) */
     #active-users-list {
+      width: 180px; /* or adjust if you prefer */
+      height: 400px; /* match chat box height */
+      overflow-y: auto; /* enable scrolling if content is tall */
       background: #333;
       border: 1px solid #555;
       border-radius: 5px;
-      padding: 10px;
-      max-height: 400px;
-      overflow-y: auto;
       text-align: left;
-      min-width: 180px;
     }
     #active-users-list h3 {
       margin: 0 0 10px 0;
@@ -79,6 +78,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 0 5px; /* a little side padding for spacing */
     }
     .user-item button {
       background: red;
@@ -89,7 +89,7 @@
       font-size: 12px;
       cursor: pointer;
     }
-    /* Input section below chat container */
+    /* Input section (below chat container) */
     #input-section {
       margin: 0 auto;
       max-width: 600px;
@@ -238,7 +238,7 @@
     #request-feature-button:hover {
       background: #004400;
     }
-    /* Email Provider Modal Button Styles */
+    /* Email Provider Modal Button Styles (increased size for options) */
     .email-provider-btn {
       padding: 10px;
       border: none;
@@ -254,7 +254,7 @@
       object-fit: contain;
       display: block;
     }
-    /* Cancel button in email modal */
+    /* Cancel button in email modal gets extra styling */
     .email-provider-btn.cancel {
       width: auto;
       padding: 10px 20px;
@@ -493,7 +493,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      // Initialize Firebase with new config
+      // Initialize Firebase with your new config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -579,11 +579,13 @@
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
+
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
         if (isViewerPrivileged) {
-          // Stop propagation so that clicking the message doesn't trigger chat-box click events
+          // Important: stopPropagation to prevent toggling timestamps
           bubbleHTML = `<span class="delete-hover" onclick="event.stopPropagation(); deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
+
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
             messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
@@ -607,6 +609,7 @@
             messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
         }
+
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
@@ -616,6 +619,7 @@
           No Messages Today Yet. Wanna be the first?
         </div>`;
       }
+
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
@@ -637,7 +641,10 @@
     }
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
-      if (window.docIdToDelete) { doDelete(window.docIdToDelete); window.docIdToDelete = null; }
+      if (window.docIdToDelete) {
+        doDelete(window.docIdToDelete);
+        window.docIdToDelete = null;
+      }
     });
     document.getElementById("delete-cancel-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
@@ -685,7 +692,6 @@
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
               kickBtn.textContent = "x";
-              // Pass doc id and username to confirmKick
               kickBtn.onclick = function() { confirmKick(doc.id, data.username); };
               userItem.appendChild(kickBtn);
             }
@@ -696,6 +702,7 @@
     function confirmKick(docId, username) {
       window.kickDocId = docId;
       document.getElementById("kick-modal-title").textContent = "Kick " + username + "?";
+      document.getElementById("kick-modal-text").textContent = "Are you sure you want to kick " + username + "?";
       document.getElementById("kick-modal").style.display = "flex";
     }
     function kickUser(docId) {
