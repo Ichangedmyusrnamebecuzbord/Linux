@@ -885,18 +885,27 @@
 
 function sendMessage() {
   const messageInput = document.getElementById("message");
-  const message = messageInput.value.trim();
-  if (message === "") {
-    console.warn("⚠️ Empty message - Not sending");
+  if (!messageInput) {
+    console.error("Message input element not found.");
     return;
   }
   
-  // Blocked names check (using regex with word boundaries or lookahead)
+  const message = messageInput.value.trim();
+  if (message === "") {
+    console.warn("Empty message - Not sending");
+    return;
+  }
+  
+  // Blocked words check using regex with negative lookahead
   for (let blocked of blockedNames) {
     const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
     if (regex.test(message)) {
-      messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
-      messageErrorModal.style.display = "flex";
+      const errorTextEl = document.getElementById("message-error-text");
+      const errorModal = document.getElementById("message-error-modal");
+      if (errorTextEl && errorModal) {
+        errorTextEl.textContent = `Your message contains a banned word: ${blocked}`;
+        errorModal.style.display = "flex";
+      }
       return;
     }
   }
@@ -904,12 +913,17 @@ function sendMessage() {
   // Anti-spam check: prevent sending the same message within 3 seconds
   const now = Date.now();
   if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
-    messageErrorText.textContent = "Please wait before sending the same message again.";
-    messageErrorModal.style.display = "flex";
+    const errorTextEl = document.getElementById("message-error-text");
+    const errorModal = document.getElementById("message-error-modal");
+    if (errorTextEl && errorModal) {
+      errorTextEl.textContent = "Please wait before sending the same message again.";
+      errorModal.style.display = "flex";
+    }
     return;
   }
   
   const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+  
   window.db.collection("messages").add({
     username: tempUsername,
     text: message,
@@ -917,12 +931,12 @@ function sendMessage() {
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   })
   .then(() => {
-    console.log("✅ Message Sent Successfully!");
+    console.log("Message sent successfully.");
     lastSentMessage = { text: message, timestamp: now };
     messageInput.value = "";
   })
   .catch((error) => {
-    console.error("❌ Error Sending Message:", error);
+    console.error("Error sending message:", error);
   });
 }
     function openFeatureModal() {
