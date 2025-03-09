@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultraviolet Proxy</title>
-    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.bundle.js" defer></script>
-    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.config.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet/dist/uv.bundle.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet/dist/uv.config.js" defer></script>
     <style>
         body {
             margin: 0;
@@ -73,32 +73,46 @@
         <button id="back-button" onclick="goHome()">Back</button>
         <div id="search-container">
             <input type="text" id="uv-address" placeholder="Enter website URL">
-            <button onclick="loadProxy()">Go</button>
+            <button id="go-button">Go</button>
         </div>
     </div>
 
     <iframe id="proxy-container"></iframe>
 
     <script>
-        document.getElementById('uv-address').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                loadProxy();
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputField = document.getElementById('uv-address');
+            const goButton = document.getElementById('go-button');
+            const iframe = document.getElementById('proxy-container');
+
+            // Bind the "Enter" key to the Go button
+            inputField.addEventListener('keypress', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    loadProxy();
+                }
+            });
+
+            // Make sure the Go button works
+            goButton.addEventListener('click', loadProxy);
+
+            function loadProxy() {
+                let url = inputField.value.trim();
+                if (!url.startsWith('http')) {
+                    url = 'https://' + url;
+                }
+                if (typeof __uv$config !== 'undefined') {
+                    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+                } else {
+                    console.error("Ultraviolet is not loaded.");
+                    alert("Ultraviolet failed to load. Please check the script paths.");
+                }
+            }
+
+            function goHome() {
+                window.location.href = '/Home'; // Change this if your home page is different
             }
         });
-
-        function loadProxy() {
-            let url = document.getElementById('uv-address').value.trim();
-            if (!url.startsWith('http')) {
-                url = 'https://' + url;
-            }
-            // Use Ultraviolet to proxy the site
-            document.getElementById('proxy-container').src = __uv$config.prefix + __uv$config.encodeUrl(url);
-        }
-
-        function goHome() {
-            window.location.href = '/'; // Change this if your home page is different
-        }
     </script>
 
 </body>
