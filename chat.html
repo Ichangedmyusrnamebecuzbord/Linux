@@ -59,13 +59,12 @@
     }
     /* Active Users list: stretch to match chat box height, overflow if too long */
     #active-users-list {
-      width: 200px; /* adjust as needed */
+      width: 200px;
       overflow-y: auto; /* scroll if there's lots of users */
       background: #333;
       border: 1px solid #555;
       border-radius: 5px;
       text-align: left;
-      /* The parent’s align-items: stretch will make this match #chat-box’s height */
     }
     #active-users-list h3 {
       margin: 0;
@@ -385,7 +384,7 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <input type="text" id="new-username-input" placeholder="Enter new username...">
+      <input type="text" id="new-username-input" placeholder="Enter new username... (max 12 chars)">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="save-username-button">Save</button>
@@ -749,6 +748,7 @@
     const newUsernameInput = document.getElementById("new-username-input");
     const saveUsernameButton = document.getElementById("save-username-button");
     const cancelUsernameButton = document.getElementById("cancel-username-button");
+    
     newUsernameInput.addEventListener("keydown", function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -770,6 +770,7 @@
     const privilegedError = document.getElementById("privileged-error");
     const savePrivilegedButton = document.getElementById("save-privileged-button");
     const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
+    
     privilegedCodeInput.addEventListener("keydown", function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -796,23 +797,26 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    let blockedNames = [];
-    fetch("blacklistwords.txt")
-      .then(response => response.text())
-      .then(data => {
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
-      })
-      .catch(err => console.error("Failed to load blocked words:", err));
+    /* The array of blocked words is loaded from blacklistwords.txt earlier. */
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
 
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
+
+      // 1) Check for empty
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
+
+      // 2) Check for max length
+      if (newUsername.length > 12) {
+        usernameError.textContent = "Username cannot exceed 12 characters.";
+        return;
+      }
+
+      // 3) Check for blocked words
       let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
       for (let blocked of blockedNames) {
         if (normalizedNewUsername.includes(blocked)) {
@@ -820,11 +824,15 @@
           return;
         }
       }
+
+      // 4) Check reserved names for non-privileged
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
         usernameError.textContent = "That username is reserved for privileged users.";
         return;
       }
+
+      // 5) Check if it is truly free among active users
       const chatSession = sessionStorage.getItem("chatSession");
       const activeUserDocId = "active_" + chatSession;
       window.db.collection("activeUsers")
@@ -832,14 +840,17 @@
         .get()
         .then(snapshot => {
           let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
+          snapshot.forEach(userDoc => {
+            // If there's a doc with this username & it's not this same user, it's taken
+            if (userDoc.id !== activeUserDocId) {
               conflict = true;
             }
           });
+
           if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+            usernameError.textContent = "That username is already taken by an active user.";
           } else {
+            // 6) Update the username
             window.db.collection("activeUsers").doc(activeUserDocId)
               .update({
                 username: newUsername,
