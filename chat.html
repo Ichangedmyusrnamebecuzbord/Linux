@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chat Room - Mally's Sus Gaming</title>
-  <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
+  <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png" />
   <style>
     /* Global & layout styles */
     body {
@@ -27,7 +27,6 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Username header */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -35,7 +34,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Container holding chat box and active users list side by side */
+    /* Chat container: chat box on left, active users on right */
     #chat-container {
       display: flex;
       justify-content: center;
@@ -57,6 +56,11 @@
       display: flex;
       flex-direction: column;
       cursor: pointer;
+      position: relative;
+    }
+    /* Lower opacity for messages when in reply focus (except target) */
+    #chat-box.reply-focus .message-line:not(.reply-focus-target) {
+      opacity: 0.3;
     }
     /* Active Users list */
     #active-users-list {
@@ -89,7 +93,7 @@
       font-size: 12px;
       cursor: pointer;
     }
-    /* Input section below chat container */
+    /* Input section */
     #input-section {
       margin: 0 auto;
       max-width: 600px;
@@ -106,7 +110,6 @@
       background: #333;
       color: white;
     }
-    /* General button styling */
     button {
       padding: 10px;
       border: none;
@@ -118,7 +121,7 @@
     button:hover {
       background: #0033aa;
     }
-    /* Message styling */
+    /* Messages styling */
     .message-line {
       margin: 5px 0;
       display: flex;
@@ -147,6 +150,7 @@
     .other-message {
       align-self: flex-start;
       text-align: left;
+      position: relative;
     }
     .other-username {
       font-size: 0.8rem;
@@ -158,8 +162,32 @@
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
+      position: relative;
     }
-    /* Privileged bubble styling based on sender’s privilege */
+    /* Reply arrow: using ↱ */
+    .reply-arrow {
+      position: absolute;
+      top: 0;
+      right: -35px;
+      color: #999;
+      cursor: pointer;
+      font-size: 18px;
+      background: transparent;
+      border: none;
+    }
+    .reply-arrow:hover {
+      color: #fff;
+    }
+    /* If replying, show snippet above the message */
+    .reply-snippet {
+      font-size: 0.8em;
+      color: #bbb;
+      margin-bottom: 4px;
+      border-left: 2px solid #888;
+      padding-left: 5px;
+      opacity: 0.8;
+    }
+    /* Privileged message bubble styling */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -184,7 +212,7 @@
     .delete-hover:hover > div {
       text-decoration: line-through !important;
     }
-    /* Modal overlay styles */
+    /* Modal overlay */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -254,7 +282,6 @@
       object-fit: contain;
       display: block;
     }
-    /* Cancel button in email modal */
     .email-provider-btn.cancel {
       width: auto;
       padding: 10px 20px;
@@ -273,8 +300,9 @@
       color: inherit;
     }
   </style>
-  <!-- Developer Tools Blocking Script -->
+
   <script>
+    // Developer Tools Blocking
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     document.addEventListener("keydown", (e) => {
       if (
@@ -298,9 +326,11 @@
     };
     setInterval(checkDevTools, 1000);
   </script>
-  <!-- Firebase in Compatibility Mode -->
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
   <script>
     function messageContainsLink(text) {
       const linkRegex = /https?:\/\/\S+/i;
@@ -311,6 +341,7 @@
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
+
   <script>
     const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
     const storedDate = sessionStorage.getItem("usernameDate");
@@ -323,13 +354,13 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
-  
+
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
-  
+
   <!-- Chat container: chat box on left, active users list on right -->
   <div id="chat-container">
     <div id="chat-box"></div>
@@ -337,15 +368,14 @@
       <h3>Active Users</h3>
     </div>
   </div>
-  
+
   <!-- Input section below chat container -->
   <div id="input-section">
-    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}" />
     <button onclick="sendMessage()">Send</button>
     <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
   </div>
-  
-  <!-- Modals -->
+
   <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
     <div class="modal-box">
@@ -358,20 +388,20 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Email Provider Modal -->
   <div id="email-provider-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Select Your Email Provider</h2>
       <div id="provider-buttons-container" style="display: flex; justify-content: center; gap: 10px;">
         <button class="email-provider-btn gmail-btn" onclick="sendEmail('gmail')">
-          <img src="/IMGS/gmail.png" alt="Gmail">
+          <img src="/IMGS/gmail.png" alt="Gmail" />
         </button>
         <button class="email-provider-btn outlook-btn" onclick="sendEmail('outlook')">
-          <img src="/IMGS/outlook.png" alt="Outlook">
+          <img src="/IMGS/outlook.png" alt="Outlook" />
         </button>
         <button class="email-provider-btn yahoo-btn" onclick="sendEmail('yahoo')">
-          <img src="/IMGS/yahoo.png" alt="Yahoo!">
+          <img src="/IMGS/yahoo.png" alt="Yahoo!" />
         </button>
       </div>
       <div id="cancel-button-container" style="margin-top: 10px; text-align: right;">
@@ -379,12 +409,12 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Username Change Modal -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <input type="text" id="new-username-input" placeholder="Enter new username...">
+      <input type="text" id="new-username-input" placeholder="Enter new username..." />
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="save-username-button">Save</button>
@@ -392,12 +422,12 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Privileged Login Modal -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
-      <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
+      <input type="text" id="privileged-code-input" placeholder="Enter secret code..." />
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="save-privileged-button">Submit</button>
@@ -405,7 +435,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Privileged Success Modal -->
   <div id="privileged-success-modal" class="modal-overlay">
     <div class="modal-box">
@@ -416,7 +446,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Message Block Error Modal -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
@@ -427,7 +457,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Delete Confirmation Modal for link messages -->
   <div id="delete-modal" class="modal-overlay">
     <div class="modal-box">
@@ -439,7 +469,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Kick Confirmation Modal -->
   <div id="kick-modal" class="modal-overlay">
     <div class="modal-box">
@@ -451,7 +481,8 @@
       </div>
     </div>
   </div>
-  
+
+  <!-- Scripts -->
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
@@ -459,6 +490,8 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
+    let replyFocusDocId = null; // Tracks the message we are replying to
+    let replyFocusSnippet = ""; // Stores a snippet from the message we are replying to
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
@@ -539,6 +572,19 @@
       updatePrivilegedButton();
       updateActiveUsersList();
       listenForKickedStatus();
+
+      // Handle background clicks: if in reply focus, clear it; otherwise, toggle timestamps.
+      const chatBox = document.getElementById("chat-box");
+      chatBox.addEventListener("click", function(e) {
+        if (e.target.id === "chat-box") {
+          if (replyFocusDocId) {
+            clearReplyFocus();
+          } else {
+            showTimestamps = !showTimestamps;
+            renderMessages(false);
+          }
+        }
+      });
     });
 
     function renderMessages(autoScroll) {
@@ -551,23 +597,39 @@
       }
       chatBox.innerHTML = "";
       const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
-      let displayedCount = 0;
+      const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
 
+      // Add reply-focus class if in reply mode
+      if (replyFocusDocId) {
+        chatBox.classList.add("reply-focus");
+      } else {
+        chatBox.classList.remove("reply-focus");
+      }
+
+      let displayedCount = 0;
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
 
         if (!isViewerPrivileged) {
-          const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+          const msgPSTDate = new Date(msgTime).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
           if (msgPSTDate !== currentPSTDate) return;
         }
 
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
+        // If this message is the one we're replying to, add a special class so its opacity remains high.
+        if (doc.id === replyFocusDocId) {
+          messageDiv.classList.add("reply-focus-target");
+        }
+
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
-          year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
         const formattedText = formatMessageText(msgData.text);
 
@@ -579,31 +641,50 @@
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
+
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-        if (isViewerPrivileged) {
-          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
+
+        // For messages from others, add a reply arrow icon ("↱")
+        if (msgData.username !== tempUsername) {
+          bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">↱</button>`;
         }
+
+        // If the message is a reply, show the snippet above it.
+        let snippetHTML = "";
+        if (msgData.replyToDocId) {
+          const originalDoc = cachedMessages.find(d => d.id === msgData.replyToDocId);
+          if (originalDoc) {
+            const originalData = originalDoc.data();
+            const snippet = msgData.replyToSnippet || originalData.text.substring(0, 30) + "...";
+            snippetHTML = `<div class="reply-snippet">${snippet}</div>`;
+          } else {
+            snippetHTML = `<div class="reply-snippet">(original message not found)</div>`;
+          }
+        }
+
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              ${bubbleHTML}
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
+            messageDiv.innerHTML = `${snippetHTML}
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                ${bubbleHTML}
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
           } else {
-            messageDiv.innerHTML = bubbleHTML;
+            messageDiv.innerHTML = snippetHTML + bubbleHTML;
           }
         } else {
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                ${bubbleHTML}
-              </div>
-            </div>`;
+            messageDiv.innerHTML = `${snippetHTML}
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  ${bubbleHTML}
+                </div>
+              </div>`;
           } else {
-            messageDiv.innerHTML = nameHTML + bubbleHTML;
+            messageDiv.innerHTML = snippetHTML + nameHTML + bubbleHTML;
           }
         }
         chatBox.appendChild(messageDiv);
@@ -620,6 +701,63 @@
       }
     }
 
+    /* Reply feature */
+    function startReplyFocus(docId) {
+      replyFocusDocId = docId;
+      // Find the doc and store a snippet
+      const doc = cachedMessages.find(d => d.id === docId);
+      if (doc) {
+        const data = doc.data();
+        replyFocusSnippet = data.text.substring(0, 30) + "...";
+      } else {
+        replyFocusSnippet = "(original message)";
+      }
+      renderMessages(false);
+    }
+    function clearReplyFocus() {
+      replyFocusDocId = null;
+      replyFocusSnippet = "";
+      renderMessages(false);
+    }
+
+    /* Overriding sendMessage to attach reply data */
+    function sendMessage() {
+      const messageInput = document.getElementById("message");
+      const message = messageInput.value.trim();
+      if (message === "") {
+        console.warn("⚠️ Empty message - Not sending");
+        return;
+      }
+      for (let blocked of blockedNames) {
+        if (message.toLowerCase().includes(blocked)) {
+          messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
+          messageErrorModal.style.display = "flex";
+          return;
+        }
+      }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      const newMsgData = {
+        username: tempUsername,
+        text: message,
+        isPrivileged: isPrivileged,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (replyFocusDocId) {
+        newMsgData.replyToDocId = replyFocusDocId;
+        newMsgData.replyToSnippet = replyFocusSnippet;
+      }
+      window.db.collection("messages").add(newMsgData)
+        .then(() => {
+          console.log("✅ Message Sent Successfully!");
+          messageInput.value = "";
+          clearReplyFocus();
+        })
+        .catch((error) => {
+          console.error("❌ Error Sending Message:", error);
+        });
+    }
+
+    /* Delete messages (with link confirmation) */
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
       if (messageContainsLink(text)) {
@@ -636,20 +774,17 @@
     }
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
-      if (window.docIdToDelete) { doDelete(window.docIdToDelete); window.docIdToDelete = null; }
+      if (window.docIdToDelete) {
+        doDelete(window.docIdToDelete);
+        window.docIdToDelete = null;
+      }
     });
     document.getElementById("delete-cancel-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
       window.docIdToDelete = null;
     });
 
-    document.getElementById("chat-box").addEventListener("click", function(e) {
-      if (e.target === this) {
-        showTimestamps = !showTimestamps;
-        renderMessages(false);
-      }
-    });
-
+    /* Privileged login/logout */
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -669,6 +804,7 @@
       });
     });
 
+    /* Active Users List, including kick functionality */
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
         .onSnapshot(function(snapshot) {
@@ -684,7 +820,6 @@
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
               kickBtn.textContent = "x";
-              // Pass both the doc id and username
               kickBtn.onclick = function() { confirmKick(doc.id, data.username); };
               userItem.appendChild(kickBtn);
             }
@@ -694,8 +829,7 @@
     }
     function confirmKick(docId, username) {
       window.kickDocId = docId;
-      // Update the kick modal text with the username
-      document.getElementById("kick-modal").querySelector("p").textContent = "Are you sure you want to kick " + username + "?";
+      document.getElementById("kick-modal-text").textContent = "Are you sure you want to kick " + username + "?";
       document.getElementById("kick-modal").style.display = "flex";
     }
     function kickUser(docId) {
@@ -718,6 +852,7 @@
       window.kickDocId = null;
     });
 
+    /* Listen for kicked status */
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
@@ -733,13 +868,14 @@
         });
     }
 
+    /* Username change modal logic */
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
     const saveUsernameButton = document.getElementById("save-username-button");
     const cancelUsernameButton = document.getElementById("cancel-username-button");
     newUsernameInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         saveUsernameButton.click();
       }
@@ -754,13 +890,14 @@
       usernameModal.style.display = "none";
     });
 
+    /* Privileged login modal logic */
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
     const savePrivilegedButton = document.getElementById("save-privileged-button");
     const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
     privilegedCodeInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         savePrivilegedButton.click();
       }
@@ -775,7 +912,7 @@
         privilegedModal.style.display = "none";
         document.getElementById("privileged-success-modal").style.display = "flex";
         updatePrivilegedButton();
-        updateActiveUsersList(); // Refresh active users list immediately
+        updateActiveUsersList();
       } else {
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
@@ -785,6 +922,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
+    /* Blocked words logic */
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -874,19 +1012,25 @@
         }
       }
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      window.db.collection("messages").add({
+      const newMsgData = {
         username: tempUsername,
         text: message,
         isPrivileged: isPrivileged,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        console.log("✅ Message Sent Successfully!");
-        messageInput.value = "";
-      })
-      .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
-      });
+      };
+      if (replyFocusDocId) {
+        newMsgData.replyToDocId = replyFocusDocId;
+        newMsgData.replyToSnippet = replyFocusSnippet;
+      }
+      window.db.collection("messages").add(newMsgData)
+        .then(() => {
+          console.log("✅ Message Sent Successfully!");
+          messageInput.value = "";
+          clearReplyFocus();
+        })
+        .catch((error) => {
+          console.error("❌ Error Sending Message:", error);
+        });
     }
 
     function openFeatureModal() {
@@ -907,7 +1051,11 @@
       }
       featureErrorEl.textContent = "";
       const currentDate = new Date().toLocaleString(undefined, {
-        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
       const subject = encodeURIComponent(`Feature Request (${currentDate})`);
       const body = encodeURIComponent(featureText);
