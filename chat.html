@@ -74,16 +74,25 @@
       text-align: center;
       border-bottom: 1px solid #444;
     }
-    /* Updated user item style: white box with black text */
+    /* Normal user item style */
     .user-item {
       margin: 5px 0;
-      background: white;
-      color: black;
-      padding: 5px 8px;
-      border-radius: 5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 0 8px;
+    }
+    /* Your own name: white box with black text */
+    .my-user-item {
+      background: white;
+      color: black;
+      border-radius: 5px;
+      padding: 5px 8px;
+    }
+    /* Others: keep the background transparent so it blends with #333 */
+    .other-user-item {
+      background: none;
+      color: white;
     }
     .user-item button {
       background: red;
@@ -694,11 +703,25 @@
         .onSnapshot(function(snapshot) {
           const listDiv = document.getElementById("active-users-list");
           listDiv.innerHTML = "<h3>Active Users</h3>";
+
           snapshot.forEach(function(doc) {
             const data = doc.data();
+            
+            // Create the container
             const userItem = document.createElement("div");
             userItem.classList.add("user-item");
+
+            // If it's your name, use .my-user-item styling, else .other-user-item
+            if (data.username === tempUsername) {
+              userItem.classList.add("my-user-item");
+            } else {
+              userItem.classList.add("other-user-item");
+            }
+
+            // The text content
             userItem.textContent = data.username;
+
+            // If privileged & not your own doc, show x
             if (sessionStorage.getItem("isPrivileged") === "true" &&
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
@@ -706,6 +729,7 @@
               kickBtn.onclick = function() { confirmKick(doc.id, data.username); };
               userItem.appendChild(kickBtn);
             }
+
             listDiv.appendChild(userItem);
           });
         });
@@ -917,7 +941,7 @@
         }
       }
       const now = Date.now();
-      // Updated anti-spam: 5 seconds (5000 ms)
+      // Anti-spam: 5 seconds
       if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 5000) {
         messageErrorText.textContent = "Please wait before sending the same message again.";
         messageErrorModal.style.display = "flex";
