@@ -264,12 +264,12 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.6</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
-    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Become Privileged</button>
+    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;">Login ((for admin use)</button>
   </div>
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
@@ -316,7 +316,7 @@
   <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2>Enter Privileged Code</h2>
+      <h2>Enter Login Code</h2>
       <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
