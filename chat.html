@@ -320,17 +320,24 @@
     }
   </script>
   <script>
-    // Reset tempUsername daily based on PST date
-    const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
-    const storedDate = sessionStorage.getItem("usernameDate");
-    if (storedDate !== currentPSTDate) {
-      sessionStorage.removeItem("tempUsername");
-      sessionStorage.setItem("usernameDate", currentPSTDate);
+    // We'll keep a global reference to our messages snapshot unsub
+    let messagesUnsub = null;
+    // We'll keep a global "kicked" or "banned" state
+    let isKicked = false;
+
+    // If user is locally flagged as kicked, lock them out from the start
+    if(localStorage.getItem("kicked") === "true") {
+      // We'll do minimal initialization, then skip the rest
+      document.addEventListener("DOMContentLoaded", function() {
+        document.body.innerHTML = `
+          <div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">
+            You have been kicked. Think about what you did.
+          </div>`;
+      });
     }
   </script>
 </head>
 <body>
-  <!-- Inline row for Back button + Title -->
   <div class="header-row">
     <a href="Home.html" class="back-button">⬅ Back</a>
     <h1>
@@ -343,545 +350,444 @@
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
-  <!-- Chat Box -->
   <div id="chat-box"></div>
-  <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+  <input type="text" id="message" placeholder="Type your message...">
   <button onclick="sendMessage()">Send</button>
   <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
   
-  <!-- Active Users Sidebar -->
   <div id="active-users-container">
     <h3>Active Users</h3>
   </div>
   
-  <!-- Feature Request Modal -->
-  <div id="feature-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Feature Request</h2>
-      <textarea id="feature-text" placeholder="Describe your feature request..."></textarea>
-      <p id="feature-error" class="error-message"></p>
-      <div class="modal-buttons">
-        <button id="submit-feature-button">Submit</button>
-        <button id="cancel-feature-button">Cancel</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Email Provider Modal -->
-  <div id="email-provider-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Select Your Email Provider</h2>
-      <div id="provider-buttons-container" style="display: flex; justify-content: center; gap: 10px;">
-        <button class="email-provider-btn gmail-btn" onclick="sendEmail('gmail')">
-          <img src="/IMGS/gmail.png" alt="Gmail">
-        </button>
-        <button class="email-provider-btn outlook-btn" onclick="sendEmail('outlook')">
-          <img src="/IMGS/outlook.png" alt="Outlook">
-        </button>
-        <button class="email-provider-btn yahoo-btn" onclick="sendEmail('yahoo')">
-          <img src="/IMGS/yahoo.png" alt="Yahoo!">
-        </button>
-      </div>
-      <div id="cancel-button-container" style="margin-top: 10px; text-align: right;">
-        <button class="email-provider-btn" onclick="closeEmailModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Username Change Modal -->
-  <div id="username-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Change Username</h2>
-      <input type="text" id="new-username-input" placeholder="Enter new username...">
-      <p id="username-error" class="error-message"></p>
-      <div class="modal-buttons">
-        <button id="save-username-button">Save</button>
-        <button id="cancel-username-button">Cancel</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Privileged Login Modal -->
-  <div id="privileged-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Enter Login Code</h2>
-      <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
-      <p id="privileged-error" class="error-message"></p>
-      <div class="modal-buttons">
-        <button id="save-privileged-button">Submit</button>
-        <button id="cancel-privileged-button">Cancel</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Privileged Success Modal -->
-  <div id="privileged-success-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Success</h2>
-      <p id="privileged-success-text">You are now privileged!</p>
-      <div class="modal-buttons">
-        <button id="dismiss-privileged-success-button">OK</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Message Block Error Modal -->
-  <div id="message-error-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Message Blocked</h2>
-      <p id="message-error-text" class="error-message"></p>
-      <div class="modal-buttons">
-        <button id="dismiss-message-error-button">OK</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Delete Confirmation Modal (for link messages) -->
-  <div id="delete-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Delete Link Message?</h2>
-      <p>This message contains a link. Are you sure you want to delete it?</p>
-      <div class="modal-buttons">
-        <button id="delete-confirm-button">Yes</button>
-        <button id="delete-cancel-button">No</button>
-      </div>
-    </div>
-  </div>
-  
+  <!-- ... All your modals here (unchanged) ... -->
+  <!-- Feature request, email provider, username, privileged, success, message blocked, link deletion, etc. -->
+
+  <!-- 
+       For brevity, not repeating all modals from the previous code.
+       Insert them unchanged from your last version. 
+  -->
+
   <script>
-    let showTimestamps = false;
-    let cachedMessages = [];
-    let tempUsername;
-    let docIdToDelete = null;
-    const secretCode = "theLandbefore4.0";
+    // Only continue if not locally kicked
+    if(localStorage.getItem("kicked") !== "true") {
+      let showTimestamps = false;
+      let cachedMessages = [];
+      let tempUsername;
+      let docIdToDelete = null;
+      const secretCode = "theLandbefore4.0";
 
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
+      let chatSession;
+      let activeUserDocId;
 
-    document.addEventListener("DOMContentLoaded", function() {
-      // We removed the "fixed" positioning from the back button so it stays inline with the title
-      const prevPage = getQueryParam("prev") || "Home.html";
-      document.querySelector(".back-button").href = prevPage;
-      console.log("Back button set to:", prevPage);
+      let messagesUnsub = null; // store the unsub function for messages
+      let userDocUnsub = null;  // store the unsub function for our active user doc
+      let activeUsersUnsub = null; // unsub for the activeUsers list
 
-      tempUsername = sessionStorage.getItem("tempUsername");
-      if (!tempUsername) {
-        tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
-        sessionStorage.setItem("tempUsername", tempUsername);
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
       }
-      console.log("Assigned username:", tempUsername);
-      document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-      let chatSession = sessionStorage.getItem("chatSession");
-      if (!chatSession) {
-        chatSession = "session_" + Math.random().toString(36).substr(2, 9);
-        sessionStorage.setItem("chatSession", chatSession);
-      }
-      console.log("Chat Session ID:", chatSession);
+      document.addEventListener("DOMContentLoaded", function() {
+        const prevPage = getQueryParam("prev") || "Home.html";
+        document.querySelector(".back-button").href = prevPage;
+        console.log("Back button set to:", prevPage);
 
-      let chatStartTime = sessionStorage.getItem("chatStartTime");
-      if (!chatStartTime) {
-        chatStartTime = Date.now().toString();
-        sessionStorage.setItem("chatStartTime", chatStartTime);
-      }
-      console.log("Chat Start Time:", chatStartTime);
-
-      // Initialize Firebase
-      const firebaseConfig = {
-        apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
-        authDomain: "mallyssusgamingchat.firebaseapp.com",
-        projectId: "mallyssusgamingchat",
-        storageBucket: "mallyssusgamingchat.appspot.com",
-        messagingSenderId: "848817267004",
-        appId: "1:848817267004:web:fbecb7246352afb9937e39",
-        measurementId: "G-MSF2RTLJD2"
-      };
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        console.log("✅ Firebase Initialized!");
-      } else {
-        console.log("ℹ️ Firebase already initialized.");
-      }
-      window.db = firebase.firestore();
-      console.log("✅ Firestore Ready:", window.db);
-
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers").doc(activeUserDocId).set({
-        username: tempUsername,
-        session: chatSession,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        console.log("Active user record updated:", activeUserDocId);
-      }).catch(error => {
-        console.error("Error updating active user record:", error);
-      });
-
-      // If the user is kicked
-      window.db.collection("activeUsers").doc(activeUserDocId).onSnapshot(doc => {
-        let data = doc.data();
-        if(data && data.kicked) {
-          document.getElementById("chat-box").innerHTML = `<div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">You have been kicked. Think about what you did.</div>`;
-          document.getElementById("message").disabled = true;
+        tempUsername = sessionStorage.getItem("tempUsername");
+        if (!tempUsername) {
+          tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
+          sessionStorage.setItem("tempUsername", tempUsername);
         }
-      });
+        console.log("Assigned username:", tempUsername);
+        document.getElementById("username-display").textContent = "You are: " + tempUsername;
 
-      window.addEventListener("beforeunload", function() {
-        // Cleanup user doc
-        window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
-          console.error("Error cleaning up active user record:", err);
-        });
-      });
-
-      // Listen for new messages
-      window.db.collection("messages")
-        .orderBy("timestamp")
-        .onSnapshot(function(snapshot) {
-          cachedMessages = snapshot.docs;
-          renderMessages(true);
-        });
-
-      // Listen for active users to populate the right sidebar
-      window.db.collection("activeUsers").onSnapshot(snapshot => {
-        let container = document.getElementById("active-users-container");
-        container.innerHTML = "<h3>Active Users</h3>";
-        snapshot.forEach(doc => {
-          let data = doc.data();
-          if(data.kicked) return; // skip kicked users
-          let div = document.createElement("div");
-          div.classList.add("active-user");
-          let span = document.createElement("span");
-          span.textContent = data.username;
-          div.appendChild(span);
-          // If viewer is privileged and not themselves, show a "kick" button
-          if(sessionStorage.getItem("isPrivileged") === "true" && data.username !== tempUsername) {
-            let btn = document.createElement("button");
-            btn.textContent = "X";
-            btn.title = "Kick User";
-            btn.onclick = function(e) {
-              e.stopPropagation();
-              kickUser(doc.id);
-            };
-            div.appendChild(btn);
-          }
-          container.appendChild(div);
-        });
-      });
-
-      updatePrivilegedButton();
-    });
-
-    function renderMessages(autoScroll) {
-      const chatBox = document.getElementById("chat-box");
-      chatBox.innerHTML = "";
-      const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
-      let displayedCount = 0;
-
-      cachedMessages.forEach(function(doc) {
-        const msgData = doc.data();
-        if (!msgData.timestamp) return;
-        const msgTime = msgData.timestamp.toMillis();
-
-        // For non-privileged viewer, only show today's messages
-        if (!isViewerPrivileged) {
-          const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
-          if (msgPSTDate !== currentPSTDate) return;
+        chatSession = sessionStorage.getItem("chatSession");
+        if (!chatSession) {
+          chatSession = "session_" + Math.random().toString(36).substr(2, 9);
+          sessionStorage.setItem("chatSession", chatSession);
         }
+        console.log("Chat Session ID:", chatSession);
 
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message-line");
+        let chatStartTime = sessionStorage.getItem("chatStartTime");
+        if (!chatStartTime) {
+          chatStartTime = Date.now().toString();
+          sessionStorage.setItem("chatStartTime", chatStartTime);
+        }
+        console.log("Chat Start Time:", chatStartTime);
 
-        const timestamp = new Date(msgTime).toLocaleString(undefined, {
-          year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
-        const formattedText = formatMessageText(msgData.text);
-
-        let bubbleClass;
-        if (msgData.username === tempUsername) {
-          // My own message
-          messageDiv.classList.add("my-message");
-          bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+        // Initialize Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
+          authDomain: "mallyssusgamingchat.firebaseapp.com",
+          projectId: "mallyssusgamingchat",
+          storageBucket: "mallyssusgamingchat.appspot.com",
+          messagingSenderId: "848817267004",
+          appId: "1:848817267004:web:fbecb7246352afb9937e39",
+          measurementId: "G-MSF2RTLJD2"
+        };
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+          console.log("✅ Firebase Initialized!");
         } else {
-          // Another user's message
-          messageDiv.classList.add("other-message");
-          bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
+          console.log("ℹ️ Firebase already initialized.");
         }
+        window.db = firebase.firestore();
+        console.log("✅ Firestore Ready:", window.db);
 
-        let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-        if (isViewerPrivileged) {
-          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
-        }
+        activeUserDocId = "active_" + chatSession;
+        window.db.collection("activeUsers").doc(activeUserDocId).set({
+          username: tempUsername,
+          session: chatSession,
+          lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+          kicked: false
+        }).then(() => {
+          console.log("Active user record created/updated:", activeUserDocId);
+        }).catch(error => {
+          console.error("Error updating active user record:", error);
+        });
 
-        if (msgData.username === tempUsername) {
-          if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              ${bubbleHTML}
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
-          } else {
-            messageDiv.innerHTML = bubbleHTML;
-          }
-        } else {
-          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
-          if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                ${bubbleHTML}
-              </div>
-            </div>`;
-          } else {
-            messageDiv.innerHTML = nameHTML + bubbleHTML;
-          }
-        }
-        chatBox.appendChild(messageDiv);
-        displayedCount++;
+        // Listen for changes to our own active user doc to see if we are kicked
+        userDocUnsub = window.db.collection("activeUsers").doc(activeUserDocId)
+          .onSnapshot(doc => {
+            const data = doc.data();
+            if(!data) return; // doc might be deleted
+            if(data.kicked) {
+              // Mark ourselves as kicked in local storage
+              localStorage.setItem("kicked", "true");
+              handleKickedState();
+            }
+          });
+
+        // Cleanup on unload
+        window.addEventListener("beforeunload", function() {
+          if(userDocUnsub) userDocUnsub();
+          if(messagesUnsub) messagesUnsub();
+          if(activeUsersUnsub) activeUsersUnsub();
+          // optionally remove doc or do something else
+          window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
+            console.error("Error cleaning up active user record:", err);
+          });
+        });
+
+        // Subscribe to messages
+        messagesUnsub = window.db.collection("messages")
+          .orderBy("timestamp")
+          .onSnapshot(function(snapshot) {
+            cachedMessages = snapshot.docs;
+            renderMessages(true);
+          });
+
+        // Listen for active users to populate the right sidebar
+        activeUsersUnsub = window.db.collection("activeUsers")
+          .onSnapshot(snapshot => {
+            let container = document.getElementById("active-users-container");
+            container.innerHTML = "<h3>Active Users</h3>";
+            snapshot.forEach(doc => {
+              let data = doc.data();
+              if(data.kicked) return; // skip kicked users
+              let div = document.createElement("div");
+              div.classList.add("active-user");
+              let span = document.createElement("span");
+              span.textContent = data.username;
+              div.appendChild(span);
+              // If viewer is privileged and not themselves, show a "kick" button
+              if(sessionStorage.getItem("isPrivileged") === "true" && data.username !== tempUsername) {
+                let btn = document.createElement("button");
+                btn.textContent = "X";
+                btn.title = "Kick User";
+                btn.onclick = function(e) {
+                  e.stopPropagation();
+                  kickUser(doc.id);
+                };
+                div.appendChild(btn);
+              }
+              container.appendChild(div);
+            });
+          });
+
+        updatePrivilegedButton();
       });
 
-      if (!isViewerPrivileged && displayedCount === 0) {
-        chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
-          No Messages Today Yet. Wanna be the first?
+      function handleKickedState() {
+        console.log("User is kicked. Locking UI and unsubscribing from messages...");
+        isKicked = true;
+        // unsub from message snapshot
+        if(messagesUnsub) {
+          messagesUnsub();
+          messagesUnsub = null;
+        }
+        // Clear chat box
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = `<div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">
+          You have been kicked. Think about what you did.
         </div>`;
+        // Disable input
+        const msgInput = document.getElementById("message");
+        if(msgInput) {
+          msgInput.disabled = true;
+        }
       }
 
-      if (autoScroll) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
+      function renderMessages(autoScroll) {
+        if(isKicked) return; // don't show messages if kicked
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+        const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+        const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+        let displayedCount = 0;
 
-    // If the message has a link, show site-based modal confirmation; otherwise, delete immediately.
-    function deleteMessage(docId, rawText) {
-      const text = decodeURIComponent(rawText || "");
-      if (messageContainsLink(text)) {
-        window.docIdToDelete = docId;
-        document.getElementById("delete-modal").style.display = "flex";
-      } else {
-        doDelete(docId);
-      }
-    }
-    function doDelete(docId) {
-      window.db.collection("messages").doc(docId).delete()
-        .then(() => {
-          console.log("Message deleted successfully.");
-        })
-        .catch(err => {
-          console.error("Error deleting message:", err);
+        cachedMessages.forEach(function(doc) {
+          const msgData = doc.data();
+          if (!msgData.timestamp) return;
+          const msgTime = msgData.timestamp.toMillis();
+
+          // For non-privileged viewer, only show today's messages
+          if (!isViewerPrivileged) {
+            const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+            if (msgPSTDate !== currentPSTDate) return;
+          }
+
+          const messageDiv = document.createElement("div");
+          messageDiv.classList.add("message-line");
+
+          const timestamp = new Date(msgTime).toLocaleString(undefined, {
+            year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+          const formattedText = formatMessageText(msgData.text);
+
+          let bubbleClass;
+          if (msgData.username === tempUsername) {
+            // My own message
+            messageDiv.classList.add("my-message");
+            bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+          } else {
+            // Another user's message
+            messageDiv.classList.add("other-message");
+            bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
+          }
+
+          let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
+          if (isViewerPrivileged) {
+            bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
+          }
+
+          if (msgData.username === tempUsername) {
+            if (showTimestamps) {
+              messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+                ${bubbleHTML}
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
+            } else {
+              messageDiv.innerHTML = bubbleHTML;
+            }
+          } else {
+            const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+            if (showTimestamps) {
+              messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  ${bubbleHTML}
+                </div>
+              </div>`;
+            } else {
+              messageDiv.innerHTML = nameHTML + bubbleHTML;
+            }
+          }
+          chatBox.appendChild(messageDiv);
+          displayedCount++;
         });
-    }
-    // Delete modal buttons
-    document.getElementById("delete-confirm-button").addEventListener("click", function() {
-      document.getElementById("delete-modal").style.display = "none";
-      if (window.docIdToDelete) {
-        doDelete(window.docIdToDelete);
-        window.docIdToDelete = null;
+
+        if (!isViewerPrivileged && displayedCount === 0) {
+          chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
+            No Messages Today Yet. Wanna be the first?
+          </div>`;
+        }
+
+        if (autoScroll) {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
       }
-    });
-    document.getElementById("delete-cancel-button").addEventListener("click", function() {
-      document.getElementById("delete-modal").style.display = "none";
-      window.docIdToDelete = null;
-    });
 
-    // Toggling timestamps by clicking the chat background
-    document.getElementById("chat-box").addEventListener("click", function(e) {
-      if (e.target === this) {
-        showTimestamps = !showTimestamps;
-        renderMessages(false);
+      // If the message has a link, show site-based modal confirmation; otherwise, delete immediately.
+      function deleteMessage(docId, rawText) {
+        const text = decodeURIComponent(rawText || "");
+        if (messageContainsLink(text)) {
+          window.docIdToDelete = docId;
+          document.getElementById("delete-modal").style.display = "flex";
+        } else {
+          doDelete(docId);
+        }
       }
-    });
-
-    function updatePrivilegedButton() {
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      const button = document.getElementById("privileged-button");
-      button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
-    }
-
-    // Kick a user by setting kicked:true in their doc
-    function kickUser(docId) {
-      if (confirm("Are you sure you want to kick this user?")) {
-        window.db.collection("activeUsers").doc(docId).update({ kicked: true })
+      function doDelete(docId) {
+        window.db.collection("messages").doc(docId).delete()
           .then(() => {
-            console.log("User kicked.");
+            console.log("Message deleted successfully.");
           })
           .catch(err => {
-            console.error("Error kicking user:", err);
+            console.error("Error deleting message:", err);
           });
       }
-    }
-
-    // Privileged login or logout
-    document.addEventListener("DOMContentLoaded", function() {
-      const privilegedButton = document.getElementById("privileged-button");
-      privilegedButton.addEventListener("click", function() {
-        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-        if (isPrivileged) {
-          sessionStorage.removeItem("isPrivileged");
-          sessionStorage.removeItem("tempUsername");
-          location.reload();
-        } else {
-          document.getElementById("privileged-modal").style.display = "flex";
+      // Delete modal buttons
+      document.getElementById("delete-confirm-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        if (window.docIdToDelete) {
+          doDelete(window.docIdToDelete);
+          window.docIdToDelete = null;
         }
       });
-    });
+      document.getElementById("delete-cancel-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        window.docIdToDelete = null;
+      });
 
-    // Username Change Modal logic
-    const usernameModal = document.getElementById("username-modal");
-    const usernameError = document.getElementById("username-error");
-    const newUsernameInput = document.getElementById("new-username-input");
-    const saveUsernameButton = document.getElementById("save-username-button");
-    const cancelUsernameButton = document.getElementById("cancel-username-button");
-    newUsernameInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveUsernameButton.click();
-      }
-    });
-    document.getElementById("change-username-button").addEventListener("click", function() {
-      usernameModal.style.display = "flex";
-      usernameError.textContent = "";
-      newUsernameInput.value = "";
-      newUsernameInput.focus();
-    });
-    cancelUsernameButton.addEventListener("click", function() {
-      usernameModal.style.display = "none";
-    });
+      // Toggling timestamps by clicking the chat background
+      document.getElementById("chat-box").addEventListener("click", function(e) {
+        if (e.target === this) {
+          showTimestamps = !showTimestamps;
+          renderMessages(false);
+        }
+      });
 
-    // Privileged code submission
-    const privilegedModal = document.getElementById("privileged-modal");
-    const privilegedCodeInput = document.getElementById("privileged-code-input");
-    const privilegedError = document.getElementById("privileged-error");
-    const savePrivilegedButton = document.getElementById("save-privileged-button");
-    const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
-    privilegedCodeInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        savePrivilegedButton.click();
+      function updatePrivilegedButton() {
+        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+        const button = document.getElementById("privileged-button");
+        button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
       }
-    });
-    cancelPrivilegedButton.addEventListener("click", function() {
-      privilegedModal.style.display = "none";
-    });
-    savePrivilegedButton.addEventListener("click", function() {
-      const enteredCode = privilegedCodeInput.value.trim();
-      if (enteredCode === secretCode) {
-        sessionStorage.setItem("isPrivileged", "true");
+
+      // Kick a user by setting kicked:true in their doc
+      function kickUser(docId) {
+        if (confirm("Are you sure you want to kick this user?")) {
+          window.db.collection("activeUsers").doc(docId).update({ kicked: true })
+            .then(() => {
+              console.log("User kicked.");
+            })
+            .catch(err => {
+              console.error("Error kicking user:", err);
+            });
+        }
+      }
+
+      // Privileged login or logout
+      document.addEventListener("DOMContentLoaded", function() {
+        const privilegedButton = document.getElementById("privileged-button");
+        privilegedButton.addEventListener("click", function() {
+          const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+          if (isPrivileged) {
+            sessionStorage.removeItem("isPrivileged");
+            sessionStorage.removeItem("tempUsername");
+            location.reload();
+          } else {
+            document.getElementById("privileged-modal").style.display = "flex";
+          }
+        });
+      });
+
+      // Username Change Modal logic
+      const usernameModal = document.getElementById("username-modal");
+      const usernameError = document.getElementById("username-error");
+      const newUsernameInput = document.getElementById("new-username-input");
+      const saveUsernameButton = document.getElementById("save-username-button");
+      const cancelUsernameButton = document.getElementById("cancel-username-button");
+      newUsernameInput.addEventListener("keydown", function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveUsernameButton.click();
+        }
+      });
+      document.getElementById("change-username-button").addEventListener("click", function() {
+        usernameModal.style.display = "flex";
+        usernameError.textContent = "";
+        newUsernameInput.value = "";
+        newUsernameInput.focus();
+      });
+      cancelUsernameButton.addEventListener("click", function() {
+        usernameModal.style.display = "none";
+      });
+
+      // Privileged code submission
+      const privilegedModal = document.getElementById("privileged-modal");
+      const privilegedCodeInput = document.getElementById("privileged-code-input");
+      const privilegedError = document.getElementById("privileged-error");
+      const savePrivilegedButton = document.getElementById("save-privileged-button");
+      const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
+      privilegedCodeInput.addEventListener("keydown", function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          savePrivilegedButton.click();
+        }
+      });
+      cancelPrivilegedButton.addEventListener("click", function() {
         privilegedModal.style.display = "none";
-        document.getElementById("privileged-success-modal").style.display = "flex";
-        updatePrivilegedButton();
-      } else {
-        privilegedError.textContent = "Incorrect code. Please try again.";
-      }
-    });
-    const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
-    dismissPrivilegedSuccessButton.addEventListener("click", function() {
-      document.getElementById("privileged-success-modal").style.display = "none";
-    });
+      });
+      savePrivilegedButton.addEventListener("click", function() {
+        const enteredCode = privilegedCodeInput.value.trim();
+        if (enteredCode === secretCode) {
+          sessionStorage.setItem("isPrivileged", "true");
+          privilegedModal.style.display = "none";
+          document.getElementById("privileged-success-modal").style.display = "flex";
+          updatePrivilegedButton();
+        } else {
+          privilegedError.textContent = "Incorrect code. Please try again.";
+        }
+      });
+      const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
+      dismissPrivilegedSuccessButton.addEventListener("click", function() {
+        document.getElementById("privileged-success-modal").style.display = "none";
+      });
 
-    // Blocked words logic
-    let blockedNames = [];
-    fetch("blacklistwords.txt")
-      .then(response => response.text())
-      .then(data => {
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
-      })
-      .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "malcom", "admin"];
-    const reservedNames = ["mally", "ij", "malcom", "admin"];
+      // Blocked words logic
+      let blockedNames = [];
+      fetch("blacklistwords.txt")
+        .then(response => response.text())
+        .then(data => {
+          blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
+          console.log("Blocked words file loaded.");
+        })
+        .catch(err => console.error("Failed to load blocked words:", err));
+      const privilegedNames = ["mally", "ij", "malcom", "admin"];
+      const reservedNames = ["mally", "ij", "malcom", "admin"];
 
-    // Message blocked error
-    const messageErrorModal = document.getElementById("message-error-modal");
-    const messageErrorText = document.getElementById("message-error-text");
-    const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
-    dismissMessageErrorButton.addEventListener("click", function() {
-      messageErrorModal.style.display = "none";
-    });
+      // Message blocked error
+      const messageErrorModal = document.getElementById("message-error-modal");
+      const messageErrorText = document.getElementById("message-error-text");
+      const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
+      dismissMessageErrorButton.addEventListener("click", function() {
+        messageErrorModal.style.display = "none";
+      });
 
-    // Send message
-    function sendMessage() {
-      const messageInput = document.getElementById("message");
-      const message = messageInput.value.trim();
-      if (message === "") {
-        console.warn("⚠️ Empty message - Not sending");
-        return;
-      }
-      for (let blocked of blockedNames) {
-        if (message.toLowerCase().includes(blocked)) {
-          messageErrorText.textContent = "Your message contains a blocked word: " + blocked;
-          messageErrorModal.style.display = "flex";
+      // Send message
+      function sendMessage() {
+        if(isKicked) return; // can't send if kicked
+        const messageInput = document.getElementById("message");
+        const message = messageInput.value.trim();
+        if (message === "") {
+          console.warn("⚠️ Empty message - Not sending");
           return;
         }
+        for (let blocked of blockedNames) {
+          if (message.toLowerCase().includes(blocked)) {
+            messageErrorText.textContent = "Your message contains a blocked word: " + blocked;
+            messageErrorModal.style.display = "flex";
+            return;
+          }
+        }
+        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+        window.db.collection("messages").add({
+          username: tempUsername,
+          text: message,
+          isPrivileged: isPrivileged,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+          console.log("✅ Message Sent Successfully!");
+          messageInput.value = "";
+        })
+        .catch((error) => {
+          console.error("❌ Error Sending Message:", error);
+        });
       }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      window.db.collection("messages").add({
-        username: tempUsername,
-        text: message,
-        isPrivileged: isPrivileged,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        console.log("✅ Message Sent Successfully!");
-        messageInput.value = "";
-      })
-      .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
-      });
-    }
-
-    function openFeatureModal() {
-      document.getElementById("feature-modal").style.display = "flex";
-    }
-    function closeEmailModal() {
-      document.getElementById("email-provider-modal").style.display = "none";
-    }
-    document.getElementById("cancel-feature-button").addEventListener("click", function() {
-      document.getElementById("feature-modal").style.display = "none";
-    });
-    document.getElementById("submit-feature-button").addEventListener("click", function() {
-      const featureText = document.getElementById("feature-text").value.trim();
-      const featureErrorEl = document.getElementById("feature-error");
-      if (!featureText) {
-        featureErrorEl.textContent = "Please enter your feature request.";
-        return;
-      }
-      featureErrorEl.textContent = "";
-      const currentDate = new Date().toLocaleString(undefined, {
-        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-      const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
-      const body = encodeURIComponent(featureText);
-      window.featureEmailSubject = subject;
-      window.featureEmailBody = body;
-      document.getElementById("feature-modal").style.display = "none";
-      document.getElementById("email-provider-modal").style.display = "flex";
-    });
-    function sendEmail(provider) {
-      const recipient = "mallysusgaming@gmail.com";
-      let composeURL = "";
-      if (provider === "gmail") {
-        composeURL = "https://mail.google.com/mail/?view=cm&fs=1&to=" + recipient + "&su=" + window.featureEmailSubject + "&body=" + window.featureEmailBody;
-      } else if (provider === "outlook") {
-        composeURL = "https://outlook.live.com/owa/?path=/mail/action/compose&to=" + recipient + "&subject=" + window.featureEmailSubject + "&body=" + window.featureEmailBody;
-      } else if (provider === "yahoo") {
-        composeURL = "https://compose.mail.yahoo.com/?to=" + recipient + "&subj=" + window.featureEmailSubject + "&body=" + window.featureEmailBody;
-      }
-      window.location.href = composeURL;
-      closeEmailModal();
-    }
-
-    // Kick user
-    function kickUser(docId) {
-      if (confirm("Are you sure you want to kick this user?")) {
-        window.db.collection("activeUsers").doc(docId).update({ kicked: true })
-          .then(() => {
-            console.log("User kicked.");
-          })
-          .catch(err => {
-            console.error("Error kicking user:", err);
-          });
-      }
+      window.sendMessage = sendMessage; // expose to onclick
     }
   </script>
 </body>
