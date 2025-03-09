@@ -890,13 +890,15 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-      for (let blocked of blockedNames) {
-        if (message.toLowerCase().includes(blocked)) {
-          messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
-          messageErrorModal.style.display = "flex";
-          return;
-        }
-      }
+for (let blocked of blockedNames) {
+  // Create a regex that matches the banned word as a whole word, case-insensitive
+  const regex = new RegExp(`\\b${blocked}\\b`, 'i');
+  if (regex.test(message)) {
+    messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
+    messageErrorModal.style.display = "flex";
+    return;
+  }
+}
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       window.db.collection("messages").add({
         username: tempUsername,
