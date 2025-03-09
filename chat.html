@@ -68,7 +68,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Message container */
+    /* Container for each message */
     .message-line {
       margin: 5px 0;
       display: flex;
@@ -76,7 +76,7 @@
       max-width: 70%;
       word-wrap: break-word;
     }
-    /* My messages */
+    /* My messages (aligned right) */
     .my-message {
       align-self: flex-end;
       text-align: right;
@@ -94,7 +94,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Others' messages */
+    /* Others' messages (aligned left) */
     .other-message {
       align-self: flex-start;
       text-align: left;
@@ -110,7 +110,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged styling */
+    /* Privileged styling: Orange background with yellow glow */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -129,14 +129,14 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Modal overlay */
+    /* Modal overlay (common for all modals) */
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -179,7 +179,7 @@
       text-align: right;
       margin-top: 10px;
     }
-    /* Request Feature button */
+    /* Request Feature button styling */
     #request-feature-button {
       margin-top: 10px;
       padding: 10px 15px;
@@ -199,7 +199,7 @@
       border-radius: 5px;
       cursor: pointer;
       margin: 5px;
-      width: 60px; /* Fixed size for uniformity */
+      width: 60px;
       height: 60px;
     }
     .email-provider-btn img {
@@ -217,7 +217,7 @@
     .yahoo-btn {
       background: purple;
     }
-    /* Underline for links */
+    /* Underline for links in messages */
     a.message-link {
       text-decoration: underline;
       color: inherit;
@@ -297,14 +297,17 @@
     <div class="modal-box">
       <h2>Select Your Email Provider</h2>
       <div id="provider-buttons-container" style="display: flex; justify-content: center; gap: 10px;">
+        <!-- Gmail button -->
         <button class="email-provider-btn gmail-btn" onclick="sendEmail('gmail')">
           <img src="/IMGS/gmail.png" alt="Gmail">
         </button>
+        <!-- Outlook button -->
         <button class="email-provider-btn outlook-btn" onclick="sendEmail('outlook')">
           <img src="/IMGS/outlook.png" alt="Outlook">
         </button>
+        <!-- Yahoo button -->
         <button class="email-provider-btn yahoo-btn" onclick="sendEmail('yahoo')">
-          <img src="/IMGS/yahoo!.png" alt="Yahoo!">
+          <img src="/IMGS/yahoo.png" alt="Yahoo!">
         </button>
       </div>
       <div id="cancel-button-container" style="margin-top: 10px; text-align: right;">
@@ -324,7 +327,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal for privileged upgrade -->
+  <!-- Modal for privileged success message -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
