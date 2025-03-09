@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png" />
+
   <style>
-    /* Global & layout styles */
+    /* ===== GLOBAL & LAYOUT STYLES ===== */
     body {
       font-family: Arial, sans-serif;
       background-color: #121212;
@@ -27,7 +28,6 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Username header */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -35,7 +35,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Chat container: chat box on left, active users list on right */
+    /* Chat container: chat box (left) + active users list (right) */
     #chat-container {
       display: flex;
       justify-content: center;
@@ -60,7 +60,7 @@
       position: relative;
       transition: opacity 0.3s;
     }
-    /* When in reply focus mode, lower opacity for messages not being replied to */
+    /* If in reply focus, lower opacity for other messages */
     #chat-box.reply-focus .message-line:not(.reply-focus-target) {
       opacity: 0.3;
     }
@@ -95,7 +95,7 @@
       font-size: 12px;
       cursor: pointer;
     }
-    /* Input section */
+    /* Input section below chat container */
     #input-section {
       margin: 0 auto;
       max-width: 600px;
@@ -169,7 +169,7 @@
       display: inline-block;
       position: relative;
     }
-    /* Reply arrow (for messages from others) */
+    /* Reply arrow for messages from others */
     .reply-arrow {
       position: absolute;
       top: 0;
@@ -191,7 +191,7 @@
       padding-left: 5px;
       position: relative;
     }
-    /* Connector line for your reply: drawn on right */
+    /* Connector line for your reply: drawn on right side */
     .reply-snippet.your-reply::before {
       content: "";
       position: absolute;
@@ -200,7 +200,7 @@
       border-right: 2px solid #bbb;
       height: 10px;
     }
-    /* Connector line for others' reply: drawn on left */
+    /* Connector line for others' reply: drawn on left side */
     .reply-snippet.other-reply::before {
       content: "";
       position: absolute;
@@ -234,7 +234,7 @@
     .delete-hover:hover > div {
       text-decoration: line-through !important;
     }
-    /* Modal overlay styles */
+    /* Modals & Overlays */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -242,7 +242,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -324,7 +324,6 @@
       color: inherit;
     }
   </style>
-
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
@@ -336,7 +335,6 @@
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
 
-  <!-- Chat container: chat box on left, active users list on right -->
   <div id="chat-container">
     <div id="chat-box"></div>
     <div id="active-users-list">
@@ -344,14 +342,17 @@
     </div>
   </div>
 
-  <!-- Input section below chat container -->
   <div id="input-section">
-    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}" />
+    <input
+      type="text"
+      id="message"
+      placeholder="Type your message..."
+      onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}"
+    />
     <button onclick="sendMessage()">Send</button>
-    <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
+    <button id="request-feature-button">Request a Feature</button>
   </div>
 
-  <!-- Modals -->
   <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
     <div class="modal-box">
@@ -434,7 +435,7 @@
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal for link messages -->
+  <!-- Delete Confirmation Modal -->
   <div id="delete-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Delete Link Message?</h2>
@@ -459,358 +460,37 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      /* Firebase and main setup */
-      const prevPage = new URLSearchParams(window.location.search).get("prev") || "Home.html";
-      document.querySelector("a.back-button").href = prevPage;
-      let tempUsername = sessionStorage.getItem("tempUsername") || ("User" + Math.floor(Math.random() * 9000 + 1000));
-      sessionStorage.setItem("tempUsername", tempUsername);
-      document.getElementById("username-display").textContent = "You are: " + tempUsername;
-      let chatSession = sessionStorage.getItem("chatSession") || ("session_" + Math.random().toString(36).substr(2, 9));
-      sessionStorage.setItem("chatSession", chatSession);
-      let chatStartTime = sessionStorage.getItem("chatStartTime") || Date.now().toString();
-      sessionStorage.setItem("chatStartTime", chatStartTime);
+    /* ---------- MAIN JAVASCRIPT LOGIC ---------- */
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
-        authDomain: "mallysusgamingchat2.firebaseapp.com",
-        projectId: "mallysusgamingchat2",
-        storageBucket: "mallysusgamingchat2.firebasestorage.app",
-        messagingSenderId: "719745020254",
-        appId: "1:719745020254:web:bd48ef3982baa062529fcf",
-        measurementId: "G-EQ9KD3KQRJ"
-      };
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      window.db = firebase.firestore();
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers").doc(activeUserDocId).set({
-        username: tempUsername,
-        session: chatSession,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-        kicked: false
-      });
-      window.addEventListener("beforeunload", function() {
-        window.db.collection("activeUsers").doc(activeUserDocId).delete();
-      });
-      window.db.collection("messages").orderBy("timestamp").onSnapshot(function(snapshot) {
-        cachedMessages = snapshot.docs;
-        renderMessages(true);
-      });
-      updatePrivilegedButton();
-      updateActiveUsersList();
-      listenForKickedStatus();
-
-      document.getElementById("chat-box").addEventListener("click", function(e) {
-        if (!e.target.closest(".message-line")) {
-          if (replyFocusDocId) {
-            clearReplyFocus();
-          } else {
-            showTimestamps = !showTimestamps;
-            renderMessages(false);
-          }
-        }
-      });
-
-      /* Bind delete modal buttons */
-      document.getElementById("delete-confirm-button").addEventListener("click", function() {
-        document.getElementById("delete-modal").style.display = "none";
-        if (window.docIdToDelete) {
-          doDelete(window.docIdToDelete);
-          window.docIdToDelete = null;
-        }
-      });
-      document.getElementById("delete-cancel-button").addEventListener("click", function() {
-        document.getElementById("delete-modal").style.display = "none";
-        window.docIdToDelete = null;
-      });
-
-      /* Bind username modal events */
-      const usernameModal = document.getElementById("username-modal");
-      const usernameError = document.getElementById("username-error");
-      const newUsernameInput = document.getElementById("new-username-input");
-      const saveUsernameButton = document.getElementById("save-username-button");
-      const cancelUsernameButton = document.getElementById("cancel-username-button");
-      newUsernameInput.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); saveUsernameButton.click(); }
-      });
-      document.getElementById("change-username-button").addEventListener("click", function() {
-        usernameModal.style.display = "flex";
-        usernameError.textContent = "";
-        newUsernameInput.value = "";
-        newUsernameInput.focus();
-      });
-      cancelUsernameButton.addEventListener("click", function() {
-        usernameModal.style.display = "none";
-      });
-      saveUsernameButton.addEventListener("click", function() {
-        let newUsername = newUsernameInput.value.trim();
-        if (!newUsername) { usernameError.textContent = "Username cannot be empty."; return; }
-        let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-        for (let blocked of blockedNames) {
-          if (normalizedNewUsername.includes(blocked)) {
-            usernameError.textContent = "That username is blocked.";
-            return;
-          }
-        }
-        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-        if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-          usernameError.textContent = "That username is reserved for privileged users.";
-          return;
-        }
-        window.db.collection("activeUsers").doc(activeUserDocId)
-          .update({ username: newUsername, lastActive: firebase.firestore.FieldValue.serverTimestamp() })
-          .then(() => {
-            tempUsername = newUsername;
-            sessionStorage.setItem("tempUsername", tempUsername);
-            document.getElementById("username-display").textContent = "You are: " + tempUsername;
-            usernameModal.style.display = "none";
-          })
-          .catch(error => {
-            usernameError.textContent = "Error updating username. Please try again.";
-          });
-      });
-
-      /* Bind privileged login modal events */
-      const privilegedModal = document.getElementById("privileged-modal");
-      const privilegedCodeInput = document.getElementById("privileged-code-input");
-      const privilegedError = document.getElementById("privileged-error");
-      const savePrivilegedButton = document.getElementById("save-privileged-button");
-      const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
-      privilegedCodeInput.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); savePrivilegedButton.click(); }
-      });
-      cancelPrivilegedButton.addEventListener("click", function() {
-        privilegedModal.style.display = "none";
-      });
-      savePrivilegedButton.addEventListener("click", function() {
-        const enteredCode = privilegedCodeInput.value.trim();
-        if (enteredCode === secretCode) {
-          sessionStorage.setItem("isPrivileged", "true");
-          privilegedModal.style.display = "none";
-          document.getElementById("privileged-success-modal").style.display = "flex";
-          updatePrivilegedButton();
-          updateActiveUsersList();
-        } else {
-          privilegedError.textContent = "Incorrect code. Please try again.";
-        }
-      });
-      document.getElementById("dismiss-privileged-success-button").addEventListener("click", function() {
-        document.getElementById("privileged-success-modal").style.display = "none";
-      });
-
-      /* Bind Request Feature modal events */
-      document.getElementById("cancel-feature-button").addEventListener("click", function() {
-        document.getElementById("feature-modal").style.display = "none";
-      });
-      document.getElementById("submit-feature-button").addEventListener("click", function() {
-        const featureText = document.getElementById("feature-text").value.trim();
-        const featureErrorEl = document.getElementById("feature-error");
-        if (!featureText) {
-          featureErrorEl.textContent = "Please enter your feature request.";
-          return;
-        }
-        featureErrorEl.textContent = "";
-        const currentDate = new Date().toLocaleString(undefined, {
-          year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-        const subject = encodeURIComponent(`Feature Request (${currentDate})`);
-        const body = encodeURIComponent(featureText);
-        window.featureEmailSubject = subject;
-        window.featureEmailBody = body;
-        document.getElementById("feature-modal").style.display = "none";
-        document.getElementById("email-provider-modal").style.display = "flex";
-      });
-
-      /* Bind kick modal buttons */
-      document.getElementById("kick-confirm-button").addEventListener("click", function() {
-        document.getElementById("kick-modal").style.display = "none";
-        if (window.kickDocId) {
-          kickUser(window.kickDocId);
-          window.kickDocId = null;
-        }
-      });
-      document.getElementById("kick-cancel-button").addEventListener("click", function() {
-        document.getElementById("kick-modal").style.display = "none";
-        window.kickDocId = null;
-      });
-    });
-
-    /* Global variables and functions */
+    // Some global variables
     let showTimestamps = false;
     let cachedMessages = [];
     let replyFocusDocId = null;
     let replyFocusSnippet = "";
-    const secretCode = "theLandbefore4.0";
-    let blockedNames = [];
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    const privilegedNames = ["mally", "ij", "malcom", "admin"];
-    const reservedNames = ["mally", "ij", "malcom", "admin"];
 
-    function renderMessages(autoScroll) {
-      const chatBox = document.getElementById("chat-box");
-      if (isKicked) {
-        chatBox.innerHTML = `<div style="color: red; margin-top: 50px; font-size: 1.1em;">
-          You have been kicked. Think about what you did.
-        </div>`;
-        return;
-      }
-      chatBox.innerHTML = "";
-      const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
-      if (replyFocusDocId) {
-        chatBox.classList.add("reply-focus");
-      } else {
-        chatBox.classList.remove("reply-focus");
-      }
-      let displayedCount = 0;
-      cachedMessages.forEach(function(doc) {
-        const msgData = doc.data();
-        if (!msgData.timestamp) return;
-        const msgTime = msgData.timestamp.toMillis();
-        if (!isViewerPrivileged) {
-          const msgPSTDate = new Date(msgTime).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
-          if (msgPSTDate !== currentPSTDate) return;
-        }
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message-line");
-        if (doc.id === replyFocusDocId) {
-          messageDiv.classList.add("reply-focus-target");
-        }
-        const timestamp = new Date(msgTime).toLocaleString(undefined, {
-          year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-        const formattedText = formatMessageText(msgData.text);
-        let bubbleClass;
-        if (msgData.username === sessionStorage.getItem("tempUsername")) {
-          messageDiv.classList.add("my-message");
-          bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
-        } else {
-          messageDiv.classList.add("other-message");
-          bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
-        }
-        let snippetHTML = "";
-        if (msgData.replyToDocId) {
-          const replyClass = (msgData.username === sessionStorage.getItem("tempUsername")) ? "reply-snippet your-reply" : "reply-snippet other-reply";
-          const snippet = msgData.replyToSnippet || "Replied message...";
-          snippetHTML = `<div class="${replyClass}">${snippet}</div>`;
-        }
-        let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-        if (msgData.username !== sessionStorage.getItem("tempUsername")) {
-          bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">&#8617;</button>`;
-        }
-        if (isViewerPrivileged) {
-          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
-        }
-        if (msgData.username === sessionStorage.getItem("tempUsername")) {
-          if (showTimestamps) {
-            messageDiv.innerHTML = snippetHTML + `<div style="display: flex; justify-content: space-between; align-items: center;">
-              ${bubbleHTML}
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
-          } else {
-            messageDiv.innerHTML = snippetHTML + bubbleHTML;
-          }
-        } else {
-          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
-          if (showTimestamps) {
-            messageDiv.innerHTML = snippetHTML + `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                ${bubbleHTML}
-              </div>
-            </div>`;
-          } else {
-            messageDiv.innerHTML = snippetHTML + nameHTML + bubbleHTML;
-          }
-        }
-        chatBox.appendChild(messageDiv);
-        displayedCount++;
-      });
-      if (!isViewerPrivileged && displayedCount === 0) {
-        chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
-          No Messages Today Yet. Wanna be the first?
-        </div>`;
-      }
-      if (autoScroll) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
+    const secretCode = "theLandbefore4.0";
+    let blockedNames = [];
+    const privilegedNames = ["mally","ij","malcom","admin"];
+    const reservedNames = ["mally","ij","malcom","admin"];
 
-    function startReplyFocus(docId) {
-      replyFocusDocId = docId;
-      const doc = cachedMessages.find(d => d.id === docId);
-      if (doc) {
-        const data = doc.data();
-        replyFocusSnippet = data.text.substring(0, 30) + "...";
-      } else {
-        replyFocusSnippet = "(original message)";
-      }
-      renderMessages(false);
-    }
-    function clearReplyFocus() {
-      replyFocusDocId = null;
-      replyFocusSnippet = "";
-      renderMessages(false);
-    }
-
-    function sendMessage() {
-      const messageInput = document.getElementById("message");
-      const message = messageInput.value.trim();
-      if (message === "") return;
-      for (let blocked of blockedNames) {
-        if (message.toLowerCase().includes(blocked)) {
-          messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
-          document.getElementById("message-error-modal").style.display = "flex";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      let newMsgData = {
-        username: sessionStorage.getItem("tempUsername"),
-        text: message,
-        isPrivileged: isPrivileged,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      if (replyFocusDocId) {
-        newMsgData.replyToDocId = replyFocusDocId;
-        newMsgData.replyToSnippet = replyFocusSnippet;
-      }
-      window.db.collection("messages").add(newMsgData)
-      .then(() => {
-        messageInput.value = "";
-        clearReplyFocus();
-      })
-      .catch((error) => {
-        console.error("Error Sending Message:", error);
-      });
-    }
-
-    function deleteMessage(docId, rawText) {
-      const text = decodeURIComponent(rawText || "");
-      if (messageContainsLink(text)) {
-        window.docIdToDelete = docId;
-        document.getElementById("delete-modal").style.display = "flex";
-      } else {
-        doDelete(docId);
-      }
-    }
-    function doDelete(docId) {
-      window.db.collection("messages").doc(docId).delete()
-      .then(() => { console.log("Message deleted successfully."); })
-      .catch(err => { console.error("Error deleting message:", err); });
-    }
-
-    function updatePrivilegedButton() {
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      document.getElementById("privileged-button").textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
-    }
+    // Initialize / load everything after DOM
     document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("privileged-button").addEventListener("click", function() {
+
+      // 1. Fetch blocked words
+      fetch("blacklistwords.txt")
+        .then(res => res.text())
+        .then(data => {
+          blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(w => w.length>0);
+          console.log("Blocked words loaded:", blockedNames);
+        })
+        .catch(err => console.error("Failed to load blocked words:", err));
+
+      // 2. Privileged button logic
+      const privilegedButton = document.getElementById("privileged-button");
+      privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
           sessionStorage.removeItem("isPrivileged");
@@ -820,76 +500,128 @@
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
-    });
 
-    function updateActiveUsersList() {
-      window.db.collection("activeUsers").onSnapshot(function(snapshot) {
-        const listDiv = document.getElementById("active-users-list");
-        listDiv.innerHTML = "<h3>Active Users</h3>";
-        snapshot.forEach(function(doc) {
-          const data = doc.data();
-          if (data.kicked === true) return;
-          const userItem = document.createElement("div");
-          userItem.classList.add("user-item");
-          userItem.textContent = data.username;
-          if (sessionStorage.getItem("isPrivileged") === "true" && doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
-            const kickBtn = document.createElement("button");
-            kickBtn.textContent = "x";
-            kickBtn.onclick = function() { confirmKick(doc.id, data.username); };
-            userItem.appendChild(kickBtn);
-          }
-          listDiv.appendChild(userItem);
-        });
-      });
-    }
-    function confirmKick(docId, username) {
-      window.kickDocId = docId;
-      document.getElementById("kick-modal-text").textContent = "Are you sure you want to kick " + username + "?";
-      document.getElementById("kick-modal").style.display = "flex";
-    }
-    function kickUser(docId) {
-      window.db.collection("activeUsers").doc(docId).update({
-        kicked: true,
-        kickMessage: "You have been kicked. Think about what you did."
-      }).then(() => { console.log("User kicked."); })
-      .catch(err => { console.error("Error kicking user:", err); });
-    }
-    document.getElementById("kick-confirm-button").addEventListener("click", function() {
-      document.getElementById("kick-modal").style.display = "none";
-      if (window.kickDocId) {
-        kickUser(window.kickDocId);
-        window.kickDocId = null;
-      }
-    });
-    document.getElementById("kick-cancel-button").addEventListener("click", function() {
-      document.getElementById("kick-modal").style.display = "none";
-      window.kickDocId = null;
-    });
-
-    function listenForKickedStatus() {
-      const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
-      window.db.collection("activeUsers").doc(activeUserDocId).onSnapshot(function(doc) {
-        const data = doc.data();
-        if (data && data.kicked === true) {
-          isKicked = true;
-          document.getElementById("chat-box").innerHTML = `<div style="color: red; margin-top: 50px; font-size: 1.1em;">
-            You have been kicked. Think about what you did.
-          </div>`;
-          document.getElementById("message").disabled = true;
+      // 3. Kick modal confirm/cancel
+      document.getElementById("kick-confirm-button").addEventListener("click", function() {
+        document.getElementById("kick-modal").style.display = "none";
+        if (kickDocId) {
+          kickUser(kickDocId);
+          kickDocId = null;
         }
       });
-    }
+      document.getElementById("kick-cancel-button").addEventListener("click", function() {
+        document.getElementById("kick-modal").style.display = "none";
+        kickDocId = null;
+      });
 
-    /* Bind privileged login modal events, feature request modal events, etc. */
-    document.addEventListener("DOMContentLoaded", function() {
-      // Privileged modal
+      // 4. Privileged success modal
+      document.getElementById("dismiss-privileged-success-button").addEventListener("click", function() {
+        document.getElementById("privileged-success-modal").style.display = "none";
+      });
+
+      // 5. Delete modal confirm/cancel
+      document.getElementById("delete-confirm-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        if (docIdToDelete) {
+          doDelete(docIdToDelete);
+          docIdToDelete = null;
+        }
+      });
+      document.getElementById("delete-cancel-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        docIdToDelete = null;
+      });
+
+      // 6. Request Feature modal
+      document.getElementById("request-feature-button").addEventListener("click", openFeatureModal);
+      document.getElementById("cancel-feature-button").addEventListener("click", function() {
+        document.getElementById("feature-modal").style.display = "none";
+      });
+      document.getElementById("submit-feature-button").addEventListener("click", function() {
+        const featureText = document.getElementById("feature-text").value.trim();
+        const featureErrorEl = document.getElementById("feature-error");
+        if (!featureText) {
+          featureErrorEl.textContent = "Please enter your feature request.";
+          return;
+        }
+        featureErrorEl.textContent = "";
+        const currentDate = new Date().toLocaleString(undefined, {
+          year:"numeric",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"
+        });
+        const subject = encodeURIComponent(`Feature Request (${currentDate})`);
+        const body = encodeURIComponent(featureText);
+        window.featureEmailSubject = subject;
+        window.featureEmailBody = body;
+        document.getElementById("feature-modal").style.display = "none";
+        document.getElementById("email-provider-modal").style.display = "flex";
+      });
+
+      // 7. Username modal
+      const usernameModal = document.getElementById("username-modal");
+      const usernameError = document.getElementById("username-error");
+      const newUsernameInput = document.getElementById("new-username-input");
+      const saveUsernameButton = document.getElementById("save-username-button");
+      const cancelUsernameButton = document.getElementById("cancel-username-button");
+
+      document.getElementById("change-username-button").addEventListener("click", function() {
+        usernameModal.style.display = "flex";
+        usernameError.textContent = "";
+        newUsernameInput.value = "";
+        newUsernameInput.focus();
+      });
+      cancelUsernameButton.addEventListener("click", function() {
+        usernameModal.style.display = "none";
+      });
+      newUsernameInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          saveUsernameButton.click();
+        }
+      });
+      saveUsernameButton.addEventListener("click", function() {
+        let newUsername = newUsernameInput.value.trim();
+        if (!newUsername) {
+          usernameError.textContent = "Username cannot be empty.";
+          return;
+        }
+        let normalized = newUsername.toLowerCase().replace(/\/+$/, "");
+        for (let blocked of blockedNames) {
+          if (normalized.includes(blocked)) {
+            usernameError.textContent = "That username is blocked.";
+            return;
+          }
+        }
+        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+        if (reservedNames.includes(normalized) && !isPrivileged) {
+          usernameError.textContent = "That username is reserved for privileged users.";
+          return;
+        }
+        const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
+        window.db.collection("activeUsers").doc(activeUserDocId).update({
+          username: newUsername,
+          lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+          sessionStorage.setItem("tempUsername", newUsername);
+          document.getElementById("username-display").textContent = "You are: " + newUsername;
+          usernameModal.style.display = "none";
+        })
+        .catch(err => {
+          usernameError.textContent = "Error updating username. Please try again.";
+        });
+      });
+
+      // 8. Privileged login modal
       const privilegedModal = document.getElementById("privileged-modal");
       const privilegedCodeInput = document.getElementById("privileged-code-input");
       const privilegedError = document.getElementById("privileged-error");
       const savePrivilegedButton = document.getElementById("save-privileged-button");
       const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
       privilegedCodeInput.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") { e.preventDefault(); savePrivilegedButton.click(); }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          savePrivilegedButton.click();
+        }
       });
       cancelPrivilegedButton.addEventListener("click", function() {
         privilegedModal.style.display = "none";
@@ -906,36 +638,249 @@
           privilegedError.textContent = "Incorrect code. Please try again.";
         }
       });
-      document.getElementById("dismiss-privileged-success-button").addEventListener("click", function() {
-        document.getElementById("privileged-success-modal").style.display = "none";
-      });
 
-      // Feature request modal
-      document.getElementById("cancel-feature-button").addEventListener("click", function() {
-        document.getElementById("feature-modal").style.display = "none";
-      });
-      document.getElementById("submit-feature-button").addEventListener("click", function() {
-        const featureText = document.getElementById("feature-text").value.trim();
-        const featureErrorEl = document.getElementById("feature-error");
-        if (!featureText) {
-          featureErrorEl.textContent = "Please enter your feature request.";
-          return;
-        }
-        featureErrorEl.textContent = "";
-        const currentDate = new Date().toLocaleString(undefined, {
-          year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-        const subject = encodeURIComponent(`Feature Request (${currentDate})`);
-        const body = encodeURIComponent(featureText);
-        window.featureEmailSubject = subject;
-        window.featureEmailBody = body;
-        document.getElementById("feature-modal").style.display = "none";
-        document.getElementById("email-provider-modal").style.display = "flex";
-      });
-      document.getElementById("cancel-button-container").addEventListener("click", function() {
-        document.getElementById("email-provider-modal").style.display = "none";
+      // 9. Dismiss message error
+      document.getElementById("dismiss-message-error-button").addEventListener("click", function() {
+        document.getElementById("message-error-modal").style.display = "none";
       });
     });
+
+    /* ---------- MAIN CHAT FUNCTIONS ---------- */
+    function renderMessages(autoScroll) {
+      const chatBox = document.getElementById("chat-box");
+      if (isKicked) {
+        chatBox.innerHTML = `<div style="color:red;margin-top:50px;font-size:1.1em;">You have been kicked. Think about what you did.</div>`;
+        return;
+      }
+      chatBox.innerHTML = "";
+      const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      let displayedCount = 0;
+      // If in replyFocus mode, apply the "reply-focus" class
+      if (replyFocusDocId) {
+        chatBox.classList.add("reply-focus");
+      } else {
+        chatBox.classList.remove("reply-focus");
+      }
+
+      cachedMessages.forEach(doc => {
+        const data = doc.data();
+        if (!data.timestamp) return;
+        const msgTime = data.timestamp.toMillis();
+
+        // Non-priv user sees only today's messages
+        if (!isViewerPrivileged) {
+          const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone:"America/Los_Angeles" });
+          const msgPSTDate = new Date(msgTime).toLocaleDateString("en-US", { timeZone:"America/Los_Angeles" });
+          if (msgPSTDate !== currentPSTDate) return;
+        }
+
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message-line");
+        if (doc.id === replyFocusDocId) {
+          messageDiv.classList.add("reply-focus-target");
+        }
+        const timestamp = new Date(msgTime).toLocaleString(undefined, {
+          year:"numeric", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"
+        });
+        let bubbleClass = "";
+        if (data.username === sessionStorage.getItem("tempUsername")) {
+          messageDiv.classList.add("my-message");
+          bubbleClass = data.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+        } else {
+          messageDiv.classList.add("other-message");
+          bubbleClass = data.isPrivileged ? "other-bubble privileged" : "other-bubble";
+        }
+        const formattedText = formatMessageText(data.text);
+
+        // Build snippet if replying
+        let snippetHTML = "";
+        if (data.replyToDocId) {
+          const snippetClass = (data.username === sessionStorage.getItem("tempUsername")) ? "reply-snippet your-reply" : "reply-snippet other-reply";
+          const snippet = data.replyToSnippet || "Replied message...";
+          snippetHTML = `<div class="${snippetClass}">${snippet}</div>`;
+        }
+
+        // Build bubble
+        let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
+        // If it's from others, add the reply arrow
+        if (data.username !== sessionStorage.getItem("tempUsername")) {
+          bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">&#8617;</button>`;
+        }
+        // If privileged, wrap in a clickable span to delete
+        if (isViewerPrivileged) {
+          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}','${encodeURIComponent(data.text || "")}')">${bubbleHTML}</span>`;
+        }
+
+        // Final HTML
+        if (data.username === sessionStorage.getItem("tempUsername")) {
+          if (showTimestamps) {
+            messageDiv.innerHTML = snippetHTML + `<div style="display:flex;justify-content:space-between;align-items:center;">
+              ${bubbleHTML}
+              <div class="timestamp">${timestamp}</div>
+            </div>`;
+          } else {
+            messageDiv.innerHTML = snippetHTML + bubbleHTML;
+          }
+        } else {
+          const nameHTML = `<div class="other-username${data.isPrivileged?" privileged-username":""}">${data.username}</div>`;
+          if (showTimestamps) {
+            messageDiv.innerHTML = snippetHTML + `<div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="timestamp">${timestamp}</div>
+              <div style="text-align:left;">
+                ${nameHTML}
+                ${bubbleHTML}
+              </div>
+            </div>`;
+          } else {
+            messageDiv.innerHTML = snippetHTML + nameHTML + bubbleHTML;
+          }
+        }
+
+        document.getElementById("chat-box").appendChild(messageDiv);
+        displayedCount++;
+      });
+
+      // If no messages displayed
+      if (!isViewerPrivileged && displayedCount===0) {
+        chatBox.innerHTML = `<div style="color:#888;margin-top:50px;font-size:1.1em;">No Messages Today Yet. Wanna be the first?</div>`;
+      }
+      if (autoScroll) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Clears any reply focus
+    function clearReplyFocus() {
+      replyFocusDocId = null;
+      replyFocusSnippet = "";
+      renderMessages(false);
+    }
+
+    // Sends a new message (with optional reply data)
+    function sendMessage() {
+      const msgEl = document.getElementById("message");
+      const txt = msgEl.value.trim();
+      if (!txt) return;
+      // Check blocked words
+      for (let b of blockedNames) {
+        if (txt.toLowerCase().includes(b)) {
+          messageErrorText.textContent = `Your message contains a blocked word: ${b}`;
+          document.getElementById("message-error-modal").style.display = "flex";
+          return;
+        }
+      }
+      const isPrivileged = (sessionStorage.getItem("isPrivileged")==="true");
+      let newDoc = {
+        username: sessionStorage.getItem("tempUsername"),
+        text: txt,
+        isPrivileged: isPrivileged,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (replyFocusDocId) {
+        newDoc.replyToDocId = replyFocusDocId;
+        newDoc.replyToSnippet = replyFocusSnippet;
+      }
+      window.db.collection("messages").add(newDoc)
+      .then(() => {
+        msgEl.value = "";
+        clearReplyFocus();
+      })
+      .catch(err => console.error("Error sending message:",err));
+    }
+
+    // For privileged: deletes a message
+    function deleteMessage(docId,rawTxt) {
+      const text = decodeURIComponent(rawTxt||"");
+      if (messageContainsLink(text)) {
+        docIdToDelete = docId;
+        document.getElementById("delete-modal").style.display = "flex";
+      } else {
+        doDelete(docId);
+      }
+    }
+    function doDelete(docId) {
+      window.db.collection("messages").doc(docId).delete()
+      .then(() => console.log("Message deleted."))
+      .catch(err => console.error("Error deleting:",err));
+    }
+
+    // For privileged: toggles the button label
+    function updatePrivilegedButton() {
+      const isPriv = (sessionStorage.getItem("isPrivileged")==="true");
+      document.getElementById("privileged-button").textContent = isPriv ? "Log Out" : "Login (for admin use)";
+    }
+
+    // Updating active users list
+    function updateActiveUsersList() {
+      window.db.collection("activeUsers").onSnapshot(snapshot => {
+        const listDiv = document.getElementById("active-users-list");
+        listDiv.innerHTML = "<h3>Active Users</h3>";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.kicked===true) return;
+          const userItem = document.createElement("div");
+          userItem.classList.add("user-item");
+          userItem.textContent = data.username;
+          if ((sessionStorage.getItem("isPrivileged")==="true") &&
+              doc.id!=="active_"+sessionStorage.getItem("chatSession")) {
+            const btn = document.createElement("button");
+            btn.textContent = "x";
+            btn.onclick = ()=>confirmKick(doc.id, data.username);
+            userItem.appendChild(btn);
+          }
+          listDiv.appendChild(userItem);
+        });
+      });
+    }
+
+    // Kick a user
+    function confirmKick(docId,username) {
+      kickDocId=docId;
+      document.getElementById("kick-modal-text").textContent="Are you sure you want to kick "+username+"?";
+      document.getElementById("kick-modal").style.display="flex";
+    }
+    function kickUser(docId) {
+      window.db.collection("activeUsers").doc(docId).update({
+        kicked:true,
+        kickMessage:"You have been kicked. Think about what you did."
+      })
+      .then(()=>console.log("User kicked."))
+      .catch(err=>console.error("Error kicking user:",err));
+    }
+
+    // Check if we got kicked
+    function listenForKickedStatus() {
+      const docId="active_"+sessionStorage.getItem("chatSession");
+      window.db.collection("activeUsers").doc(docId).onSnapshot(doc=>{
+        const data=doc.data();
+        if(data && data.kicked===true){
+          isKicked=true;
+          document.getElementById("chat-box").innerHTML=`<div style="color:red;margin-top:50px;font-size:1.1em;">You have been kicked. Think about what you did.</div>`;
+          document.getElementById("message").disabled=true;
+        }
+      });
+    }
+
+    // Feature request
+    function openFeatureModal(){
+      document.getElementById("feature-modal").style.display="flex";
+    }
+    function closeEmailModal(){
+      document.getElementById("email-provider-modal").style.display="none";
+    }
+    function sendEmail(provider){
+      const recipient="mallysusgaming@gmail.com";
+      let composeURL="";
+      if(provider==="gmail"){
+        composeURL=`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
+      } else if(provider==="outlook"){
+        composeURL=`https://outlook.live.com/owa/?path=/mail/action/compose&to=${recipient}&subject=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
+      } else if(provider==="yahoo"){
+        composeURL=`https://compose.mail.yahoo.com/?to=${recipient}&subj=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
+      }
+      window.location.href=composeURL;
+      closeEmailModal();
+    }
   </script>
 </body>
 </html>
