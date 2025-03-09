@@ -277,6 +277,7 @@
   <script>
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     document.addEventListener("keydown", (e) => {
+      // block F12, Ctrl+Shift+I/J/C, Ctrl+U
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
@@ -383,6 +384,7 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
+      <!-- type="text" -> type="text" is fine for a username, but we do a length check in JS -->
       <input type="text" id="new-username-input" placeholder="Enter new username...">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -396,7 +398,8 @@
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
-      <input type="text" id="privileged-code-input" placeholder="Enter secret code...">
+      <!-- Changed to password type so it appears as dots -->
+      <input type="password" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="save-privileged-button">Submit</button>
@@ -688,12 +691,10 @@
           listDiv.innerHTML = "<h3>Active Users</h3>";
           snapshot.forEach(function(doc) {
             const data = doc.data();
-            // If doc is kicked or doesn't exist, skip
             if (data.kicked === true) return;
             const userItem = document.createElement("div");
             userItem.classList.add("user-item");
             userItem.textContent = data.username;
-            // If privileged & not your own doc, show x
             if (sessionStorage.getItem("isPrivileged") === "true" &&
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
@@ -845,7 +846,6 @@
         .then(snapshot => {
           let conflict = false;
           snapshot.forEach(doc => {
-            // If doc has same username and is not ourselves, conflict
             if (doc.id !== activeUserDocId) {
               conflict = true;
             }
