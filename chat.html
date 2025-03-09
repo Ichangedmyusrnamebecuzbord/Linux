@@ -212,17 +212,18 @@
 
     /* If replying to a message, show snippet above the new message. */
 .reply-snippet {
+  position: relative;
   font-size: 0.8em;
   color: #bbb;
   margin-bottom: 4px;
   opacity: 0.8;
-  position: relative;  /* so ::before can be absolutely positioned */
+  padding-left: 1.5em; /* Make space for the arrow */
 }
 
 .reply-snippet::before {
-  content: "↱ ";       /* The arrow character you prefer */
+  content: "↱";
   position: absolute;
-  left: -20px;         /* Adjust as needed */
+  left: 0;        /* or left: -1em, etc. */
   top: 0;
   color: #888;
 }
