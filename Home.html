@@ -1,371 +1,176 @@
-<html><head>
-        <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
-      <script>
-        function openGame() {
-    var win = window.open();
-    var url = "Home.html";
-    win.document.write('<html><head><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
-    var iframe = win.document.createElement('iframe');
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.src = url;
-    win.document.body.appendChild(iframe);
-}
-
-window.onload = openGame;
-
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mally's Sus gaming</title>
-    <style>
-        * {
-            margin: 0;
-            padding:0;
-            box-sizing: border-box;
-        html, body {
-            height: 100%;
-            width: 100%;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: url('Backround.gif') no-repeat center center fixed; 
-            background-size: cover; 
-            color: white;
-            text-align: center;
-            display: flex;
-            justify-content: center; 
-            align-items: flex-start; 
-            height: 100vh; 
-            padding-right: 48%;
-        }
-
- 
-
-
- .Home {
-            position: fixed;
-            right: 400px;  
-            top: 10px;   
-            width: 100px;  
-    
-        }
-        
-        .Games {
-            position: fixed;
-            right: 300px;  
-            top: 10px;    
-            width: 100px;  
-                }    
-             .Proxy {
-            position: fixed;
-            right: 245px;
-            top: 10px;
-          
-        }
-        .Forms{
-          position: fixed;
-            right: 145px;
-            top: 10px;   }
-
-            
-            .Links {
-            position: fixed;
-            right: 45px;
-            top: 10px;
-          
-        }
-
-            
-
-        .Links img, .Proxy img, .Games img, .Home img, .Forms img {
-            display: block;
-            width: 100%; 
-            filter: brightness(1); 
-            box-shadow: none; 
-            transition: filter 0.3s ease, box-shadow 0.3s ease;
-              border-radius: 10px; 
-        }
-
-       .Links:hover img, .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
-            filter: brightness(1.2); 
-            box-shadow: 0 0 10px 6px gray;
-        }
-
-        
-          .music-buttons-container {
-            position: fixed;
-            top: 2%; 
-            left: 54%;
-            display: flex;
-            flex-direction: column; 
-            gap: 10px;
-        }
-   
-
-
-         .counter-container {
-           position: absolute;
-            left: 0.1%;  
-            top: 24%;
-
-     
-        }
-        .music-buttons-container button {
-            padding: 10px 15px;
-            font-size: 16px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .music-buttons-container button:hover {
-            background-color: #555;
-        }
-    </style>
-</head>
-<body>
-<script src="Script.js"></script>
-   <div class="music-buttons-container">
-    <button onclick="document.getElementById('background-music').play()">Play Music</button>
-    <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
-</div>
-
-<!-- Music List with Scroll -->
-
-
-<audio id="background-music" controls>
-    <source id="audio-source" src="CS.mp3" type="audio/mp3">
-    Your browser does not support the audio element.
-</audio>
-
-<style>
-    #music-list {
-        display: none;
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-top: 10px;
-        width: 250px;
-        height: 150px; /* Set a fixed height */
-        overflow-y: auto; /* Enable vertical scrolling */
-        background: #f9f9f9;
-    }
-</style>
-
-<script>
-function toggleMusicList() {
-    var musicList = document.getElementById("music-list");
-    if (musicList.style.display === "none") {
-        musicList.style.display = "block";
-    } else {
-        musicList.style.display = "none";
-    }
-}
-
-function playSong(song) {
-    var audio = document.getElementById("background-music");
-    var source = document.getElementById("audio-source");
-    source.src = song;
-    audio.load();
-    audio.play();
-}
-</script>
-
-<a href="chat.html?prev=Home.html" style="
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0044cc;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 18px;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-">💬 Chat Room</a>
-
-         <a href="Records.html" style="
-    position: fixed;
-    bottom: 100px;
-    right: 20px;
-    background: #0044cc;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 18px;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-"> 🏆 Records</a>
-
-        <!-- In the head or before </body> -->
-<script src="js/ultraviolet.min.js"></script>
-</body>
-      
-
-
-    </style>
-</head>
-<body>  
-     <img  onclick="openGame()" src="IMGS/MSG.png" alt="Image" style="width: 150px;">
-        
-       <div class="counter-container">
-<script type="text/javascript" src="https://www.stat-counter.org/count/gtgu"></script><br>
- <script type='javascript' src='https://whomania.com/ctr?id=94a4075d85d69e0c46347e252ab16a5dcc65ddf3'></script>
-    </div>
-
-    <div>
-        <h1 style="font-size:6vw; white-space: nowrap;";>Mally's Gaming</h1>
-    
-
-        <h2>Have fun,be cool, and spread the word</h2>
-    </div>
-</body>
-
-
-<div class="Home">
-<a href="Home.html">
-<img src="IMGS/home.png" alt="Image" style="width: 90px;"></a></div>
-<div class="Proxy">
-<a href="Proxy.html">
-<img src="IMGS/Proxy.png" alt="Image" style="width: 75px;"></a></div>
-<div class="Games">
-<a href="Oneture.html">
-<img src="IMGS/Games.png" alt="Image" style="width: 91px;"></a></div>
-<div class="Forms">
-<a href="Halloffame.html">
-<img src="IMGS/HOF.png" alt="Image" style="width: 100px;"></a></div>
-    <div class="Links">
-<a href="Links.html">
-<img src="IMGS/Links.png" alt="Image" style="width: 100px;"></a></div>
-
-<body>
-<!-- Ultraviolet will render inside this container -->
-<div id="ultraviolet-container"></div>
-
-<!-- Your existing Updates section -->
-<h3 style="position: absolute; top: 28%; left: 41%; transform: translateY(-50%); margin: 0; font-size: 3.4vw; font-family: Arial, sans-serif; text-align: left;">
-  <strong> 📣 Updates 📣 </strong>
-</h3>
-<ul>
-  <li style="position: absolute; top: 37%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
-    <strong>Have any recommendations? if so put them <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>. I also need to say i have copyright so there</strong>
-  </li>
-  <!-- Additional list items -->
-        <li style="position: absolute;top: 42%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Subscribe to InfernylEditz and get him to 250 subscribers!</strong></li>
-        <li style="position: absolute;top: 49%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>NEW UPDATE:  ENTIRE CHATROOM WORKS CODED BY IJ!!  Arena coming soon.</strong></li>
-        <li style="position: absolute;top: 56%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Click the MSG logo instead of the text.</strong></li>
-    </ul>
-        </body>
-      <h5 style="
-        position: absolute;
-        top: 62%;
-        left: 20%;
-        transform: translateY(-50%);
-        margin: 0;
-        font-size: 1.2vw;
-        font-family: Arial, sans-serif;
-        text-align: left;
-    ">
-       This is an about:blank cloaker put in a website (put https:// at the start) and it cloaks it but, sadly some websites wont work </h5>
+<!DOCTYPE html>
+<html>
 <head>
+  <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mally's Sus gaming</title>
   <style>
-    .Rizz {
-      text-align: center;
-    }
-
-    
- .container {
-      position: absolute;
-      top: 71%;
-      left: 50%;
-      text-align: center;
-      transform: translate(-50%, -50%);
-    }
- 
-
-    input[type="text"] {
-      padding: 10px;
-      width: 500px;
-      height: 40px;
-      border: none;
-      border-radius: 5px;
-      background-color: #1e1e1e;
+    /* Base Reset & Layout */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; }
+    body {
+      font-family: Arial, sans-serif;
+      background: url('Backround.gif') no-repeat center center fixed;
+      background-size: cover;
       color: white;
-      outline: none;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      padding-right: 48%;
     }
-
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 5px;
+    /* Navigation Icons */
+    .Home { position: fixed; right: 400px; top: 10px; width: 100px; }
+    .Games { position: fixed; right: 300px; top: 10px; width: 100px; }
+    .Proxy { position: fixed; right: 245px; top: 10px; }
+    .Forms { position: fixed; right: 145px; top: 10px; }
+    .Links { position: fixed; right: 45px; top: 10px; }
+    .Links img, .Proxy img, .Games img, .Home img, .Forms img {
+      display: block;
+      width: 100%;
+      filter: brightness(1);
+      box-shadow: none;
+      transition: filter 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 10px;
+    }
+    .Links:hover img, .Proxy:hover img, .Games:hover img, .Home:hover img, .Forms:hover img {
+      filter: brightness(1.2);
+      box-shadow: 0 0 10px 6px gray;
+    }
+    /* Music Buttons */
+    .music-buttons-container {
+      position: fixed;
+      top: 2%;
+      left: 54%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .music-buttons-container button {
+      padding: 10px 15px;
+      font-size: 16px;
       background-color: #333;
       color: white;
+      border: 1px solid #555;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
     }
-
-    button:hover {
-      background-color: #444;
+    .music-buttons-container button:hover { background-color: #555; }
+    /* Ultraviolet Container – adjust styling as needed */
+    #ultraviolet-container {
+      position: absolute;
+      top: 20%;
+      left: 0;
+      width: 100%;
+      margin-bottom: 20px;
     }
   </style>
+  
+  <!-- Include the Ultraviolet library (update the path as needed) -->
+  <script src="js/ultraviolet.min.js"></script>
+  
   <script>
-    let Inp; 
-    function SetInp() {
-      Inp = document.getElementById('urlInput').value; 
-      console.log('Inp set to:', Inp);
-    }
-
-    function ProxyOpen() {
-      if (!Inp) {
-        return;
-      }
+    // Original function to open the game (kept as is)
+    function openGame() {
       var win = window.open();
-    win.document.write('<html><head><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
+      var url = "Home.html";
+      win.document.write('<html><head><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
       var iframe = win.document.createElement('iframe');
       iframe.style.width = "100%";
       iframe.style.height = "100%";
       iframe.style.border = "none";
-      iframe.src = Inp; 
+      iframe.src = url;
       win.document.body.appendChild(iframe);
-         var win = window.open();
-
-}
-
-
     }
-
-    function Connecter() {
-      SetInp(); 
-      ProxyOpen();
-    }
-  </script>
-        <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    // Initialize Ultraviolet by passing in the container element.
-    Ultraviolet.init({
-      container: document.getElementById("ultraviolet-container"),
-      // Add additional configuration options here if needed.
+    
+    // Combine initialization: wait for DOM content to load, then open game and initialize Ultraviolet.
+    document.addEventListener("DOMContentLoaded", function() {
+      // Original functionality – opens the game (if this is intended)
+      openGame();
+      
+      // Initialize Ultraviolet in the container above the Updates section.
+      if (typeof Ultraviolet !== "undefined") {
+        Ultraviolet.init({
+          container: document.getElementById("ultraviolet-container")
+          // Additional configuration options can be added here if required.
+        });
+      }
     });
-  });
-</script>
+  </script>
 </head>
-
-<div class="Rizz">
-  <div class="container">
-
-    <input type="text" id="urlInput" placeholder="Enter a URL">
-    <br>
-    <button onclick="Connecter()">Open</button>
+<body>
+  <script src="Script.js"></script>
+  
+  <!-- Music Buttons & Audio Element -->
+  <div class="music-buttons-container">
+    <button onclick="document.getElementById('background-music').play()">Play Music</button>
+    <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
   </div>
-</div>
-<script src="Script.js"></script>
+  <audio id="background-music" controls>
+    <source id="audio-source" src="CS.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+  
+  <!-- Navigation -->
+  <div class="Home">
+    <a href="Home.html"><img src="IMGS/home.png" alt="Home" style="width: 90px;"></a>
+  </div>
+  <div class="Proxy">
+    <a href="Proxy.html"><img src="IMGS/Proxy.png" alt="Proxy" style="width: 75px;"></a>
+  </div>
+  <div class="Games">
+    <a href="Oneture.html"><img src="IMGS/Games.png" alt="Games" style="width: 91px;"></a>
+  </div>
+  <div class="Forms">
+    <a href="Halloffame.html"><img src="IMGS/HOF.png" alt="Hall of Fame" style="width: 100px;"></a>
+  </div>
+  <div class="Links">
+    <a href="Links.html"><img src="IMGS/Links.png" alt="Links" style="width: 100px;"></a>
+  </div>
+  
+  <!-- Title Section -->
+  <div>
+    <h1 style="font-size:6vw; white-space: nowrap;" onclick="openGame()">Mally's Gaming</h1>
+    <h2>Have fun, be cool, and spread the word</h2>
+  </div>
+  
+  <!-- Ultraviolet Container -->
+  <div id="ultraviolet-container"></div>
+  
+  <!-- Updates Section (unchanged) -->
+  <h3 style="position: absolute; top: 28%; left: 41%; transform: translateY(-50%); margin: 0; font-size: 3.4vw; font-family: Arial, sans-serif; text-align: left;">
+    <strong> 📣 Updates 📣 </strong>
+  </h3>
+  <ul>
+    <li style="position: absolute; top: 37%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+      <strong>Have any recommendations? if so put them <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>. I also need to say i have copyright so there</strong>
+    </li>
+    <li style="position: absolute; top: 42%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+      <strong>Subscribe to InfernylEditz and get him to 250 subscribers!</strong>
+    </li>
+    <li style="position: absolute; top: 49%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+      <strong>NEW UPDATE: ENTIRE CHATROOM WORKS CODED BY IJ!! Arena coming soon.</strong>
+    </li>
+    <li style="position: absolute; top: 56%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+      <strong>Click the MSG logo instead of the text.</strong>
+    </li>
+  </ul>
+  
+  <!-- Counter Container -->
+  <div class="counter-container">
+    <script type="text/javascript" src="https://counter6.optistats.ovh/private/counter.js?c=u2hew4jed5tmc16k3mmt6eua6eg8182x&down=async" async></script>
+    <noscript>
+      <a href="https://www.freecounterstat.com" title="free stat counter">
+        <img src="https://counter6.optistats.ovh/private/freecounterstat.php?c=u2hew4jed5tmc16k3mmt6eua6eg8182x" border="0" alt="free stat counter">
+      </a>
+    </noscript>
+  </div>
+  
+  <!-- Chat Room Link -->
+  <a href="chat.html?prev=Home.html" style="position: fixed; bottom: 20px; right: 20px; background: #0044cc; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+    💬 Chat Room
+  </a>
+</body>
 </html>
