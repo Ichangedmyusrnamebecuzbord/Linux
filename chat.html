@@ -913,7 +913,7 @@
         }
       }
       const now = Date.now();
-      if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
+      if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 5000) {
         messageErrorText.textContent = "Please wait before sending the same message again.";
         messageErrorModal.style.display = "flex";
         messageInput.blur();
