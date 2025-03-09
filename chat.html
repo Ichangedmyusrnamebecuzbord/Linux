@@ -29,6 +29,7 @@
       cursor: pointer;
       position: relative;
     }
+    /* Message input & Send button */
     input {
       width: 70%;
       padding: 10px;
@@ -71,7 +72,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Active users list styling */
+    /* Active Users List – positioned to the right */
     #active-users-list {
       position: absolute;
       top: 100px;
@@ -148,7 +149,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble styling (based on sender) */
+    /* Privileged bubble styling based on sender */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -166,7 +167,7 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Delete (strikethrough) effect for privileged viewer */
+    /* Strikethrough deletion effect (for viewer) */
     .delete-hover:hover {
       cursor: pointer;
     }
@@ -292,7 +293,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
-    // Simple link detection function
+    // Simple link detection
     function messageContainsLink(text) {
       const linkRegex = /https?:\/\/\S+/i;
       return linkRegex.test(text);
@@ -323,11 +324,12 @@
   
   <!-- Chat box -->
   <div id="chat-box"></div>
+  
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
   <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
   
-  <!-- Active Users List (positioned to the right) -->
+  <!-- Active Users List -->
   <div id="active-users-list"></div>
   
   <!-- Feature Request Modal -->
@@ -436,7 +438,7 @@
       return urlParams.get(param);
     }
 
-    // Listen for changes in the current user's active document.
+    // Listen for changes on current user's active doc (to detect kicks)
     function listenForKick(activeUserDocId) {
       window.db.collection("activeUsers").doc(activeUserDocId)
         .onSnapshot(function(doc) {
@@ -444,7 +446,47 @@
             document.getElementById("chat-box").innerHTML =
               `<div style="color: red; margin-top: 50px; font-size: 1.2em;">You have been kicked. Think about what you did.</div>`;
             document.getElementById("message").disabled = true;
+            // Optionally, disable send button if you have one
           }
+        });
+    }
+
+    // Update active users list on the right
+    function updateActiveUsersList() {
+      window.db.collection("activeUsers")
+        .onSnapshot(function(snapshot) {
+          const activeUsersList = document.getElementById("active-users-list");
+          activeUsersList.innerHTML = "<h2>Active Users</h2>";
+          snapshot.forEach(function(doc) {
+            const userData = doc.data();
+            const userDiv = document.createElement("div");
+            userDiv.className = "active-user";
+            userDiv.innerHTML = `<span>${userData.username}</span>`;
+            // If viewer is privileged and this is not current user, add a kick button
+            if (sessionStorage.getItem("isPrivileged") === "true" && userData.username !== tempUsername) {
+              const kickBtn = document.createElement("span");
+              kickBtn.className = "kick-btn";
+              kickBtn.textContent = "X";
+              kickBtn.title = "Kick User";
+              kickBtn.onclick = function() {
+                window.db.collection("activeUsers").doc(doc.id).delete()
+                  .then(() => {
+                    // Optionally post a system message in chat
+                    window.db.collection("messages").add({
+                      username: "System",
+                      text: `${userData.username} has been kicked. Think about what you did.`,
+                      isPrivileged: false,
+                      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                  })
+                  .catch(err => {
+                    console.error("Error kicking user:", err);
+                  });
+              };
+              userDiv.appendChild(kickBtn);
+            }
+            activeUsersList.appendChild(userDiv);
+          });
         });
     }
 
@@ -510,9 +552,9 @@
         });
       });
 
-      // Listen for kick events for the current user.
+      // Listen for kick events for current user
       listenForKick(activeUserDocId);
-
+      
       // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
@@ -521,43 +563,8 @@
           renderMessages(true);
         });
 
-      // Listen for active users and update list
-      window.db.collection("activeUsers")
-        .onSnapshot(function(snapshot) {
-          const activeUsersList = document.getElementById("active-users-list");
-          activeUsersList.innerHTML = "<h2>Active Users</h2>";
-          snapshot.forEach(function(doc) {
-            const userData = doc.data();
-            const userDiv = document.createElement("div");
-            userDiv.className = "active-user";
-            userDiv.innerHTML = `<span>${userData.username}</span>`;
-            // If viewer is privileged and this is not the current user, add a kick button.
-            if (sessionStorage.getItem("isPrivileged") === "true" && userData.username !== tempUsername) {
-              const kickBtn = document.createElement("span");
-              kickBtn.className = "kick-btn";
-              kickBtn.textContent = "X";
-              kickBtn.title = "Kick User";
-              kickBtn.onclick = function() {
-                // Kick user by deleting their active record.
-                window.db.collection("activeUsers").doc(doc.id).delete()
-                  .then(() => {
-                    // Post a system message in chat
-                    window.db.collection("messages").add({
-                      username: "System",
-                      text: `${userData.username} has been kicked. Think about what you did.`,
-                      isPrivileged: false,
-                      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                  })
-                  .catch(err => {
-                    console.error("Error kicking user:", err);
-                  });
-              };
-              userDiv.appendChild(kickBtn);
-            }
-            activeUsersList.appendChild(userDiv);
-          });
-        });
+      // Update active users list
+      updateActiveUsersList();
 
       updatePrivilegedButton();
     });
@@ -599,32 +606,29 @@
         }
 
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-
         if (isViewerPrivileged) {
           bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
 
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
-            messageDiv.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                ${bubbleHTML}
-                <div class="timestamp">${timestamp}</div>
-              </div>`;
+            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+              ${bubbleHTML}
+              <div class="timestamp">${timestamp}</div>
+            </div>`;
           } else {
             messageDiv.innerHTML = bubbleHTML;
           }
         } else {
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="timestamp">${timestamp}</div>
-                <div style="text-align: left;">
-                  ${nameHTML}
-                  ${bubbleHTML}
-                </div>
-              </div>`;
+            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="timestamp">${timestamp}</div>
+              <div style="text-align: left;">
+                ${nameHTML}
+                ${bubbleHTML}
+              </div>
+            </div>`;
           } else {
             messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
@@ -644,7 +648,7 @@
       }
     }
 
-    // Delete message (if link present, show in-site modal; otherwise, delete immediately)
+    // If the message has a link, show the in-site delete confirmation modal; otherwise, delete immediately.
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
       if (messageContainsLink(text)) {
@@ -654,7 +658,6 @@
         doDelete(docId);
       }
     }
-
     function doDelete(docId) {
       window.db.collection("messages").doc(docId).delete()
         .then(() => {
@@ -664,7 +667,6 @@
           console.error("Error deleting message:", err);
         });
     }
-
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
       if (window.docIdToDelete) {
@@ -677,6 +679,7 @@
       window.docIdToDelete = null;
     });
 
+    // Toggle timestamps when clicking on chat-box background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -689,7 +692,6 @@
       const button = document.getElementById("privileged-button");
       button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
     }
-
     document.addEventListener("DOMContentLoaded", function() {
       const privilegedButton = document.getElementById("privileged-button");
       privilegedButton.addEventListener("click", function() {
@@ -757,75 +759,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Listen for blocked words
-    let blockedNames = [];
-    fetch("blacklistwords.txt")
-      .then(response => response.text())
-      .then(data => {
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
-      })
-      .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "malcom", "admin"];
-    const reservedNames = ["mally", "ij", "malcom", "admin"];
-
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
-
-    // Message Block Error Modal
+    // Listen for Message Block Error Modal
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
