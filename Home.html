@@ -4,11 +4,18 @@
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mally's Sus gaming</title>
+  <title>Mally's Sus Gaming</title>
   <style>
-    /* Base Reset & Layout */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; width: 100%; }
+    /* Reset & Layout */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
     body {
       font-family: Arial, sans-serif;
       background: url('Backround.gif') no-repeat center center fixed;
@@ -21,12 +28,35 @@
       height: 100vh;
       padding-right: 48%;
     }
+
     /* Navigation Icons */
-    .Home { position: fixed; right: 400px; top: 10px; width: 100px; }
-    .Games { position: fixed; right: 300px; top: 10px; width: 100px; }
-    .Proxy { position: fixed; right: 245px; top: 10px; }
-    .Forms { position: fixed; right: 145px; top: 10px; }
-    .Links { position: fixed; right: 45px; top: 10px; }
+    .Home {
+      position: fixed;
+      right: 400px;
+      top: 10px;
+      width: 100px;
+    }
+    .Games {
+      position: fixed;
+      right: 300px;
+      top: 10px;
+      width: 100px;
+    }
+    .Proxy {
+      position: fixed;
+      right: 245px;
+      top: 10px;
+    }
+    .Forms {
+      position: fixed;
+      right: 145px;
+      top: 10px;
+    }
+    .Links {
+      position: fixed;
+      right: 45px;
+      top: 10px;
+    }
     .Links img, .Proxy img, .Games img, .Home img, .Forms img {
       display: block;
       width: 100%;
@@ -39,6 +69,7 @@
       filter: brightness(1.2);
       box-shadow: 0 0 10px 6px gray;
     }
+
     /* Music Buttons */
     .music-buttons-container {
       position: fixed;
@@ -57,22 +88,32 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .music-buttons-container button:hover { background-color: #555; }
-    /* Ultraviolet Container – adjust styling as needed */
+    .music-buttons-container button:hover {
+      background-color: #555;
+    }
+
+    /* Counter Container */
+    .counter-container {
+      position: absolute;
+      left: 0.1%;
+      top: 24%;
+    }
+
+    /* Ultraviolet container (adjust styling as needed) */
     #ultraviolet-container {
       position: absolute;
-      top: 20%;
+      top: 26%;
       left: 0;
       width: 100%;
       margin-bottom: 20px;
     }
   </style>
-  
-  <!-- Include the Ultraviolet library (update the path as needed) -->
+
+  <!-- Include Ultraviolet (update the path as needed) -->
   <script src="js/ultraviolet.min.js"></script>
-  
+
   <script>
-    // Original function to open the game (kept as is)
+    // Original function to open the game in a new window
     function openGame() {
       var win = window.open();
       var url = "Home.html";
@@ -84,17 +125,17 @@
       iframe.src = url;
       win.document.body.appendChild(iframe);
     }
-    
-    // Combine initialization: wait for DOM content to load, then open game and initialize Ultraviolet.
+
+    // Initialize Ultraviolet after DOM loads
     document.addEventListener("DOMContentLoaded", function() {
-      // Original functionality – opens the game (if this is intended)
-      openGame();
-      
-      // Initialize Ultraviolet in the container above the Updates section.
+      // If you want to automatically open the game, uncomment:
+      // openGame();
+
+      // Initialize Ultraviolet
       if (typeof Ultraviolet !== "undefined") {
         Ultraviolet.init({
           container: document.getElementById("ultraviolet-container")
-          // Additional configuration options can be added here if required.
+          // Additional options can be added here
         });
       }
     });
@@ -102,8 +143,8 @@
 </head>
 <body>
   <script src="Script.js"></script>
-  
-  <!-- Music Buttons & Audio Element -->
+
+  <!-- Music Controls -->
   <div class="music-buttons-container">
     <button onclick="document.getElementById('background-music').play()">Play Music</button>
     <button onclick="document.getElementById('background-music').pause()">Pause Music</button>
@@ -112,8 +153,23 @@
     <source id="audio-source" src="CS.mp3" type="audio/mp3">
     Your browser does not support the audio element.
   </audio>
-  
-  <!-- Navigation -->
+
+  <!-- Top-left MSG Icon -->
+  <img onclick="openGame()" src="IMGS/MSG.png" alt="Image" style="width: 150px; position: absolute; top: 10px; left: 10px; cursor: pointer;">
+
+  <!-- Counter -->
+  <div class="counter-container">
+    <script type="text/javascript" src="https://www.stat-counter.org/count/gtgu"></script><br>
+    <script type='text/javascript' src='https://whomania.com/ctr?id=94a4075d85d69e0c46347e252ab16a5dcc65ddf3'></script>
+  </div>
+
+  <!-- Title & Subtitle -->
+  <div style="margin-top: 80px;">
+    <h1 style="font-size:6vw; white-space: nowrap;">Mally's Gaming</h1>
+    <h2>Have fun, be cool, and spread the word</h2>
+  </div>
+
+  <!-- Navigation Icons (Home, Proxy, Games, Forms, Links) -->
   <div class="Home">
     <a href="Home.html"><img src="IMGS/home.png" alt="Home" style="width: 90px;"></a>
   </div>
@@ -129,48 +185,104 @@
   <div class="Links">
     <a href="Links.html"><img src="IMGS/Links.png" alt="Links" style="width: 100px;"></a>
   </div>
-  
-  <!-- Title Section -->
-  <div>
-    <h1 style="font-size:6vw; white-space: nowrap;" onclick="openGame()">Mally's Gaming</h1>
-    <h2>Have fun, be cool, and spread the word</h2>
-  </div>
-  
-  <!-- Ultraviolet Container -->
+
+  <!-- Ultraviolet Container Above Updates -->
   <div id="ultraviolet-container"></div>
-  
-  <!-- Updates Section (unchanged) -->
-  <h3 style="position: absolute; top: 28%; left: 41%; transform: translateY(-50%); margin: 0; font-size: 3.4vw; font-family: Arial, sans-serif; text-align: left;">
+
+  <!-- Updates Section -->
+  <h3 style="
+    position: absolute;
+    top: 34%;
+    left: 41%;
+    transform: translateY(-50%);
+    margin: 0;
+    font-size: 3.4vw;
+    font-family: Arial, sans-serif;
+    text-align: left;
+  ">
     <strong> 📣 Updates 📣 </strong>
   </h3>
   <ul>
-    <li style="position: absolute; top: 37%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
-      <strong>Have any recommendations? if so put them <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>. I also need to say i have copyright so there</strong>
+    <li style="
+      position: absolute;
+      top: 42%;
+      left: 20%;
+      transform: translateY(-50%);
+      margin: 0;
+      font-size: 2vw;
+      font-family: Arial, sans-serif;
+      text-align: left;
+    ">
+      <strong>Have any recommendations? if so put them
+        <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>.
+        I also need to say i have copyright so there
+      </strong>
     </li>
-    <li style="position: absolute; top: 42%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+    <li style="
+      position: absolute;
+      top: 47%;
+      left: 20%;
+      transform: translateY(-50%);
+      margin: 0;
+      font-size: 2vw;
+      font-family: Arial, sans-serif;
+      text-align: left;
+    ">
       <strong>Subscribe to InfernylEditz and get him to 250 subscribers!</strong>
     </li>
-    <li style="position: absolute; top: 49%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+    <li style="
+      position: absolute;
+      top: 54%;
+      left: 20%;
+      transform: translateY(-50%);
+      margin: 0;
+      font-size: 2vw;
+      font-family: Arial, sans-serif;
+      text-align: left;
+    ">
       <strong>NEW UPDATE: ENTIRE CHATROOM WORKS CODED BY IJ!! Arena coming soon.</strong>
     </li>
-    <li style="position: absolute; top: 56%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+    <li style="
+      position: absolute;
+      top: 61%;
+      left: 20%;
+      transform: translateY(-50%);
+      margin: 0;
+      font-size: 2vw;
+      font-family: Arial, sans-serif;
+      text-align: left;
+    ">
       <strong>Click the MSG logo instead of the text.</strong>
     </li>
   </ul>
-  
-  <!-- Counter Container -->
-  <div class="counter-container">
-    <script type="text/javascript" src="https://counter6.optistats.ovh/private/counter.js?c=u2hew4jed5tmc16k3mmt6eua6eg8182x&down=async" async></script>
-    <noscript>
-      <a href="https://www.freecounterstat.com" title="free stat counter">
-        <img src="https://counter6.optistats.ovh/private/freecounterstat.php?c=u2hew4jed5tmc16k3mmt6eua6eg8182x" border="0" alt="free stat counter">
-      </a>
-    </noscript>
-  </div>
-  
-  <!-- Chat Room Link -->
-  <a href="chat.html?prev=Home.html" style="position: fixed; bottom: 20px; right: 20px; background: #0044cc; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-size: 18px; font-family: Arial, sans-serif; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
-    💬 Chat Room
-  </a>
+
+  <!-- Chat Room & Records Buttons -->
+  <a href="chat.html?prev=Home.html" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0044cc;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  ">💬 Chat Room</a>
+
+  <a href="Records.html" style="
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    background: #0044cc;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  ">🏆 Records</a>
 </body>
 </html>
