@@ -10,9 +10,10 @@
       font-family: Arial, sans-serif;
       background-color: #121212;
       color: white;
-      text-align: center;
       padding: 20px;
+      position: relative;
     }
+    /* Chat box in center */
     #chat-box {
       width: 80%;
       max-width: 600px;
@@ -31,11 +32,12 @@
     input {
       width: 70%;
       padding: 10px;
-      margin-top: 10px;
+      margin: 10px auto 0 auto;
       border-radius: 5px;
       border: none;
       background: #333;
       color: white;
+      display: block;
     }
     button {
       padding: 10px;
@@ -68,6 +70,42 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
+    }
+    /* Active users list styling */
+    #active-users-list {
+      position: absolute;
+      top: 100px;
+      right: 20px;
+      width: 200px;
+      background: #333;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    #active-users-list h2 {
+      font-size: 1em;
+      margin: 0 0 10px 0;
+    }
+    .active-user {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 0.9em;
+      color: #fff;
+    }
+    .active-user .kick-btn {
+      display: none;
+      cursor: pointer;
+      color: red;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    /* Show kick button on hover if viewer is privileged */
+    .active-user:hover .kick-btn {
+      display: inline;
     }
     /* Message styling */
     .message-line {
@@ -110,7 +148,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble: orange background + yellow glow */
+    /* Privileged bubble styling (based on sender) */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -128,7 +166,7 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Strikethrough on hover if local viewer is privileged */
+    /* Delete (strikethrough) effect for privileged viewer */
     .delete-hover:hover {
       cursor: pointer;
     }
@@ -254,12 +292,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
-    // Simple link detection
+    // Simple link detection function
     function messageContainsLink(text) {
       const linkRegex = /https?:\/\/\S+/i;
       return linkRegex.test(text);
     }
-
     function formatMessageText(text) {
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
@@ -277,19 +314,21 @@
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span>
-  </h1>
+  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
   <div id="username-container">
     <span id="username-display"></span>
-    <!-- Both buttons styled identically -->
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
+  
+  <!-- Chat box -->
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
   <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
+  
+  <!-- Active Users List (positioned to the right) -->
+  <div id="active-users-list"></div>
   
   <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
@@ -362,7 +401,7 @@
     </div>
   </div>
   
-  <!-- Modal for message block error -->
+  <!-- Message Block Error Modal -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Message Blocked</h2>
@@ -372,29 +411,41 @@
       </div>
     </div>
   </div>
-
-  <!-- Modal for link message deletion confirmation -->
+  
+  <!-- Delete Confirmation Modal for messages with links -->
   <div id="delete-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Delete Link Message?</h2>
-      <p>This message has a link. Are you sure you want to delete it?</p>
+      <p>This message contains a link. Are you sure you want to delete it?</p>
       <div class="modal-buttons">
         <button id="delete-confirm-button">Yes</button>
         <button id="delete-cancel-button">No</button>
       </div>
     </div>
   </div>
-
+  
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
-    let docIdToDelete = null; // store doc ID for link-based confirmation
+    let docIdToDelete = null;
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
+    }
+
+    // Listen for changes in the current user's active document.
+    function listenForKick(activeUserDocId) {
+      window.db.collection("activeUsers").doc(activeUserDocId)
+        .onSnapshot(function(doc) {
+          if (!doc.exists) {
+            document.getElementById("chat-box").innerHTML =
+              `<div style="color: red; margin-top: 50px; font-size: 1.2em;">You have been kicked. Think about what you did.</div>`;
+            document.getElementById("message").disabled = true;
+          }
+        });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -459,12 +510,53 @@
         });
       });
 
+      // Listen for kick events for the current user.
+      listenForKick(activeUserDocId);
+
       // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           cachedMessages = snapshot.docs;
           renderMessages(true);
+        });
+
+      // Listen for active users and update list
+      window.db.collection("activeUsers")
+        .onSnapshot(function(snapshot) {
+          const activeUsersList = document.getElementById("active-users-list");
+          activeUsersList.innerHTML = "<h2>Active Users</h2>";
+          snapshot.forEach(function(doc) {
+            const userData = doc.data();
+            const userDiv = document.createElement("div");
+            userDiv.className = "active-user";
+            userDiv.innerHTML = `<span>${userData.username}</span>`;
+            // If viewer is privileged and this is not the current user, add a kick button.
+            if (sessionStorage.getItem("isPrivileged") === "true" && userData.username !== tempUsername) {
+              const kickBtn = document.createElement("span");
+              kickBtn.className = "kick-btn";
+              kickBtn.textContent = "X";
+              kickBtn.title = "Kick User";
+              kickBtn.onclick = function() {
+                // Kick user by deleting their active record.
+                window.db.collection("activeUsers").doc(doc.id).delete()
+                  .then(() => {
+                    // Post a system message in chat
+                    window.db.collection("messages").add({
+                      username: "System",
+                      text: `${userData.username} has been kicked. Think about what you did.`,
+                      isPrivileged: false,
+                      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                  })
+                  .catch(err => {
+                    console.error("Error kicking user:", err);
+                  });
+              };
+              userDiv.appendChild(kickBtn);
+            }
+            activeUsersList.appendChild(userDiv);
+          });
         });
 
       updatePrivilegedButton();
@@ -482,50 +574,36 @@
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
 
-        // Non-privileged viewer sees only today's messages
+        // For non-privileged viewers, show only today's messages
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
 
-        // Create container for the message
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
 
-        // Format the timestamp
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        // Convert URLs into clickable links
         const formattedText = formatMessageText(msgData.text);
 
-        // Determine bubble color based on SENDER's privilege
         let bubbleClass;
         if (msgData.username === tempUsername) {
-          // My own message
           messageDiv.classList.add("my-message");
-          bubbleClass = msgData.isPrivileged
-            ? "my-bubble privileged"
-            : "my-bubble-nonprivileged";
+          bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
         } else {
-          // Another user's message
           messageDiv.classList.add("other-message");
-          bubbleClass = msgData.isPrivileged
-            ? "other-bubble privileged"
-            : "other-bubble";
+          bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
 
-        // Build the bubble content
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
 
-        // If local viewer is privileged, wrap in a clickable <span>
-        // that triggers message deletion
         if (isViewerPrivileged) {
           bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
 
-        // If it's my own message
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
             messageDiv.innerHTML = `
@@ -537,7 +615,6 @@
             messageDiv.innerHTML = bubbleHTML;
           }
         } else {
-          // Another user's message
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
             messageDiv.innerHTML = `
@@ -567,15 +644,13 @@
       }
     }
 
-    // If the message has a link, show site-based modal. Otherwise, delete immediately.
+    // Delete message (if link present, show in-site modal; otherwise, delete immediately)
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
-      // If message text includes a link, show a custom modal
       if (messageContainsLink(text)) {
         window.docIdToDelete = docId;
         document.getElementById("delete-modal").style.display = "flex";
       } else {
-        // No link, just delete
         doDelete(docId);
       }
     }
@@ -590,7 +665,6 @@
         });
     }
 
-    // Link delete modal
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
       if (window.docIdToDelete) {
@@ -603,7 +677,6 @@
       window.docIdToDelete = null;
     });
 
-    // Toggling timestamps by clicking the chat background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -614,11 +687,7 @@
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
-      if (isPrivileged) {
-        button.textContent = "Log Out";
-      } else {
-        button.textContent = "Login (for admin use)";
-      }
+      button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -626,12 +695,10 @@
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
-          // Log out
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
-          // Show the login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
@@ -690,7 +757,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Blocked words
+    // Listen for blocked words
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -758,7 +825,7 @@
         });
     });
 
-    // Message Block Error
+    // Message Block Error Modal
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
@@ -797,7 +864,7 @@
       });
     }
 
-    // Feature Request
+    // Feature Request Modals
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
