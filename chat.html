@@ -790,5 +790,61 @@
       window.sendMessage = sendMessage; // expose to onclick
     }
   </script>
+  <script>
+  let isKicked = false;
+
+  // This function is now defined in global scope so the Send button can always call it
+  function sendMessage() {
+    // If kicked, do nothing
+    if (isKicked || localStorage.getItem("kicked") === "true") {
+      console.warn("User is kicked, ignoring sendMessage()");
+      return;
+    }
+
+    const messageInput = document.getElementById("message");
+    const message = messageInput.value.trim();
+    if (!message) {
+      console.warn("Empty message, not sending.");
+      return;
+    }
+
+    // (Optional) Check blocked words...
+    // (Optional) Check privileged status...
+    
+    window.db.collection("messages").add({
+      username: window.tempUsername,
+      text: message,
+      isPrivileged: sessionStorage.getItem("isPrivileged") === "true",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+      console.log("Message sent successfully!");
+      messageInput.value = "";
+    })
+    .catch((err) => {
+      console.error("Error sending message:", err);
+    });
+  }
+
+  // Then, in your DOMContentLoaded or code, you can do:
+  document.addEventListener("DOMContentLoaded", function() {
+    // If the user is kicked, lock them out
+    if (localStorage.getItem("kicked") === "true") {
+      lockUserOut();
+      return;
+    }
+
+    // Otherwise, proceed with normal init...
+    // ...
+  });
+
+  function lockUserOut() {
+    // unsub from messages, show a "You are kicked" message, etc.
+    isKicked = true;
+    document.getElementById("chat-box").innerHTML = 
+      '<div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">You have been kicked. Think about what you did.</div>';
+    document.getElementById("message").disabled = true;
+  }
+</script>
 </body>
 </html>
