@@ -157,7 +157,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged message bubble (sender's privilege) */
+    /* Privileged bubble styling (sender's privilege) */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -175,14 +175,14 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Delete effect for privileged viewer */
+    /* Strikethrough delete effect for privileged viewer */
     .delete-hover:hover {
       cursor: pointer;
     }
     .delete-hover:hover > div {
       text-decoration: line-through !important;
     }
-    /* Modal styling */
+    /* Modal overlay */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -236,15 +236,15 @@
     #request-feature-button:hover {
       background: #004400;
     }
-    /* Email Provider Modal Button Styles */
+    /* Email Provider Modal Button Styles: Adjusted size */
     .email-provider-btn {
       padding: 10px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       margin: 5px;
-      width: 60px;
-      height: 60px;
+      width: 40px;
+      height: 40px;
     }
     .email-provider-btn img {
       width: 100%;
@@ -295,7 +295,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
-    // Simple link detection and URL formatting
     function messageContainsLink(text) {
       const linkRegex = /https?:\/\/\S+/i;
       return linkRegex.test(text);
@@ -306,7 +305,6 @@
     }
   </script>
   <script>
-    // Reset tempUsername daily based on PST date
     const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
     const storedDate = sessionStorage.getItem("usernameDate");
     if (storedDate !== currentPSTDate) {
@@ -318,29 +316,30 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
+  
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
-
+  
   <!-- Main chat box -->
   <div id="chat-box"></div>
-
+  
   <!-- Container for input and active users list -->
   <div id="input-and-users">
-    <!-- Left: Message input and buttons -->
     <div id="input-section">
+      <!-- Note: the onkeydown event here ensures that pressing Enter sends the message -->
       <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
       <button onclick="sendMessage()">Send</button>
       <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
     </div>
-    <!-- Right: Active users list -->
     <div id="active-users-list">
       <h3>Active Users</h3>
     </div>
   </div>
-
+  
+  <!-- Modals -->
   <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
     <div class="modal-box">
@@ -353,7 +352,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Email Provider Modal -->
   <div id="email-provider-modal" class="modal-overlay">
     <div class="modal-box">
@@ -374,7 +373,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Username Change Modal -->
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
@@ -387,7 +386,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Privileged Login Modal -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
@@ -400,7 +399,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Privileged Success Modal -->
   <div id="privileged-success-modal" class="modal-overlay">
     <div class="modal-box">
@@ -411,7 +410,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Message Block Error Modal -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
@@ -422,7 +421,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Delete Confirmation Modal for link messages -->
   <div id="delete-modal" class="modal-overlay">
     <div class="modal-box">
@@ -434,7 +433,7 @@
       </div>
     </div>
   </div>
-
+  
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
@@ -475,7 +474,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      // Initialize Firebase with your updated config
+      // Initialize Firebase with new config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -511,7 +510,6 @@
         });
       });
 
-      // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -526,11 +524,10 @@
 
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
-      // If kicked, do not render messages
       if (isKicked) {
         chatBox.innerHTML = `<div style="color: red; margin-top: 50px; font-size: 1.1em;">
-              You have been kicked. Think about what you did.
-            </div>`;
+          You have been kicked. Think about what you did.
+        </div>`;
         return;
       }
       chatBox.innerHTML = "";
@@ -604,7 +601,6 @@
       }
     }
 
-    // Delete message function with in-site modal for link messages
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
       if (messageContainsLink(text)) {
@@ -619,7 +615,6 @@
         .then(() => { console.log("Message deleted successfully."); })
         .catch(err => { console.error("Error deleting message:", err); });
     }
-    // Delete modal handlers
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
       if (window.docIdToDelete) {
@@ -632,7 +627,6 @@
       window.docIdToDelete = null;
     });
 
-    // Toggle timestamps by clicking chat-box background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -640,7 +634,6 @@
       }
     });
 
-    // Update privileged button text
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -660,7 +653,6 @@
       });
     });
 
-    // Active Users List update
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
         .onSnapshot(function(snapshot) {
@@ -672,7 +664,7 @@
             const userItem = document.createElement("div");
             userItem.classList.add("user-item");
             userItem.textContent = data.username;
-            if (sessionStorage.getItem("isPrivileged") === "true" && 
+            if (sessionStorage.getItem("isPrivileged") === "true" &&
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
               kickBtn.textContent = "x";
@@ -691,7 +683,6 @@
       .then(() => { console.log("User kicked."); })
       .catch(err => { console.error("Error kicking user:", err); });
     }
-    // Listen for own kicked status
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
@@ -707,7 +698,6 @@
         });
     }
 
-    // Username Change Modal
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -729,7 +719,6 @@
       usernameModal.style.display = "none";
     });
 
-    // Privileged Login Modal
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -760,7 +749,6 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Blocked words
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -772,7 +760,69 @@
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
 
-    // Send Message
+    saveUsernameButton.addEventListener("click", function() {
+      let newUsername = newUsernameInput.value.trim();
+      if (!newUsername) {
+        usernameError.textContent = "Username cannot be empty.";
+        return;
+      }
+      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+      for (let blocked of blockedNames) {
+        if (normalizedNewUsername.includes(blocked)) {
+          usernameError.textContent = "That username is blocked.";
+          return;
+        }
+      }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
+        usernameError.textContent = "That username is reserved for privileged users.";
+        return;
+      }
+      const chatSession = sessionStorage.getItem("chatSession");
+      const activeUserDocId = "active_" + chatSession;
+      window.db.collection("activeUsers")
+        .where("username", "==", newUsername)
+        .get()
+        .then(snapshot => {
+          let conflict = false;
+          snapshot.forEach(doc => {
+            if (doc.id !== activeUserDocId) {
+              conflict = true;
+            }
+          });
+          if (conflict) {
+            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+          } else {
+            window.db.collection("activeUsers").doc(activeUserDocId)
+              .update({
+                username: newUsername,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .then(() => {
+                tempUsername = newUsername;
+                sessionStorage.setItem("tempUsername", tempUsername);
+                document.getElementById("username-display").textContent = "You are: " + tempUsername;
+                usernameModal.style.display = "none";
+              })
+              .catch(error => {
+                console.error("Error updating username:", error);
+                usernameError.textContent = "Error updating username. Please try again.";
+              });
+          }
+        })
+        .catch(error => {
+          console.error("Error checking username uniqueness:", error);
+          usernameError.textContent = "Error checking username. Please try again.";
+        });
+    });
+
+    const messageErrorModal = document.getElementById("message-error-modal");
+    const messageErrorText = document.getElementById("message-error-text");
+    const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
+    dismissMessageErrorButton.addEventListener("click", function() {
+      messageErrorModal.style.display = "none";
+    });
+
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -782,8 +832,6 @@
       }
       for (let blocked of blockedNames) {
         if (message.toLowerCase().includes(blocked)) {
-          const messageErrorModal = document.getElementById("message-error-modal");
-          const messageErrorText = document.getElementById("message-error-text");
           messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
           messageErrorModal.style.display = "flex";
           return;
@@ -805,7 +853,6 @@
       });
     }
 
-    // Feature Request
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
