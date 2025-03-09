@@ -38,7 +38,7 @@
     /* Container for chat & user list side by side, both bottom-aligned */
     #chat-container {
       display: flex;
-      align-items: stretch; /* ensures both children match height */
+      align-items: stretch;
       gap: 20px;
       max-width: 900px;
       margin: 0 auto 20px auto;
@@ -47,7 +47,7 @@
     #chat-box {
       width: 70%;
       max-width: 600px;
-      height: 400px; /* fixed height for chat box */
+      height: 400px;
       border: 1px solid #ccc;
       padding: 10px;
       overflow-y: auto;
@@ -90,7 +90,7 @@
       font-size: 12px;
       cursor: pointer;
     }
-    /* Input section (below chat container) */
+    /* Input section below chat container */
     #input-section {
       margin: 0 auto;
       max-width: 600px;
@@ -384,7 +384,6 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <!-- Username input (no type change here, as usernames are visible) -->
       <input type="text" id="new-username-input" placeholder="Enter new username...">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -398,7 +397,6 @@
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
-      <!-- Changed input type to password -->
       <input type="password" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -461,18 +459,21 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    const secretCode = "DHp8q";
-
+    const secretCode = "theLandbefore4.0";
+    // Anti-spam variables
+    let lastSentMessage = "";
+    let lastSentTimestamp = 0;
+    
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
-
+    
     document.addEventListener("DOMContentLoaded", function() {
       const prevPage = getQueryParam("prev") || "Home.html";
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
-
+    
       tempUsername = sessionStorage.getItem("tempUsername");
       if (!tempUsername) {
         tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -480,21 +481,21 @@
       }
       console.log("Assigned username:", tempUsername);
       document.getElementById("username-display").textContent = "You are: " + tempUsername;
-
+    
       let chatSession = sessionStorage.getItem("chatSession");
       if (!chatSession) {
         chatSession = "session_" + Math.random().toString(36).substr(2, 9);
         sessionStorage.setItem("chatSession", chatSession);
       }
       console.log("Chat Session ID:", chatSession);
-
+    
       let chatStartTime = sessionStorage.getItem("chatStartTime");
       if (!chatStartTime) {
         chatStartTime = Date.now().toString();
         sessionStorage.setItem("chatStartTime", chatStartTime);
       }
       console.log("Chat Start Time:", chatStartTime);
-
+    
       // Initialize Firebase with your new config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
@@ -513,7 +514,7 @@
       }
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
-
+    
       const activeUserDocId = "active_" + chatSession;
       window.db.collection("activeUsers").doc(activeUserDocId).set({
         username: tempUsername,
@@ -530,19 +531,19 @@
           console.error("Error cleaning up active user record:", err);
         });
       });
-
+    
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           cachedMessages = snapshot.docs;
           renderMessages(true);
         });
-
+    
       updatePrivilegedButton();
       updateActiveUsersList();
       listenForKickedStatus();
     });
-
+    
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       if (isKicked) {
@@ -555,25 +556,25 @@
       const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       let displayedCount = 0;
-
+    
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-
+    
         // Non-privileged viewers see only today's messages
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
-
+    
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
         const formattedText = formatMessageText(msgData.text);
-
+    
         let bubbleClass;
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
@@ -582,13 +583,13 @@
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
-
+    
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
         if (isViewerPrivileged) {
           // Stop propagation so clicking doesn't toggle timestamps
           bubbleHTML = `<span class="delete-hover" onclick="event.stopPropagation(); deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
-
+    
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
             messageDiv.innerHTML = `
@@ -614,22 +615,22 @@
             messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
         }
-
+    
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
-
+    
       if (!isViewerPrivileged && displayedCount === 0) {
         chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
           No Messages Today Yet. Wanna be the first?
         </div>`;
       }
-
+    
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
-
+    
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
       if (messageContainsLink(text)) {
@@ -655,14 +656,14 @@
       document.getElementById("delete-modal").style.display = "none";
       window.docIdToDelete = null;
     });
-
+    
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
         renderMessages(false);
       }
     });
-
+    
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -681,7 +682,7 @@
         }
       });
     });
-
+    
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
         .where("kicked", "==", false)
@@ -729,7 +730,7 @@
       document.getElementById("kick-modal").style.display = "none";
       window.kickDocId = null;
     });
-
+    
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
@@ -737,7 +738,7 @@
           const data = doc.data();
           if (data && data.kicked === true) {
             isKicked = true;
-            // Reset the username so that on reload a new one is assigned
+            // Reset username so a new one is assigned on reload
             sessionStorage.removeItem("tempUsername");
             document.getElementById("chat-box").innerHTML = `<div style="color: red; margin-top: 50px; font-size: 1.1em;">
               You have been kicked. Think about what you did.
@@ -746,143 +747,11 @@
           }
         });
     }
-
-    const usernameModal = document.getElementById("username-modal");
-    const usernameError = document.getElementById("username-error");
-    const newUsernameInput = document.getElementById("new-username-input");
-    const saveUsernameButton = document.getElementById("save-username-button");
-    const cancelUsernameButton = document.getElementById("cancel-username-button");
-    newUsernameInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveUsernameButton.click();
-      }
-    });
-    document.getElementById("change-username-button").addEventListener("click", function() {
-      usernameModal.style.display = "flex";
-      usernameError.textContent = "";
-      newUsernameInput.value = "";
-      newUsernameInput.focus();
-    });
-    cancelUsernameButton.addEventListener("click", function() {
-      usernameModal.style.display = "none";
-    });
-
-    const privilegedModal = document.getElementById("privileged-modal");
-    const privilegedCodeInput = document.getElementById("privileged-code-input");
-    const privilegedError = document.getElementById("privileged-error");
-    const savePrivilegedButton = document.getElementById("save-privileged-button");
-    const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
-    privilegedCodeInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        savePrivilegedButton.click();
-      }
-    });
-    cancelPrivilegedButton.addEventListener("click", function() {
-      privilegedModal.style.display = "none";
-    });
-    savePrivilegedButton.addEventListener("click", function() {
-      const enteredCode = privilegedCodeInput.value.trim();
-      if (enteredCode === secretCode) {
-        sessionStorage.setItem("isPrivileged", "true");
-        privilegedModal.style.display = "none";
-        document.getElementById("privileged-success-modal").style.display = "flex";
-        updatePrivilegedButton();
-        updateActiveUsersList(); // refresh active users list
-      } else {
-        privilegedError.textContent = "Incorrect code. Please try again.";
-      }
-    });
-    const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
-    dismissPrivilegedSuccessButton.addEventListener("click", function() {
-      document.getElementById("privileged-success-modal").style.display = "none";
-    });
-
-    let blockedNames = [];
-    fetch("blacklistwords.txt")
-      .then(response => response.text())
-      .then(data => {
-        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
-        console.log("Blocked words file loaded.");
-      })
-      .catch(err => console.error("Failed to load blocked words:", err));
-    const privilegedNames = ["mally", "ij", "malcom", "admin"];
-    const reservedNames = ["mally", "ij", "malcom", "admin"];
-
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-
-      // 1) Check max length (12 characters)
-      if (newUsername.length > 12) {
-        usernameError.textContent = "Username cannot exceed 12 characters.";
-        return;
-      }
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
-
-      // 2) Only check for non-kicked docs
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .where("kicked", "==", false)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
-
-    const messageErrorModal = document.getElementById("message-error-modal");
-    const messageErrorText = document.getElementById("message-error-text");
-    const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
-    dismissMessageErrorButton.addEventListener("click", function() {
-      messageErrorModal.style.display = "none";
-    });
-
+    
+    // Anti-spam: prevent sending the exact same message within 3 seconds
+    let lastSentMessage = "";
+    let lastSentTimestamp = 0;
+    
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -890,15 +759,23 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-for (let blocked of blockedNames) {
-  // The regex matches the banned word at a word boundary, not followed by any letter.
-  const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
-  if (regex.test(message)) {
-    messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
-    messageErrorModal.style.display = "flex";
-    return;
-  }
-}
+      // Anti-spam check: if message is identical and within 3 sec, block sending.
+      const now = Date.now();
+      if (message === lastSentMessage && (now - lastSentTimestamp < 3000)) {
+        messageErrorText.textContent = "Please wait a few seconds before sending the same message again.";
+        document.getElementById("message-error-modal").style.display = "flex";
+        return;
+      }
+    
+      for (let blocked of blockedNames) {
+        // Using a regex with negative lookahead to block words like "ass25" but allow "password"
+        const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
+        if (regex.test(message)) {
+          messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
+          document.getElementById("message-error-modal").style.display = "flex";
+          return;
+        }
+      }
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       window.db.collection("messages").add({
         username: tempUsername,
@@ -908,13 +785,16 @@ for (let blocked of blockedNames) {
       })
       .then(() => {
         console.log("✅ Message Sent Successfully!");
+        // Update anti-spam tracking
+        lastSentMessage = message;
+        lastSentTimestamp = Date.now();
         messageInput.value = "";
       })
       .catch((error) => {
         console.error("❌ Error Sending Message:", error);
       });
     }
-
+    
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
