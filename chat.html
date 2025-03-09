@@ -57,15 +57,14 @@
       flex-direction: column;
       cursor: pointer;
     }
-    /* Active Users list: stretch to match chat box height, overflow if too long */
+    /* Active Users list: same height as chat box, overflow if too long */
     #active-users-list {
-      width: 200px; /* adjust as needed */
-      overflow-y: auto; /* scroll if there's lots of users */
+      width: 200px;
+      overflow-y: auto;
       background: #333;
       border: 1px solid #555;
       border-radius: 5px;
       text-align: left;
-      /* The parent’s align-items: stretch will make this match #chat-box’s height */
     }
     #active-users-list h3 {
       margin: 0;
@@ -280,7 +279,7 @@
     document.addEventListener("keydown", (e) => {
       if (
         e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "U" || e.key === "C")) ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
         (e.ctrlKey && e.key === "U")
       ) {
         e.preventDefault();
@@ -311,8 +310,7 @@
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
-  </script>
-  <script>
+    // PST-based daily reset
     const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
     const storedDate = sessionStorage.getItem("usernameDate");
     if (storedDate !== currentPSTDate) {
@@ -460,7 +458,7 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    const secretCode = "InglwoodSucks";
+    const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -683,15 +681,19 @@
 
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
+        // Only get non-kicked docs
+        .where("kicked", "==", false)
         .onSnapshot(function(snapshot) {
           const listDiv = document.getElementById("active-users-list");
           listDiv.innerHTML = "<h3>Active Users</h3>";
           snapshot.forEach(function(doc) {
             const data = doc.data();
+            // If doc is kicked or doesn't exist, skip
             if (data.kicked === true) return;
             const userItem = document.createElement("div");
             userItem.classList.add("user-item");
             userItem.textContent = data.username;
+            // If privileged & not your own doc, show x
             if (sessionStorage.getItem("isPrivileged") === "true" &&
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
@@ -809,10 +811,17 @@
 
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
+
+      // 1) Check max length
+      if (newUsername.length > 12) {
+        usernameError.textContent = "Username cannot exceed 12 characters.";
+        return;
+      }
       if (!newUsername) {
         usernameError.textContent = "Username cannot be empty.";
         return;
       }
+
       let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
       for (let blocked of blockedNames) {
         if (normalizedNewUsername.includes(blocked)) {
@@ -827,12 +836,16 @@
       }
       const chatSession = sessionStorage.getItem("chatSession");
       const activeUserDocId = "active_" + chatSession;
+
+      // 2) Only check for non-kicked docs
       window.db.collection("activeUsers")
         .where("username", "==", newUsername)
+        .where("kicked", "==", false)
         .get()
         .then(snapshot => {
           let conflict = false;
           snapshot.forEach(doc => {
+            // If doc has same username and is not ourselves, conflict
             if (doc.id !== activeUserDocId) {
               conflict = true;
             }
