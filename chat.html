@@ -215,7 +215,7 @@
       background: lightblue;
     }
     .yahoo-btn {
-      background: #6001D2;
+      background: #6001D2; /* Yahoo brand purple */
     }
     /* Underline for links in messages */
     a.message-link {
@@ -269,7 +269,7 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.6</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.7</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
@@ -327,7 +327,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal for privileged success message -->
+  <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
@@ -431,63 +431,83 @@
           renderMessages(true);
         });
     });
+
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+      let displayedCount = 0; // track how many messages we actually display
+
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
+        
+        // For non-privileged users, only show today's messages
         if (!isPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
+
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
+
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
+
         const formattedText = formatMessageText(msgData.text);
+
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
           let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="${bubbleClass}">${formattedText}</div>
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="${bubbleClass}">${formattedText}</div>
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
           } else {
             messageDiv.innerHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
           }
         } else {
           messageDiv.classList.add("other-message");
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+          
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
-              </div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
+                </div>
+              </div>`;
           } else {
             messageDiv.innerHTML = nameHTML + `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>`;
           }
         }
+
         chatBox.appendChild(messageDiv);
+        displayedCount++;
       });
+
+      // If non-privileged user and no messages displayed for today, show placeholder
+      if (!isPrivileged && displayedCount === 0) {
+        chatBox.innerHTML = `
+          <div style="color: #888; margin-top: 50px; font-size: 1.1em;">
+            No Messages Today Yet. Wanna be the first?
+          </div>`;
+      }
+
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
-    document.getElementById("chat-box").addEventListener("click", function(e) {
-      if (e.target === this) {
-        showTimestamps = !showTimestamps;
-        renderMessages(false);
-      }
-    });
+
+    // Username & Privileged Code
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -508,6 +528,7 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
+
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -528,6 +549,7 @@
     cancelPrivilegedButton.addEventListener("click", function() {
       privilegedModal.style.display = "none";
     });
+
     const secretCode = "theLandbefore4.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
@@ -543,6 +565,8 @@
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
+
+    // Blocked names
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -553,6 +577,7 @@
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
+
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
@@ -606,12 +631,16 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
+
+    // Message block error modal
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
+
+    // Sending a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -641,6 +670,8 @@
         console.error("❌ Error Sending Message:", error);
       });
     }
+
+    // Feature request modals
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
@@ -658,8 +689,8 @@
         return;
       }
       featureErrorEl.textContent = "";
-      const currentDate = new Date().toLocaleString(undefined, { 
-        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+      const currentDate = new Date().toLocaleString(undefined, {
+        year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
       const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
       const body = encodeURIComponent(featureText);
