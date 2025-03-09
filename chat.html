@@ -57,9 +57,10 @@
       flex-direction: column;
       cursor: pointer;
     }
-    /* Active Users list: same height as chat box, overflow if too long */
+    /* Active Users list: same height as chat box */
     #active-users-list {
       width: 200px;
+      height: 400px;
       overflow-y: auto;
       background: #333;
       border: 1px solid #555;
@@ -159,7 +160,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble styling (sender's privilege) */
+    /* Privileged bubble styling */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -238,7 +239,7 @@
     #request-feature-button:hover {
       background: #004400;
     }
-    /* Email Provider Modal Button Styles (increased size for options) */
+    /* Email Provider Modal Button Styles */
     .email-provider-btn {
       padding: 10px;
       border: none;
@@ -254,7 +255,6 @@
       object-fit: contain;
       display: block;
     }
-    /* Cancel button in email modal gets extra styling */
     .email-provider-btn.cancel {
       width: auto;
       padding: 10px 20px;
@@ -277,11 +277,11 @@
   <script>
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     document.addEventListener("keydown", (e) => {
-      // block F12, Ctrl+Shift+I/J/C, Ctrl+U
+      // Block F12, Ctrl+Shift+(I/J/C) and Ctrl+U (case insensitive)
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-        (e.ctrlKey && e.key === "U")
+        (e.ctrlKey && e.key.toLowerCase() === "u")
       ) {
         e.preventDefault();
       }
@@ -384,7 +384,7 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <!-- type="text" -> type="text" is fine for a username, but we do a length check in JS -->
+      <!-- Username input (no type change here, as usernames are visible) -->
       <input type="text" id="new-username-input" placeholder="Enter new username...">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -398,7 +398,7 @@
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
-      <!-- Changed to password type so it appears as dots -->
+      <!-- Changed input type to password -->
       <input type="password" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -684,14 +684,12 @@
 
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
-        // Only get non-kicked docs
         .where("kicked", "==", false)
         .onSnapshot(function(snapshot) {
           const listDiv = document.getElementById("active-users-list");
           listDiv.innerHTML = "<h3>Active Users</h3>";
           snapshot.forEach(function(doc) {
             const data = doc.data();
-            if (data.kicked === true) return;
             const userItem = document.createElement("div");
             userItem.classList.add("user-item");
             userItem.textContent = data.username;
@@ -739,6 +737,8 @@
           const data = doc.data();
           if (data && data.kicked === true) {
             isKicked = true;
+            // Reset the username so that on reload a new one is assigned
+            sessionStorage.removeItem("tempUsername");
             document.getElementById("chat-box").innerHTML = `<div style="color: red; margin-top: 50px; font-size: 1.1em;">
               You have been kicked. Think about what you did.
             </div>`;
@@ -813,7 +813,7 @@
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
 
-      // 1) Check max length
+      // 1) Check max length (12 characters)
       if (newUsername.length > 12) {
         usernameError.textContent = "Username cannot exceed 12 characters.";
         return;
