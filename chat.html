@@ -251,6 +251,15 @@
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
   </script>
+  <script>
+    // New code: Reset tempUsername daily based on PST date
+    const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+    const storedDate = sessionStorage.getItem("usernameDate");
+    if (storedDate !== currentPSTDate) {
+      sessionStorage.removeItem("tempUsername");
+      sessionStorage.setItem("usernameDate", currentPSTDate);
+    }
+  </script>
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
@@ -412,7 +421,6 @@
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      // For non-privileged users, only show messages whose PST date is equal to the current PST date.
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
