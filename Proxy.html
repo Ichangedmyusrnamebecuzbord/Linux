@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultraviolet Proxy</title>
+    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.bundle.js" defer></script>
+    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.config.js" defer></script>
     <style>
         body {
             margin: 0;
@@ -18,8 +20,25 @@
             padding: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
             color: white;
+            justify-content: space-between;
+        }
+        #back-button {
+            background: red;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #back-button:hover {
+            background: darkred;
+        }
+        #search-container {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
         }
         input {
             width: 60%;
@@ -51,19 +70,34 @@
 <body>
 
     <div id="header">
-        <input type="text" id="uv-address" placeholder="Enter website URL">
-        <button onclick="loadProxy()">Go</button>
+        <button id="back-button" onclick="goHome()">Back</button>
+        <div id="search-container">
+            <input type="text" id="uv-address" placeholder="Enter website URL">
+            <button onclick="loadProxy()">Go</button>
+        </div>
     </div>
 
     <iframe id="proxy-container"></iframe>
 
     <script>
+        document.getElementById('uv-address').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                loadProxy();
+            }
+        });
+
         function loadProxy() {
             let url = document.getElementById('uv-address').value.trim();
             if (!url.startsWith('http')) {
                 url = 'https://' + url;
             }
-            document.getElementById('proxy-container').src = url;
+            // Use Ultraviolet to proxy the site
+            document.getElementById('proxy-container').src = __uv$config.prefix + __uv$config.encodeUrl(url);
+        }
+
+        function goHome() {
+            window.location.href = '/'; // Change this if your home page is different
         }
     </script>
 
