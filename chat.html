@@ -38,7 +38,7 @@
     /* Container for chat & user list side by side, both bottom-aligned */
     #chat-container {
       display: flex;
-      align-items: stretch; /* ensures both children match height */
+      align-items: stretch; /* both children match height */
       gap: 20px;
       max-width: 900px;
       margin: 0 auto 20px auto;
@@ -74,12 +74,16 @@
       text-align: center;
       border-bottom: 1px solid #444;
     }
+    /* Updated user item style: white box with black text */
     .user-item {
       margin: 5px 0;
+      background: white;
+      color: black;
+      padding: 5px 8px;
+      border-radius: 5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 8px;
     }
     .user-item button {
       background: red;
@@ -322,7 +326,8 @@
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.1.0</span></h1>
+  <!-- Updated version number -->
+  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.10</span></h1>
   
   <div id="username-container">
     <span id="username-display"></span>
@@ -340,7 +345,6 @@
   
   <!-- Input section below chat container -->
   <div id="input-section">
-    <!-- Bind Enter key to sendMessage -->
     <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
     <button onclick="sendMessage()">Send</button>
     <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
@@ -442,7 +446,7 @@
   </div>
   
   <!-- Kick Confirmation Modal -->
-  <div id="kick-modal" class="modal-overlay" tabindex="0"> <!-- NEW: tabindex to allow focus -->
+  <div id="kick-modal" class="modal-overlay" tabindex="0">
     <div class="modal-box">
       <h2 id="kick-modal-title">Kick User?</h2>
       <p id="kick-modal-text">Are you sure you want to kick this user?</p>
@@ -462,7 +466,7 @@
     let kickDocId = null;
     const secretCode = "theLandbefore4.0";
     
-    // Global anti-spam variable (if used elsewhere)
+    // Global anti-spam variable
     let lastSentMessage = null;
 
     function getQueryParam(param) {
@@ -497,7 +501,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      // Initialize Firebase with your new config
+      // Initialize Firebase with your config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -712,7 +716,7 @@
       document.getElementById("kick-modal-text").textContent = "Are you sure you want to kick " + username + "?";
       const kickModal = document.getElementById("kick-modal");
       kickModal.style.display = "flex";
-      // NEW: Set focus on the kick modal so that it can capture key events
+      // Set focus so that Enter key works in the modal
       kickModal.focus();
     }
     function kickUser(docId) {
@@ -735,7 +739,7 @@
       window.kickDocId = null;
     });
     
-    // NEW: Bind Enter key on the kick modal to confirm the kick.
+    // Bind Enter key on the kick modal to confirm kick
     document.getElementById("kick-modal").addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -826,7 +830,7 @@
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
 
-      // 1) Check max length (12 characters)
+      // Check max length (12 characters)
       if (newUsername.length > 12) {
         usernameError.textContent = "Username cannot exceed 12 characters.";
         return;
@@ -913,6 +917,7 @@
         }
       }
       const now = Date.now();
+      // Updated anti-spam: 5 seconds (5000 ms)
       if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 5000) {
         messageErrorText.textContent = "Please wait before sending the same message again.";
         messageErrorModal.style.display = "flex";
