@@ -26,6 +26,7 @@
       display: flex;
       flex-direction: column;
       cursor: pointer;
+      position: relative;
     }
     input {
       width: 70%;
@@ -75,6 +76,7 @@
       flex-direction: column;
       max-width: 70%;
       word-wrap: break-word;
+      position: relative;
     }
     .my-message {
       align-self: flex-end;
@@ -125,6 +127,25 @@
       margin: 0 5px;
       align-self: center;
     }
+    /* Delete button for privileged users */
+    .delete-btn {
+      display: none;
+      position: absolute;
+      top: 2px;
+      right: -25px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 14px;
+      line-height: 18px;
+      cursor: pointer;
+    }
+    .message-line:hover .delete-btn {
+      display: inline-block;
+    }
     /* Modal overlay */
     .modal-overlay {
       display: none;
@@ -132,7 +153,7 @@
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -266,7 +287,7 @@
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
-    <!-- Both buttons now have the same style -->
+    <!-- Change Username and Login/Logout buttons styled the same -->
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
@@ -330,7 +351,6 @@
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
         <button id="save-privileged-button">Submit</button>
-        <!-- Updated ID for cancel button -->
         <button id="cancel-privileged-button">Cancel</button>
       </div>
     </div>
@@ -364,7 +384,6 @@
     let tempUsername;
     const secretCode = "theLandbefore4.0";
 
-    // Get query param for "Back" button
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -375,7 +394,6 @@
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
 
-      // Initialize tempUsername
       tempUsername = sessionStorage.getItem("tempUsername");
       if (!tempUsername) {
         tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -427,14 +445,12 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
-
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
       });
 
-      // Listen for messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -442,7 +458,6 @@
           renderMessages(true);
         });
 
-      // Update privileged button text based on current status
       updatePrivilegedButton();
     });
 
@@ -470,10 +485,11 @@
           messageDiv.classList.add("my-message");
           let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="${bubbleClass}">${formattedText}</div>
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="${bubbleClass}">${formattedText}</div>
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
           } else {
             messageDiv.innerHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
           }
@@ -481,27 +497,51 @@
           messageDiv.classList.add("other-message");
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
-              </div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
+                </div>
+              </div>`;
           } else {
             messageDiv.innerHTML = nameHTML + `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>`;
           }
         }
+        // If the user is privileged, add a delete button (only appears on hover)
+        if (sessionStorage.getItem("isPrivileged") === "true") {
+          const deleteBtn = document.createElement("span");
+          deleteBtn.classList.add("delete-btn");
+          deleteBtn.textContent = "X";
+          deleteBtn.title = "Delete Message";
+          deleteBtn.onclick = function() {
+            deleteMessage(doc.id);
+          };
+          messageDiv.appendChild(deleteBtn);
+        }
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
-      if (!isPrivileged && displayedCount === 0) {
+      if (!sessionStorage.getItem("isPrivileged") && displayedCount === 0) {
         chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
           No Messages Today Yet. Wanna be the first?
         </div>`;
       }
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    function deleteMessage(docId) {
+      if (confirm("Are you sure you want to delete this message?")) {
+        window.db.collection("messages").doc(docId).delete()
+          .then(() => {
+            console.log("Message deleted successfully.");
+          })
+          .catch(err => {
+            console.error("Error deleting message:", err);
+          });
       }
     }
 
@@ -527,12 +567,10 @@
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
-          // Log out: remove privileged status and reset username
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
-          // Show the privileged login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
@@ -591,7 +629,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Blocked names
+    // Blocked names check
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -666,6 +704,7 @@
       messageErrorModal.style.display = "none";
     });
 
+    // Send Message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -696,6 +735,7 @@
       });
     }
 
+    // Feature Request Modals
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
