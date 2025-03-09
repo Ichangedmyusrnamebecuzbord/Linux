@@ -674,16 +674,21 @@
 document.getElementById("chat-box").addEventListener("click", function(e) {
   if (e.target === this) {
     const chatBox = document.getElementById("chat-box");
-    
-    // 1) Save current scroll position
+
+    // 1) Save the current total height and your distance from the bottom
+    const oldHeight = chatBox.scrollHeight;
     const oldScroll = chatBox.scrollTop;
-    
+    const distanceFromBottom = oldHeight - oldScroll;
+
     // 2) Toggle timestamps
     showTimestamps = !showTimestamps;
     renderMessages(false);
-    
-    // 3) Restore the old scroll position
-    chatBox.scrollTop = oldScroll;
+
+    // 3) After re-render, calculate the new total height
+    const newHeight = chatBox.scrollHeight;
+
+    // 4) Scroll so you're the same distance from the bottom
+    chatBox.scrollTop = newHeight - distanceFromBottom;
   }
 });
 
