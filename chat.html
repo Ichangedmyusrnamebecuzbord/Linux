@@ -13,13 +13,33 @@
       padding: 20px;
       position: relative;
     }
+    /* Header row for back button + title */
+    .header-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .header-row h1 {
+      margin: 0; 
+      padding: 0;
+    }
+    .back-button {
+      background: #cc0000;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 18px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin-right: 15px; /* space between back button and title */
+    }
     /* Chat box container */
     #chat-box {
       width: 70%;
       max-width: 600px;
       height: 400px;
       border: 1px solid #ccc;
-      margin: 20px auto;
+      margin: 0 auto 20px; /* center horizontally, add bottom margin */
       padding: 10px;
       overflow-y: auto;
       background: #222;
@@ -27,6 +47,7 @@
       display: flex;
       flex-direction: column;
       cursor: pointer;
+      position: relative;
     }
     input {
       width: 70%;
@@ -50,18 +71,6 @@
     }
     button:hover {
       background: #0033aa;
-    }
-    a.back-button {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #cc0000;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
-      text-decoration: none;
-      font-size: 18px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     /* Username container */
     #username-container {
@@ -321,10 +330,14 @@
   </script>
 </head>
 <body>
-  <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span>
-  </h1>
+  <!-- Inline row for Back button + Title -->
+  <div class="header-row">
+    <a href="Home.html" class="back-button">⬅ Back</a>
+    <h1>
+      Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span>
+    </h1>
+  </div>
+
   <div id="username-container">
     <span id="username-display"></span>
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
@@ -448,8 +461,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+      // We removed the "fixed" positioning from the back button so it stays inline with the title
       const prevPage = getQueryParam("prev") || "Home.html";
-      document.querySelector("a.back-button").href = prevPage;
+      document.querySelector(".back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
 
       tempUsername = sessionStorage.getItem("tempUsername");
@@ -503,19 +517,21 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
+
+      // If the user is kicked
+      window.db.collection("activeUsers").doc(activeUserDocId).onSnapshot(doc => {
+        let data = doc.data();
+        if(data && data.kicked) {
+          document.getElementById("chat-box").innerHTML = `<div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">You have been kicked. Think about what you did.</div>`;
+          document.getElementById("message").disabled = true;
+        }
+      });
+
       window.addEventListener("beforeunload", function() {
+        // Cleanup user doc
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
-      });
-
-      // Listen for changes to our own active user doc to check if kicked
-      window.db.collection("activeUsers").doc(activeUserDocId).onSnapshot(doc => {
-         let data = doc.data();
-         if(data && data.kicked) {
-             document.getElementById("chat-box").innerHTML = `<div style="color: #ff5555; margin-top: 50px; font-size: 1.1em;">You have been kicked. Think about what you did.</div>`;
-             document.getElementById("message").disabled = true;
-         }
       });
 
       // Listen for new messages
@@ -526,31 +542,31 @@
           renderMessages(true);
         });
 
-      // Listen for active users changes
+      // Listen for active users to populate the right sidebar
       window.db.collection("activeUsers").onSnapshot(snapshot => {
-         let container = document.getElementById("active-users-container");
-         container.innerHTML = "<h3>Active Users</h3>";
-         snapshot.forEach(doc => {
-             let data = doc.data();
-             if(data.kicked) return; // Skip kicked users
-             let div = document.createElement("div");
-             div.classList.add("active-user");
-             let span = document.createElement("span");
-             span.textContent = data.username;
-             div.appendChild(span);
-             // If viewer is privileged and not showing their own username, add a kick button
-             if(sessionStorage.getItem("isPrivileged") === "true" && data.username !== tempUsername) {
-                 let btn = document.createElement("button");
-                 btn.textContent = "X";
-                 btn.title = "Kick User";
-                 btn.onclick = function(e) {
-                     e.stopPropagation();
-                     kickUser(doc.id);
-                 };
-                 div.appendChild(btn);
-             }
-             container.appendChild(div);
-         });
+        let container = document.getElementById("active-users-container");
+        container.innerHTML = "<h3>Active Users</h3>";
+        snapshot.forEach(doc => {
+          let data = doc.data();
+          if(data.kicked) return; // skip kicked users
+          let div = document.createElement("div");
+          div.classList.add("active-user");
+          let span = document.createElement("span");
+          span.textContent = data.username;
+          div.appendChild(span);
+          // If viewer is privileged and not themselves, show a "kick" button
+          if(sessionStorage.getItem("isPrivileged") === "true" && data.username !== tempUsername) {
+            let btn = document.createElement("button");
+            btn.textContent = "X";
+            btn.title = "Kick User";
+            btn.onclick = function(e) {
+              e.stopPropagation();
+              kickUser(doc.id);
+            };
+            div.appendChild(btn);
+          }
+          container.appendChild(div);
+        });
       });
 
       updatePrivilegedButton();
@@ -584,9 +600,11 @@
 
         let bubbleClass;
         if (msgData.username === tempUsername) {
+          // My own message
           messageDiv.classList.add("my-message");
           bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
         } else {
+          // Another user's message
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
@@ -666,6 +684,7 @@
       window.docIdToDelete = null;
     });
 
+    // Toggling timestamps by clicking the chat background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -679,6 +698,20 @@
       button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
     }
 
+    // Kick a user by setting kicked:true in their doc
+    function kickUser(docId) {
+      if (confirm("Are you sure you want to kick this user?")) {
+        window.db.collection("activeUsers").doc(docId).update({ kicked: true })
+          .then(() => {
+            console.log("User kicked.");
+          })
+          .catch(err => {
+            console.error("Error kicking user:", err);
+          });
+      }
+    }
+
+    // Privileged login or logout
     document.addEventListener("DOMContentLoaded", function() {
       const privilegedButton = document.getElementById("privileged-button");
       privilegedButton.addEventListener("click", function() {
@@ -693,7 +726,7 @@
       });
     });
 
-    // Username Change Modal
+    // Username Change Modal logic
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -715,7 +748,7 @@
       usernameModal.style.display = "none";
     });
 
-    // Privileged Login Modal
+    // Privileged code submission
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -746,7 +779,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Listen for blocked words
+    // Blocked words logic
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -758,62 +791,7 @@
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
 
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
-
+    // Message blocked error
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
@@ -821,6 +799,7 @@
       messageErrorModal.style.display = "none";
     });
 
+    // Send message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -892,7 +871,7 @@
       closeEmailModal();
     }
 
-    // Function to kick a user by setting kicked:true in their activeUser doc
+    // Kick user
     function kickUser(docId) {
       if (confirm("Are you sure you want to kick this user?")) {
         window.db.collection("activeUsers").doc(docId).update({ kicked: true })
