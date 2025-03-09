@@ -6,7 +6,7 @@
   <title>Chat Room - Mally's Sus Gaming</title>
   <link rel="icon" type="image/x-icon" href="/IMGS/MSG.png">
   <style>
-    /* Global and layout styles */
+    /* Global & layout styles */
     body {
       font-family: Arial, sans-serif;
       background-color: #121212;
@@ -27,7 +27,7 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Username header */
+    /* Username container */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -35,7 +35,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Container holding the chat box and active users side by side */
+    /* Container for chat box and active users list side by side */
     #chat-container {
       display: flex;
       justify-content: center;
@@ -238,7 +238,7 @@
     #request-feature-button:hover {
       background: #004400;
     }
-    /* Email Provider Modal Button Styles */
+    /* Email Provider Modal Button Styles (increased size for options) */
     .email-provider-btn {
       padding: 10px;
       border: none;
@@ -322,7 +322,7 @@
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
+  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span></h1>
   
   <div id="username-container">
     <span id="username-display"></span>
@@ -330,7 +330,7 @@
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
   
-  <!-- Container for chat box and active users list side by side -->
+  <!-- Chat container: Chat box on the left, Active Users list on the right -->
   <div id="chat-container">
     <div id="chat-box"></div>
     <div id="active-users-list">
@@ -338,7 +338,7 @@
     </div>
   </div>
   
-  <!-- Input section (below chat container) -->
+  <!-- Input section below chat container -->
   <div id="input-section">
     <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
     <button onclick="sendMessage()">Send</button>
@@ -440,12 +440,25 @@
     </div>
   </div>
   
+  <!-- Kick Confirmation Modal -->
+  <div id="kick-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Kick User?</h2>
+      <p>Are you sure you want to kick this user?</p>
+      <div class="modal-buttons">
+        <button id="kick-confirm-button">Yes</button>
+        <button id="kick-cancel-button">No</button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
     let docIdToDelete = null;
     let isKicked = false;
+    let kickDocId = null;
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
@@ -623,7 +636,10 @@
     }
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
-      if (window.docIdToDelete) { doDelete(window.docIdToDelete); window.docIdToDelete = null; }
+      if (window.docIdToDelete) {
+        doDelete(window.docIdToDelete);
+        window.docIdToDelete = null;
+      }
     });
     document.getElementById("delete-cancel-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
@@ -671,12 +687,16 @@
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
               kickBtn.textContent = "x";
-              kickBtn.onclick = function() { kickUser(doc.id); };
+              kickBtn.onclick = function() { confirmKick(doc.id); };
               userItem.appendChild(kickBtn);
             }
             listDiv.appendChild(userItem);
           });
         });
+    }
+    function confirmKick(docId) {
+      window.kickDocId = docId;
+      document.getElementById("kick-modal").style.display = "flex";
     }
     function kickUser(docId) {
       window.db.collection("activeUsers").doc(docId).update({
@@ -686,6 +706,17 @@
       .then(() => { console.log("User kicked."); })
       .catch(err => { console.error("Error kicking user:", err); });
     }
+    document.getElementById("kick-confirm-button").addEventListener("click", function() {
+      document.getElementById("kick-modal").style.display = "none";
+      if (window.kickDocId) {
+        kickUser(window.kickDocId);
+        window.kickDocId = null;
+      }
+    });
+    document.getElementById("kick-cancel-button").addEventListener("click", function() {
+      document.getElementById("kick-modal").style.display = "none";
+      window.kickDocId = null;
+    });
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
