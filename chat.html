@@ -169,7 +169,7 @@
       display: inline-block;
       position: relative;
     }
-    /* Reply arrow (for messages from others) */
+    /* Reply arrow for messages from others */
     .reply-arrow {
       position: absolute;
       top: 0;
@@ -191,7 +191,7 @@
       padding-left: 5px;
       position: relative;
     }
-    /* Connector line for your reply: drawn on right side */
+    /* Connector line for your reply (drawn on right) */
     .reply-snippet.your-reply::before {
       content: "";
       position: absolute;
@@ -200,7 +200,7 @@
       border-right: 2px solid #bbb;
       height: 10px;
     }
-    /* Connector line for other's reply: drawn on left side */
+    /* Connector line for others' reply (drawn on left) */
     .reply-snippet.other-reply::before {
       content: "";
       position: absolute;
@@ -241,7 +241,7 @@
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -325,7 +325,7 @@
   </style>
 
   <script>
-    /* Developer Tools Blocking Script */
+    // Developer Tools Blocking
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     document.addEventListener("keydown", (e) => {
       if (
@@ -339,8 +339,7 @@
     let devtoolsOpen = false;
     const checkDevTools = () => {
       const threshold = 160;
-      if ((window.outerWidth - window.innerWidth > threshold) ||
-          (window.outerHeight - window.innerHeight > threshold)) {
+      if ((window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold)) {
         devtoolsOpen = true;
         window.location.replace("https://www.google.com");
       } else {
@@ -350,7 +349,7 @@
     setInterval(checkDevTools, 1000);
   </script>
 
-  <!-- Firebase in Compatibility Mode -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
@@ -632,24 +631,20 @@
       chatBox.innerHTML = "";
       const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
-
       if (replyFocusDocId) {
         chatBox.classList.add("reply-focus");
       } else {
         chatBox.classList.remove("reply-focus");
       }
-
       let displayedCount = 0;
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
           if (msgPSTDate !== currentPSTDate) return;
         }
-
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
         if (doc.id === replyFocusDocId) {
@@ -663,7 +658,6 @@
           minute: "2-digit"
         });
         const formattedText = formatMessageText(msgData.text);
-
         let bubbleClass;
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
@@ -672,14 +666,12 @@
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
-
         let snippetHTML = "";
         if (msgData.replyToDocId) {
           const replyClass = (msgData.username === tempUsername) ? "reply-snippet your-reply" : "reply-snippet other-reply";
-          const snippet = msgData.replyToSnippet || (msgData.replyToDocId ? "Replied message..." : "");
+          const snippet = msgData.replyToSnippet || "Replied message...";
           snippetHTML = `<div class="${replyClass}">${snippet}</div>`;
         }
-
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
         if (msgData.username !== tempUsername) {
           bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">&#8617;</button>`;
@@ -715,7 +707,6 @@
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
-
       if (!isViewerPrivileged && displayedCount === 0) {
         chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
           No Messages Today Yet. Wanna be the first?
@@ -744,7 +735,7 @@
       renderMessages(false);
     }
 
-    /* Override sendMessage to attach reply data if in reply focus mode */
+    /* Override sendMessage to attach reply info if active */
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -796,21 +787,7 @@
       .catch(err => { console.error("Error deleting message:", err); });
     }
 
-    /* Bind delete modal buttons after DOM loads */
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("delete-confirm-button").addEventListener("click", function() {
-        document.getElementById("delete-modal").style.display = "none";
-        if (window.docIdToDelete) {
-          doDelete(window.docIdToDelete);
-          window.docIdToDelete = null;
-        }
-      });
-      document.getElementById("delete-cancel-button").addEventListener("click", function() {
-        document.getElementById("delete-modal").style.display = "none";
-        window.docIdToDelete = null;
-      });
-    });
-
+    /* Privileged button update */
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -892,6 +869,7 @@
       });
     }
 
+    /* Username change modal */
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -913,6 +891,7 @@
       usernameModal.style.display = "none";
     });
 
+    /* Privileged login modal */
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -954,62 +933,6 @@
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
-
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
 
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
