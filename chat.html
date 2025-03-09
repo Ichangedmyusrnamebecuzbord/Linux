@@ -129,6 +129,18 @@
       margin: 0 5px;
       align-self: center;
     }
+    /* Ban button styling */
+    .ban-button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 0.7em;
+      cursor: pointer;
+      align-self: flex-end;
+      margin-top: 3px;
+    }
     /* Modal overlay (common for all modals) */
     .modal-overlay {
       display: none;
@@ -255,7 +267,7 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.4</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.0</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
@@ -339,6 +351,15 @@
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
+    let bannedUsers = [];
+    
+    // Listen for banned users from Firestore
+    function loadBannedUsers() {
+      window.db.collection("bannedUsers").onSnapshot(snapshot => {
+        bannedUsers = snapshot.docs.map(doc => doc.data().username.toLowerCase());
+        renderMessages(false);
+      });
+    }
     
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -407,12 +428,12 @@
           cachedMessages = snapshot.docs;
           renderMessages(true);
         });
+      loadBannedUsers();
     });
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      // For non-privileged users, only show messages whose PST date is equal to the current PST date.
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
@@ -422,6 +443,9 @@
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
+        // Skip messages from banned users
+        if (bannedUsers.includes(msgData.username.toLowerCase())) return;
+        
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
@@ -442,16 +466,22 @@
         } else {
           messageDiv.classList.add("other-message");
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+          let banButtonHTML = "";
+          // Show ban button for privileged users for normal users only
+          if (isPrivileged && !msgData.isPrivileged) {
+            banButtonHTML = `<button class="ban-button" onclick="banUser(${JSON.stringify(msgData.username)})">Ban</button>`;
+          }
           if (showTimestamps) {
             messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
               <div class="timestamp">${timestamp}</div>
               <div style="text-align: left;">
                 ${nameHTML}
                 <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
+                ${banButtonHTML}
               </div>
             </div>`;
           } else {
-            messageDiv.innerHTML = nameHTML + `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>`;
+            messageDiv.innerHTML = nameHTML + `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>` + banButtonHTML;
           }
         }
         chatBox.appendChild(messageDiv);
@@ -658,6 +688,23 @@
       }
       window.location.href = composeURL;
       closeEmailModal();
+    }
+    // ---------- Ban functionality for privileged users ----------
+    function banUser(username) {
+      // Confirm banning
+      if (!confirm("Are you sure you want to ban " + username + "?")) return;
+      // Add an entry to "bannedUsers" collection (use normalized username)
+      window.db.collection("bannedUsers").doc(username.toLowerCase()).set({
+        username: username,
+        bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        alert(username + " has been banned.");
+      })
+      .catch(err => {
+        console.error("Error banning user:", err);
+        alert("Error banning user.");
+      });
     }
   </script>
 </body>
