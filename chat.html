@@ -884,6 +884,7 @@
     });
 
 function sendMessage() {
+  console.log("sendMessage called");
   const messageInput = document.getElementById("message");
   if (!messageInput) {
     console.error("Message input element not found.");
@@ -891,7 +892,7 @@ function sendMessage() {
   }
   
   const message = messageInput.value.trim();
-  if (message === "") {
+  if (!message) {
     console.warn("Empty message - Not sending");
     return;
   }
@@ -923,7 +924,6 @@ function sendMessage() {
   }
   
   const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-  
   window.db.collection("messages").add({
     username: tempUsername,
     text: message,
