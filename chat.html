@@ -592,14 +592,16 @@
       listenForKickedStatus();
 
       /* If user clicks the chat background, clear replyFocus */
-      const chatBox = document.getElementById("chat-box");
-      chatBox.addEventListener("click", function(e) {
-        if (e.target.id === "chat-box") {
-          // user clicked the background
-          clearReplyFocus();
-        }
-      });
-    });
+      const chatBox = document.getElementById("chat-box").addEventListener("click", function(e) {
+  if (!e.target.closest(".message-line")) {
+    if (replyFocusDocId) {
+      clearReplyFocus();
+    } else {
+      showTimestamps = !showTimestamps;
+      renderMessages(false);
+    }
+  }
+});
 
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
