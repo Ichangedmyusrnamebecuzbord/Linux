@@ -4,26 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultraviolet Proxy</title>
-    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.bundle.js" defer></script>
-    <script src="https://raw.githubusercontent.com/titaniumnetwork-dev/Ultraviolet/main/dist/uv.config.js" defer></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        #header {
+            background: #333;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        input {
+            width: 60%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #proxy-container {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Ultraviolet Proxy</h1>
-    <form id="uv-form">
-        <input type="text" id="uv-address" placeholder="Enter URL" required>
-        <button type="submit">Go</button>
-    </form>
+
+    <div id="header">
+        <input type="text" id="uv-address" placeholder="Enter website URL">
+        <button onclick="loadProxy()">Go</button>
+    </div>
+
+    <iframe id="proxy-container"></iframe>
 
     <script>
-        document.getElementById('uv-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const url = document.getElementById('uv-address').value;
+        function loadProxy() {
+            let url = document.getElementById('uv-address').value.trim();
             if (!url.startsWith('http')) {
-                alert('Please enter a valid URL with http or https');
-                return;
+                url = 'https://' + url;
             }
-            window.location.href = "https://ultraviolet-node.titaniumnetwork.org/service/" + __uv$config.encodeUrl(url);
-        });
+            document.getElementById('proxy-container').src = url;
+        }
     </script>
+
 </body>
 </html>
