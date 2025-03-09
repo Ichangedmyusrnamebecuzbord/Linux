@@ -455,7 +455,14 @@
   </div>
   
   <script>
-    let lastSentMessage = null;
+    // For anti-spam
+let lastSentMessage = null;
+
+// Helper to escape regex characters in a banned word
+function escapeRegex(str) {
+  // This will replace every special regex character with its escaped version
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
@@ -886,67 +893,94 @@
 
 function sendMessage() {
   console.log("sendMessage called");
+
   const messageInput = document.getElementById("message");
   if (!messageInput) {
-    console.error("Message input element not found.");
+    console.error("❌ messageInput element not found!");
     return;
   }
-  
+
+  const messageErrorText = document.getElementById("message-error-text");
+  const messageErrorModal = document.getElementById("message-error-modal");
+
+  // Just in case these are missing
+  if (!messageErrorText || !messageErrorModal) {
+    console.error("❌ Error elements not found!");
+  }
+
+  // 1) Trim the user's message
   const message = messageInput.value.trim();
   if (!message) {
-    console.warn("Empty message - Not sending");
+    console.warn("⚠️ Empty message - Not sending");
     return;
   }
-  
-  // Check for banned words using regex
- for (let blocked of blockedNames) {
-  // Escape any special regex chars (., +, *, |, etc.)
-  const escapedBlocked = escapeRegex(blocked);
 
-  // Build the pattern to block that escaped word at a word boundary
-  // followed by a non-letter (so "ass25" is blocked, "asshole" is blocked,
-  // but "pass" or "classic" is not).
-  const regex = new RegExp(`\\b${escapedBlocked}(?![a-zA-Z])`, 'i');
+  console.log("User typed message:", message);
 
-  if (regex.test(message)) {
-    // Show error, block message, etc.
-    messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
-    messageErrorModal.style.display = "flex";
-    // Possibly blur the input to deselect
-    messageInput.blur();
-    return;
-  }
-}
-  
-  // Anti-spam: prevent sending the same message within 3 seconds
-  const now = Date.now();
-  if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
-    const errorTextEl = document.getElementById("message-error-text");
-    const errorModal = document.getElementById("message-error-modal");
-    if (errorTextEl && errorModal) {
-      errorTextEl.textContent = "Please wait before sending the same message again.";
-      errorModal.style.display = "flex";
+  // 2) Blocked words check
+  //    For each banned word, escape regex chars, then build the pattern
+  for (let blocked of blockedNames) {
+    const escapedBlocked = escapeRegex(blocked);
+
+    // Word boundary, then the escaped word, not followed by letters (so 'ass25' is blocked).
+    const regex = new RegExp(`\\b${escapedBlocked}(?![a-zA-Z])`, 'i');
+
+    if (regex.test(message)) {
+      console.log("❌ Banned word detected:", blocked);
+
+      // Show the error modal, if found
+      if (messageErrorText && messageErrorModal) {
+        messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
+        messageErrorModal.style.display = "flex";
+      }
+
+      // Blur the input so user can't keep typing
+      messageInput.blur();
+      return;
     }
-    // Remove focus from the input
+  }
+
+  // 3) Anti-spam check: block same message within 3 seconds
+  const now = Date.now();
+  if (
+    lastSentMessage &&
+    lastSentMessage.text === message &&
+    now - lastSentMessage.timestamp < 3000
+  ) {
+    console.log("❌ Anti-spam triggered. Same message too soon.");
+
+    if (messageErrorText && messageErrorModal) {
+      messageErrorText.textContent =
+        "Please wait before sending the same message again.";
+      messageErrorModal.style.display = "flex";
+    }
+
     messageInput.blur();
     return;
   }
-  
+
+  // 4) Build the Firestore doc
   const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-  window.db.collection("messages").add({
-    username: tempUsername,
-    text: message,
-    isPrivileged: isPrivileged,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
-    console.log("Message sent successfully.");
-    lastSentMessage = { text: message, timestamp: now };
-    messageInput.value = "";
-  })
-  .catch((error) => {
-    console.error("Error sending message:", error);
-  });
+
+  window.db
+    .collection("messages")
+    .add({
+      username: tempUsername,
+      text: message,
+      isPrivileged: isPrivileged,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then(() => {
+      console.log("✅ Message sent successfully!");
+      // Update anti-spam record
+      lastSentMessage = { text: message, timestamp: now };
+
+      // Clear the input
+      messageInput.value = "";
+    })
+    .catch((error) => {
+      console.error("❌ Error sending message:", error);
+    });
 }
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
