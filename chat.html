@@ -473,7 +473,7 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    const secretCode = "theLandbefore4.0";
+    const secretCode = "DHp8q";
     
     // Global anti-spam variable
     let lastSentMessage = null;
@@ -671,12 +671,21 @@
       window.docIdToDelete = null;
     });
 
-    document.getElementById("chat-box").addEventListener("click", function(e) {
-      if (e.target === this) {
-        showTimestamps = !showTimestamps;
-        renderMessages(false);
-      }
-    });
+document.getElementById("chat-box").addEventListener("click", function(e) {
+  if (e.target === this) {
+    const chatBox = document.getElementById("chat-box");
+    
+    // 1) Save current scroll position
+    const oldScroll = chatBox.scrollTop;
+    
+    // 2) Toggle timestamps
+    showTimestamps = !showTimestamps;
+    renderMessages(false);
+    
+    // 3) Restore the old scroll position
+    chatBox.scrollTop = oldScroll;
+  }
+});
 
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
