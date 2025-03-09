@@ -202,6 +202,9 @@ function playSong(song) {
     font-family: Arial, sans-serif;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
 "> 🏆 Records</a>
+
+        <!-- In the head or before </body> -->
+<script src="js/ultraviolet.min.js"></script>
 </body>
       
 
@@ -242,9 +245,18 @@ function playSong(song) {
 <img src="IMGS/Links.png" alt="Image" style="width: 100px;"></a></div>
 
 <body>
-<h3 style="position: absolute;top: 28%;left: 41%;transform: translateY(-50%);margin: 0;font-size: 3.4vw;font-family: Arial, sans-serif;text-align: left;"><strong> 📣 Updates 📣 </strong></h3>
-    <ul>
-        <li style="position: absolute;top: 37%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Have any recommendations? if so put them  <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>. I also need to say i have copyright so there</strong></li>
+<!-- Ultraviolet will render inside this container -->
+<div id="ultraviolet-container"></div>
+
+<!-- Your existing Updates section -->
+<h3 style="position: absolute; top: 28%; left: 41%; transform: translateY(-50%); margin: 0; font-size: 3.4vw; font-family: Arial, sans-serif; text-align: left;">
+  <strong> 📣 Updates 📣 </strong>
+</h3>
+<ul>
+  <li style="position: absolute; top: 37%; left: 20%; transform: translateY(-50%); margin: 0; font-size: 2vw; font-family: Arial, sans-serif; text-align: left;">
+    <strong>Have any recommendations? if so put them <a href="https://forms.office.com/r/kdnLqXpJek?origin=lprLink" target="_blank">here</a>. I also need to say i have copyright so there</strong>
+  </li>
+  <!-- Additional list items -->
         <li style="position: absolute;top: 42%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Subscribe to InfernylEditz and get him to 250 subscribers!</strong></li>
         <li style="position: absolute;top: 49%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>NEW UPDATE:  ENTIRE CHATROOM WORKS CODED BY IJ!!  Arena coming soon.</strong></li>
         <li style="position: absolute;top: 56%;left: 20%;transform: translateY(-50%);margin: 0;font-size: 2vw;font-family: Arial, sans-serif;text-align: left;"><strong>Click the MSG logo instead of the text.</strong></li>
@@ -336,6 +348,15 @@ function playSong(song) {
       ProxyOpen();
     }
   </script>
+        <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Initialize Ultraviolet by passing in the container element.
+    Ultraviolet.init({
+      container: document.getElementById("ultraviolet-container"),
+      // Add additional configuration options here if needed.
+    });
+  });
+</script>
 </head>
 
 <div class="Rizz">
