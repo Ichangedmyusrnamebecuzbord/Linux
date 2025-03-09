@@ -883,7 +883,7 @@
       messageErrorModal.style.display = "none";
     });
 
-    function sendMessage() {
+function sendMessage() {
   const messageInput = document.getElementById("message");
   const message = messageInput.value.trim();
   if (message === "") {
@@ -891,7 +891,17 @@
     return;
   }
   
-  // Anti-spam: Check if the same message was sent in the last 3 seconds.
+  // Blocked names check (using regex with word boundaries or lookahead)
+  for (let blocked of blockedNames) {
+    const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
+    if (regex.test(message)) {
+      messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
+      messageErrorModal.style.display = "flex";
+      return;
+    }
+  }
+  
+  // Anti-spam check: prevent sending the same message within 3 seconds
   const now = Date.now();
   if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
     messageErrorText.textContent = "Please wait before sending the same message again.";
@@ -899,7 +909,6 @@
     return;
   }
   
-  // Proceed to send the message
   const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
   window.db.collection("messages").add({
     username: tempUsername,
@@ -909,7 +918,6 @@
   })
   .then(() => {
     console.log("✅ Message Sent Successfully!");
-    // Update the lastSentMessage with current message and timestamp
     lastSentMessage = { text: message, timestamp: now };
     messageInput.value = "";
   })
