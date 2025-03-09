@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultraviolet Proxy</title>
-    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet/dist/uv.bundle.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet/dist/uv.config.js" defer></script>
     <style>
         body {
             margin: 0;
@@ -101,16 +99,15 @@
                 if (!url.startsWith('http')) {
                     url = 'https://' + url;
                 }
-                if (typeof __uv$config !== 'undefined') {
-                    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
-                } else {
-                    console.error("Ultraviolet is not loaded.");
-                    alert("Ultraviolet failed to load. Please check the script paths.");
-                }
+                
+                // **Use a public Ultraviolet instance**
+                const ultravioletBase = "https://ultraviolet-node.titaniumnetwork.org/service/";
+
+                iframe.src = ultravioletBase + btoa(url); // Base64 encode the URL for Ultraviolet
             }
 
             function goHome() {
-                window.location.href = '/Home'; // Change this if your home page is different
+                window.location.href = '/'; // Change this if your home page is different
             }
         });
     </script>
