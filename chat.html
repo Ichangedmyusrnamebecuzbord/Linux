@@ -110,6 +110,7 @@
       border-radius: 5px;
       display: inline-block;
     }
+    /* Privileged bubble: orange background + yellow glow */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -127,11 +128,10 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Delete effect for privileged users */
+    /* Strikethrough on hover if local viewer is privileged */
     .delete-hover:hover {
       cursor: pointer;
     }
-    /* Force the inner bubble to show strikethrough on hover */
     .delete-hover:hover > div {
       text-decoration: line-through !important;
     }
@@ -272,7 +272,7 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.7</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
@@ -405,6 +405,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
+      // Initialize Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
         authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -439,6 +440,7 @@
         });
       });
 
+      // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -449,75 +451,110 @@
       updatePrivilegedButton();
     });
 
+    // Renders all messages in Firestore
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       let displayedCount = 0;
+
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-        if (!isPrivileged) {
+
+        // Only show today's messages to non-privileged viewer
+        if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
+
+        // Create a container for the message
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
+
+        // Format the timestamp
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
+
+        // Convert URLs into clickable links
         const formattedText = formatMessageText(msgData.text);
-        
+
+        // Determine bubble color based on the SENDER's privilege
+        // (not the viewer's privilege).
+        let bubbleClass;
         if (msgData.username === tempUsername) {
+          // My own message
           messageDiv.classList.add("my-message");
-          let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
-          let bubbleContent = `<div class="${bubbleClass}">${formattedText}</div>`;
-          if (isPrivileged) {
-            bubbleContent = `<span class="delete-hover" onclick="deleteMessage('${doc.id}')">${bubbleContent}</span>`;
-          }
+          bubbleClass = msgData.isPrivileged
+            ? "my-bubble privileged"
+            : "my-bubble-nonprivileged";
+        } else {
+          // Someone else's message
+          messageDiv.classList.add("other-message");
+          bubbleClass = msgData.isPrivileged
+            ? "other-bubble privileged"
+            : "other-bubble";
+        }
+
+        // Build the bubble
+        let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
+
+        // If the local viewer is privileged, wrap the bubble in a <span>
+        // that shows strikethrough on hover and triggers deletion on click
+        if (isViewerPrivileged) {
+          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}')">${bubbleHTML}</span>`;
+        }
+
+        // If it's my own message, optionally show timestamps to the right
+        // Otherwise, if it's someone else's, optionally show timestamps to the left
+        if (msgData.username === tempUsername) {
+          // My message
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              ${bubbleContent}
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                ${bubbleHTML}
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
           } else {
-            messageDiv.innerHTML = bubbleContent;
+            messageDiv.innerHTML = bubbleHTML;
           }
         } else {
-          messageDiv.classList.add("other-message");
-          let nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
-          let bubbleClass = isPrivileged ? "other-bubble privileged" : "other-bubble";
-          let bubbleContent = `<div class="${bubbleClass}">${formattedText}</div>`;
-          if (isPrivileged) {
-            bubbleContent = `<span class="delete-hover" onclick="deleteMessage('${doc.id}')">${bubbleContent}</span>`;
-          }
+          // Another user's message
+          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                ${bubbleContent}
-              </div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  ${bubbleHTML}
+                </div>
+              </div>`;
           } else {
-            messageDiv.innerHTML = nameHTML + bubbleContent;
+            messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
         }
+
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
-      if (!sessionStorage.getItem("isPrivileged") && displayedCount === 0) {
+
+      // If no messages displayed for a non-privileged user, show placeholder
+      if (!isViewerPrivileged && displayedCount === 0) {
         chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
           No Messages Today Yet. Wanna be the first?
         </div>`;
       }
+
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
 
+    // Delete a message from Firestore
     function deleteMessage(docId) {
       if (confirm("Are you sure you want to delete this message?")) {
         window.db.collection("messages").doc(docId).delete()
@@ -530,6 +567,7 @@
       }
     }
 
+    // Clicking the chat background toggles timestamps
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -537,6 +575,7 @@
       }
     });
 
+    // Switch the privileged button text between "Log Out" and "Login"
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -547,15 +586,18 @@
       }
     }
 
+    // Clicking the privileged button either logs out or shows the login modal
     document.addEventListener("DOMContentLoaded", function() {
       const privilegedButton = document.getElementById("privileged-button");
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
+          // Log out
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
+          // Show the login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
@@ -614,7 +656,7 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Blocked names check
+    // Blocked words
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -625,6 +667,7 @@
       .catch(err => console.error("Failed to load blocked words:", err));
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
+
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
@@ -681,7 +724,7 @@
         });
     });
 
-    // Message Block Error Modal
+    // Message Block Error
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
@@ -689,6 +732,7 @@
       messageErrorModal.style.display = "none";
     });
 
+    // Sending a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -719,6 +763,7 @@
       });
     }
 
+    // Feature Request
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
