@@ -63,7 +63,7 @@
       position: relative;
     }
 
-    /* Lower the opacity for other messages if replyFocus is active */
+    /* If we have a replyFocusDocId, lower opacity on non-target messages. */
     #chat-box.reply-focus .message-line:not(.reply-focus-target) {
       opacity: 0.3;
     }
@@ -148,6 +148,7 @@
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
+      position: relative;
     }
     .my-bubble-nonprivileged {
       background: white;
@@ -155,6 +156,7 @@
       padding: 8px;
       border-radius: 5px;
       display: inline-block;
+      position: relative;
     }
     .other-message {
       align-self: flex-start;
@@ -174,7 +176,7 @@
       position: relative;
     }
 
-    /* "Reply arrow" on the right side of messages from others */
+    /* The reply arrow inside the bubble for other users' messages. */
     .reply-arrow {
       position: absolute;
       top: 0;
@@ -211,25 +213,23 @@
     }
 
     /* If replying to a message, show snippet above the new message. */
-.reply-snippet {
-    display: inline-block; /* or inline-flex */
-  position: relative;
-  font-size: 0.8em;
-  color: #bbb;
-  margin-bottom: 4px;
-  opacity: 0.8;
-  padding-left: 1.5em; /* Make space for the arrow */
-}
+    .reply-snippet {
+      font-size: 0.8em;
+      color: #bbb;
+      margin-bottom: 4px;
+      opacity: 0.8;
+    }
 
-.reply-snippet::before {
-  content: "↱";
-  position: absolute;
-  left: 0;        /* or left: -1em, etc. */
-  top: 0;
-  color: #888;
-    display: inline-block;
-  margin-right: 2px; /* small gap */
-}
+    /*
+     * Strikethrough on hover for privileged user
+     * We'll wrap each message in .delete-hover if privileged, and on hover we do line-through
+     */
+    .delete-hover {
+      cursor: pointer;
+    }
+    .delete-hover:hover > div {
+      text-decoration: line-through;
+    }
 
     /* Modals, etc. */
     .modal-overlay {
@@ -517,8 +517,10 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    let replyFocusDocId = null; // which message we're replying to
-    let replyFocusSnippet = ""; // snippet from that message
+
+    let replyFocusDocId = null;   // which message we're replying to
+    let replyFocusSnippet = "";   // snippet from that message
+
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
@@ -605,13 +607,10 @@
       // If user clicks the chat background, either exit replyFocus or toggle timestamps
       const chatBox = document.getElementById("chat-box");
       chatBox.addEventListener("click", function(e) {
-        // Check if user clicked the "chat-box" itself (not a child bubble)
         if (e.target.id === "chat-box") {
           if (replyFocusDocId) {
-            // If we are in reply focus, exit it
             clearReplyFocus();
           } else {
-            // Otherwise, toggle timestamps
             showTimestamps = !showTimestamps;
             renderMessages(false);
           }
@@ -651,9 +650,7 @@
           if (msgPSTDate !== currentPSTDate) return;
         }
 
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message-line");
-
+        /* Build the main bubble content */
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: "numeric",
           month: "numeric",
@@ -661,68 +658,64 @@
           hour: "2-digit",
           minute: "2-digit",
         });
-
         const formattedText = formatMessageText(msgData.text);
 
-        /* Determine bubble color */
-        let bubbleClass;
+        let bubbleClass, bubbleHTML;
         if (msgData.username === tempUsername) {
-          messageDiv.classList.add("my-message");
+          // My own message
           bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+          bubbleHTML = `
+            <div class="${bubbleClass}">
+              ${formattedText}
+            </div>`;
         } else {
-          messageDiv.classList.add("other-message");
+          // Another user's message
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
+          // Insert the arrow, with stopPropagation so it won't delete the message
+          bubbleHTML = `
+            <div class="${bubbleClass}">
+              ${formattedText}
+              <button class="reply-arrow"
+                onclick="event.stopPropagation(); startReplyFocus('${doc.id}')">
+                ↱
+              </button>
+            </div>`;
         }
 
-        /* If this doc is the one we're replying to, add a class so it doesn't get opacity-lowered */
-        if (doc.id === replyFocusDocId) {
-          messageDiv.classList.add("reply-focus-target");
-        }
-
-        /* Build bubble content */
-        let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-
-        /* If viewer is privileged, they can also delete messages. */
-        // But the "reply arrow" is for ANY user to reply to messages from others, so let's do that for all non-self messages.
-        if (msgData.username !== tempUsername) {
-          // Add a small arrow or icon on the right to reply
-          bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">&#8617;</button>`;
-        }
-
-        /* If this message is a reply to another message, show snippet above it. */
+        /* If message is a reply to another message, show snippet */
         let snippetHTML = "";
         if (msgData.replyToDocId) {
-          // Find that doc in cachedMessages
           const originalDoc = cachedMessages.find(d => d.id === msgData.replyToDocId);
           if (originalDoc) {
             const originalData = originalDoc.data();
-            // Use snippet or fallback to a short substring
             const snippet = msgData.replyToSnippet || originalData.text.substring(0, 30) + "...";
             snippetHTML = `<div class="reply-snippet">${snippet}</div>`;
           } else {
-            // If we can't find it, just show a fallback
             snippetHTML = `<div class="reply-snippet">(original message not found)</div>`;
           }
         }
 
-        /* Now assemble the final HTML */
+        /* Build the entire bubble, including timestamps if shown. */
+        let finalHTML;
         if (msgData.username === tempUsername) {
           // My own message
           if (showTimestamps) {
-            messageDiv.innerHTML = `
+            finalHTML = `
               ${snippetHTML}
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 ${bubbleHTML}
                 <div class="timestamp">${timestamp}</div>
               </div>`;
           } else {
-            messageDiv.innerHTML = snippetHTML + bubbleHTML;
+            finalHTML = snippetHTML + bubbleHTML;
           }
         } else {
           // Another user's message
-          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">
+                              ${msgData.username}
+                            </div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `
+            finalHTML = `
               ${snippetHTML}
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="timestamp">${timestamp}</div>
@@ -732,34 +725,56 @@
                 </div>
               </div>`;
           } else {
-            messageDiv.innerHTML = snippetHTML + nameHTML + bubbleHTML;
+            finalHTML = snippetHTML + nameHTML + bubbleHTML;
           }
         }
 
-        chatBox.appendChild(messageDiv);
+        /* Now wrap in a container div. If privileged, wrap in .delete-hover to enable strikethrough + delete. */
+        let container = document.createElement("div");
+        container.classList.add("message-line");
+
+        // If this doc is the one we're replying to, mark it so it doesn't get dimmed
+        if (doc.id === replyFocusDocId) {
+          container.classList.add("reply-focus-target");
+        }
+
+        // If user is privileged, wrap everything in a .delete-hover span
+        // so that hovering triggers strikethrough, and clicking triggers deleteMessage
+        if (isViewerPrivileged) {
+          container.innerHTML = `
+            <span class="delete-hover"
+                  onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">
+              ${finalHTML}
+            </span>`;
+        } else {
+          container.innerHTML = finalHTML;
+        }
+
+        // Append to chat box
+        document.getElementById("chat-box").appendChild(container);
         displayedCount++;
       });
 
       // If no messages displayed for non-priv user
       if (!isViewerPrivileged && displayedCount === 0) {
-        chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
-          No Messages Today Yet. Wanna be the first?
-        </div>`;
+        document.getElementById("chat-box").innerHTML = `
+          <div style="color: #888; margin-top: 50px; font-size: 1.1em;">
+            No Messages Today Yet. Wanna be the first?
+          </div>`;
       }
 
       if (autoScroll) {
-        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById("chat-box").scrollTop =
+          document.getElementById("chat-box").scrollHeight;
       }
     }
 
     /* Start reply focus for a particular doc ID */
     function startReplyFocus(docId) {
       replyFocusDocId = docId;
-      // find the doc in cachedMessages to get a snippet
       const doc = cachedMessages.find(d => d.id === docId);
       if (doc) {
         const data = doc.data();
-        // snippet can be up to ~30 chars
         replyFocusSnippet = data.text.substring(0, 30) + "...";
       } else {
         replyFocusSnippet = "(original message)";
@@ -791,7 +806,6 @@
       }
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
 
-      // Build the doc data
       const newMsgData = {
         username: tempUsername,
         text: message,
@@ -817,7 +831,17 @@
       });
     }
 
-    /* Deleting link messages */
+    /* Deleting link messages or normal messages */
+    function deleteMessage(docId, rawText) {
+      const text = decodeURIComponent(rawText || "");
+      // If the text has a link, show the link delete modal or do immediate delete
+      if (messageContainsLink(text)) {
+        window.docIdToDelete = docId;
+        document.getElementById("delete-modal").style.display = "flex";
+      } else {
+        doDelete(docId);
+      }
+    }
     function doDelete(docId) {
       window.db.collection("messages").doc(docId).delete()
         .then(() => { console.log("Message deleted successfully."); })
@@ -984,123 +1008,6 @@
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
 
-    /* Save new username logic */
-    saveUsernameButton.addEventListener("click", function() {
-      let newUsername = newUsernameInput.value.trim();
-      if (!newUsername) {
-        usernameError.textContent = "Username cannot be empty.";
-        return;
-      }
-      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
-        if (normalizedNewUsername.includes(blocked)) {
-          usernameError.textContent = "That username is blocked.";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
-        usernameError.textContent = "That username is reserved for privileged users.";
-        return;
-      }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
-      window.db.collection("activeUsers")
-        .where("username", "==", newUsername)
-        .get()
-        .then(snapshot => {
-          let conflict = false;
-          snapshot.forEach(doc => {
-            if (doc.id !== activeUserDocId) {
-              conflict = true;
-            }
-          });
-          if (conflict) {
-            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
-          } else {
-            window.db.collection("activeUsers").doc(activeUserDocId)
-              .update({
-                username: newUsername,
-                lastActive: firebase.firestore.FieldValue.serverTimestamp()
-              })
-              .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
-              })
-              .catch(error => {
-                console.error("Error updating username:", error);
-                usernameError.textContent = "Error updating username. Please try again.";
-              });
-          }
-        })
-        .catch(error => {
-          console.error("Error checking username uniqueness:", error);
-          usernameError.textContent = "Error checking username. Please try again.";
-        });
-    });
-
-    /* Message blocked error modal */
-    const messageErrorModal = document.getElementById("message-error-modal");
-    const messageErrorText = document.getElementById("message-error-text");
-    const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
-    dismissMessageErrorButton.addEventListener("click", function() {
-      messageErrorModal.style.display = "none";
-    });
-
-    /* Feature request logic */
-    function openFeatureModal() {
-      document.getElementById("feature-modal").style.display = "flex";
-    }
-    function closeEmailModal() {
-      document.getElementById("email-provider-modal").style.display = "none";
-    }
-    document.getElementById("cancel-feature-button").addEventListener("click", function() {
-      document.getElementById("feature-modal").style.display = "none";
-    });
-    document.getElementById("submit-feature-button").addEventListener("click", function() {
-      const featureText = document.getElementById("feature-text").value.trim();
-      const featureErrorEl = document.getElementById("feature-error");
-      if (!featureText) {
-        featureErrorEl.textContent = "Please enter your feature request.";
-        return;
-      }
-      featureErrorEl.textContent = "";
-      const currentDate = new Date().toLocaleString(undefined, {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const subject = encodeURIComponent(`Feature Request (${currentDate})`);
-      const body = encodeURIComponent(featureText);
-      window.featureEmailSubject = subject;
-      window.featureEmailBody = body;
-      document.getElementById("feature-modal").style.display = "none";
-      document.getElementById("email-provider-modal").style.display = "flex";
-    });
-    function sendEmail(provider) {
-      const recipient = "mallysusgaming@gmail.com";
-      let composeURL = "";
-      if (provider === "gmail") {
-        composeURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      } else if (provider === "outlook") {
-        composeURL = `https://outlook.live.com/owa/?path=/mail/action/compose&to=${recipient}&subject=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      } else if (provider === "yahoo") {
-        composeURL = `https://compose.mail.yahoo.com/?to=${recipient}&subj=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      }
-      window.location.href = composeURL;
-      closeEmailModal();
-    }
-
-    /* Reply focus helper functions */
-    function clearReplyFocus() {
-      replyFocusDocId = null;
-      replyFocusSnippet = "";
-      renderMessages(false);
-    }
   </script>
 </body>
 </html>
