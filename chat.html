@@ -212,6 +212,7 @@
 
     /* If replying to a message, show snippet above the new message. */
 .reply-snippet {
+    display: inline-block; /* or inline-flex */
   position: relative;
   font-size: 0.8em;
   color: #bbb;
@@ -226,6 +227,8 @@
   left: 0;        /* or left: -1em, etc. */
   top: 0;
   color: #888;
+    display: inline-block;
+  margin-right: 2px; /* small gap */
 }
 
     /* Modals, etc. */
