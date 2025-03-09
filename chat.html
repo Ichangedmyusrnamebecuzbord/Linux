@@ -280,7 +280,7 @@
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
-        (e.ctrlKey && e.key === "U")
+        (event.ctrlKey && event.key === "U")
       ) {
         e.preventDefault();
       }
@@ -442,7 +442,7 @@
   
   <!-- Kick Confirmation Modal -->
   <div id="kick-modal" class="modal-overlay">
-    <div class="modal-box">
+    <div class="modal-box" id="kick-modal-box">
       <h2 id="kick-modal-title">Kick User?</h2>
       <p id="kick-modal-text">Are you sure you want to kick this user?</p>
       <div class="modal-buttons">
@@ -466,11 +466,33 @@
       return urlParams.get(param);
     }
 
+    // Wait until DOM is ready to attach event listeners to elements
     document.addEventListener("DOMContentLoaded", function() {
+      console.log("DOM fully loaded, attaching event listeners now.");
+
       const prevPage = getQueryParam("prev") || "Home.html";
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
 
+      // Attach event listener to the Save button in the change username modal
+      const saveUsernameButton = document.getElementById("save-username-button");
+      saveUsernameButton.addEventListener("click", handleUsernameSave);
+
+      // Also attach a keydown to the Kick modal so pressing Enter triggers "Yes"
+      const kickModalBox = document.getElementById("kick-modal-box");
+      const kickConfirmButton = document.getElementById("kick-confirm-button");
+      kickModalBox.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          kickConfirmButton.click();
+        }
+      });
+
+      // Basic initialization
+      initUserAndFirebase();
+    });
+
+    function initUserAndFirebase() {
       tempUsername = sessionStorage.getItem("tempUsername");
       if (!tempUsername) {
         tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
@@ -523,12 +545,14 @@
       }).catch(error => {
         console.error("Error updating active user record:", error);
       });
+
       window.addEventListener("beforeunload", function() {
         window.db.collection("activeUsers").doc(activeUserDocId).delete().catch(err => {
           console.error("Error cleaning up active user record:", err);
         });
       });
 
+      // Listen to messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -539,7 +563,7 @@
       updatePrivilegedButton();
       updateActiveUsersList();
       listenForKickedStatus();
-    });
+    }
 
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
@@ -666,19 +690,6 @@
       const button = document.getElementById("privileged-button");
       button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
     }
-    document.addEventListener("DOMContentLoaded", function() {
-      const privilegedButton = document.getElementById("privileged-button");
-      privilegedButton.addEventListener("click", function() {
-        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-        if (isPrivileged) {
-          sessionStorage.removeItem("isPrivileged");
-          sessionStorage.removeItem("tempUsername");
-          location.reload();
-        } else {
-          document.getElementById("privileged-modal").style.display = "flex";
-        }
-      });
-    });
 
     function updateActiveUsersList() {
       window.db.collection("activeUsers")
@@ -743,65 +754,11 @@
         });
     }
 
-    const usernameModal = document.getElementById("username-modal");
-    const usernameError = document.getElementById("username-error");
-    const newUsernameInput = document.getElementById("new-username-input");
-    const saveUsernameButton = document.getElementById("save-username-button");
-    const cancelUsernameButton = document.getElementById("cancel-username-button");
-    
-    newUsernameInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveUsernameButton.click();
-      }
-    });
-    document.getElementById("change-username-button").addEventListener("click", function() {
-      usernameModal.style.display = "flex";
-      usernameError.textContent = "";
-      newUsernameInput.value = "";
-      newUsernameInput.focus();
-    });
-    cancelUsernameButton.addEventListener("click", function() {
-      usernameModal.style.display = "none";
-    });
-
-    const privilegedModal = document.getElementById("privileged-modal");
-    const privilegedCodeInput = document.getElementById("privileged-code-input");
-    const privilegedError = document.getElementById("privileged-error");
-    const savePrivilegedButton = document.getElementById("save-privileged-button");
-    const cancelPrivilegedButton = document.getElementById("cancel-privileged-button");
-    
-    privilegedCodeInput.addEventListener("keydown", function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        savePrivilegedButton.click();
-      }
-    });
-    cancelPrivilegedButton.addEventListener("click", function() {
-      privilegedModal.style.display = "none";
-    });
-    savePrivilegedButton.addEventListener("click", function() {
-      const enteredCode = privilegedCodeInput.value.trim();
-      if (enteredCode === secretCode) {
-        sessionStorage.setItem("isPrivileged", "true");
-        privilegedModal.style.display = "none";
-        document.getElementById("privileged-success-modal").style.display = "flex";
-        updatePrivilegedButton();
-        updateActiveUsersList(); // refresh active users list
-      } else {
-        privilegedError.textContent = "Incorrect code. Please try again.";
-      }
-    });
-    const dismissPrivilegedSuccessButton = document.getElementById("dismiss-privileged-success-button");
-    dismissPrivilegedSuccessButton.addEventListener("click", function() {
-      document.getElementById("privileged-success-modal").style.display = "none";
-    });
-
-    /* The array of blocked words is loaded from blacklistwords.txt earlier. */
-    const privilegedNames = ["mally", "ij", "malcom", "admin"];
-    const reservedNames = ["mally", "ij", "malcom", "admin"];
-
-    saveUsernameButton.addEventListener("click", function() {
+    // 12-character limit, blocked words, and uniqueness checks are done here
+    function handleUsernameSave() {
+      console.log("Save username button clicked.");
+      const usernameError = document.getElementById("username-error");
+      const newUsernameInput = document.getElementById("new-username-input");
       let newUsername = newUsernameInput.value.trim();
 
       // 1) Check for empty
@@ -818,7 +775,7 @@
 
       // 3) Check for blocked words
       let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
-      for (let blocked of blockedNames) {
+      for (let blocked of (window.blockedNames || [])) {
         if (normalizedNewUsername.includes(blocked)) {
           usernameError.textContent = "That username is blocked.";
           return;
@@ -827,6 +784,7 @@
 
       // 4) Check reserved names for non-privileged
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      const reservedNames = ["mally", "ij", "malcom", "admin"];
       if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
         usernameError.textContent = "That username is reserved for privileged users.";
         return;
@@ -857,10 +815,11 @@
                 lastActive: firebase.firestore.FieldValue.serverTimestamp()
               })
               .then(() => {
-                tempUsername = newUsername;
-                sessionStorage.setItem("tempUsername", tempUsername);
-                document.getElementById("username-display").textContent = "You are: " + tempUsername;
-                usernameModal.style.display = "none";
+                window.tempUsername = newUsername;
+                sessionStorage.setItem("tempUsername", newUsername);
+                document.getElementById("username-display").textContent = "You are: " + newUsername;
+                document.getElementById("username-modal").style.display = "none";
+                console.log("Username updated successfully to", newUsername);
               })
               .catch(error => {
                 console.error("Error updating username:", error);
@@ -872,7 +831,7 @@
           console.error("Error checking username uniqueness:", error);
           usernameError.textContent = "Error checking username. Please try again.";
         });
-    });
+    }
 
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
@@ -888,7 +847,8 @@
         console.warn("⚠️ Empty message - Not sending");
         return;
       }
-      for (let blocked of blockedNames) {
+      // If blocked words loaded
+      for (let blocked of (window.blockedNames || [])) {
         if (message.toLowerCase().includes(blocked)) {
           messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
           messageErrorModal.style.display = "flex";
@@ -897,7 +857,7 @@
       }
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       window.db.collection("messages").add({
-        username: tempUsername,
+        username: window.tempUsername,
         text: message,
         isPrivileged: isPrivileged,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
