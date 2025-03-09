@@ -159,7 +159,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble styling based on sender’s privilege */
+    /* Privileged bubble styling (sender's privilege) */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -493,7 +493,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      // Initialize Firebase with your new config
+      // Initialize Firebase with new config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -581,7 +581,8 @@
         }
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
         if (isViewerPrivileged) {
-          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
+          // Stop propagation so that clicking the message doesn't trigger chat-box click events
+          bubbleHTML = `<span class="delete-hover" onclick="event.stopPropagation(); deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
@@ -684,7 +685,7 @@
                 doc.id !== ("active_" + sessionStorage.getItem("chatSession"))) {
               const kickBtn = document.createElement("button");
               kickBtn.textContent = "x";
-              // Pass both the doc id and username
+              // Pass doc id and username to confirmKick
               kickBtn.onclick = function() { confirmKick(doc.id, data.username); };
               userItem.appendChild(kickBtn);
             }
@@ -694,8 +695,7 @@
     }
     function confirmKick(docId, username) {
       window.kickDocId = docId;
-      // Update the kick modal text with the username
-      document.getElementById("kick-modal").querySelector("p").textContent = "Are you sure you want to kick " + username + "?";
+      document.getElementById("kick-modal-title").textContent = "Kick " + username + "?";
       document.getElementById("kick-modal").style.display = "flex";
     }
     function kickUser(docId) {
@@ -775,7 +775,7 @@
         privilegedModal.style.display = "none";
         document.getElementById("privileged-success-modal").style.display = "flex";
         updatePrivilegedButton();
-        updateActiveUsersList(); // Refresh active users list immediately
+        updateActiveUsersList(); // refresh active users list
       } else {
         privilegedError.textContent = "Incorrect code. Please try again.";
       }
