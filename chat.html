@@ -898,7 +898,7 @@ function sendMessage() {
     return;
   }
   
-  // Blocked words check using regex with negative lookahead
+  // Check for banned words using regex
   for (let blocked of blockedNames) {
     const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
     if (regex.test(message)) {
@@ -908,11 +908,13 @@ function sendMessage() {
         errorTextEl.textContent = `Your message contains a banned word: ${blocked}`;
         errorModal.style.display = "flex";
       }
+      // Deselect the text box so the user must click to type again
+      messageInput.blur();
       return;
     }
   }
   
-  // Anti-spam check: prevent sending the same message within 3 seconds
+  // Anti-spam: prevent sending the same message within 3 seconds
   const now = Date.now();
   if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
     const errorTextEl = document.getElementById("message-error-text");
@@ -921,6 +923,8 @@ function sendMessage() {
       errorTextEl.textContent = "Please wait before sending the same message again.";
       errorModal.style.display = "flex";
     }
+    // Remove focus from the input
+    messageInput.blur();
     return;
   }
   
