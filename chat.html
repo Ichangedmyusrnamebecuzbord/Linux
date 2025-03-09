@@ -27,7 +27,7 @@
       font-size: 18px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    /* Username container */
+    /* Username header */
     #username-container {
       margin-bottom: 15px;
       font-weight: bold;
@@ -35,7 +35,7 @@
       align-items: center;
       gap: 10px;
     }
-    /* Container for chat box and active users list side by side */
+    /* Container holding chat box and active users list side by side */
     #chat-container {
       display: flex;
       justify-content: center;
@@ -89,7 +89,7 @@
       font-size: 12px;
       cursor: pointer;
     }
-    /* Input section below chat container */
+    /* Input section (below chat container) */
     #input-section {
       margin: 0 auto;
       max-width: 600px;
@@ -159,7 +159,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble styling based on sender’s privilege */
+    /* Privileged bubble styling (sender's privilege) */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -254,7 +254,7 @@
       object-fit: contain;
       display: block;
     }
-    /* Cancel button in email modal gets extra styling */
+    /* Cancel button in email modal */
     .email-provider-btn.cancel {
       width: auto;
       padding: 10px 20px;
@@ -322,7 +322,7 @@
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span></h1>
+  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
   
   <div id="username-container">
     <span id="username-display"></span>
@@ -330,7 +330,7 @@
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
   
-  <!-- Chat container: Chat box on the left, Active Users list on the right -->
+  <!-- Chat container: chat box on left, active users list on right -->
   <div id="chat-container">
     <div id="chat-box"></div>
     <div id="active-users-list">
@@ -493,7 +493,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      // Initialize Firebase with your new config
+      // Initialize Firebase with new config
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -717,6 +717,7 @@
       document.getElementById("kick-modal").style.display = "none";
       window.kickDocId = null;
     });
+
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
