@@ -215,7 +215,7 @@
       background: lightblue;
     }
     .yahoo-btn {
-      background: #6001D2; /* Yahoo brand purple */
+      background: #6001D2;
     }
     /* Underline for links in messages */
     a.message-link {
@@ -265,18 +265,40 @@
       sessionStorage.setItem("usernameDate", currentPSTDate);
     }
   </script>
+  <script>
+    // Update the privileged button based on the user's status
+    function updatePrivilegedButton() {
+      const btn = document.getElementById("privileged-button");
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      if (isPrivileged) {
+        btn.textContent = "Log Out";
+        btn.onclick = function() {
+          // Reset the temporary username and remove privileged status
+          sessionStorage.removeItem("tempUsername");
+          sessionStorage.removeItem("isPrivileged");
+          location.reload();
+        };
+      } else {
+        btn.textContent = "Login (for admin use)";
+        btn.onclick = function() {
+          document.getElementById("privileged-modal").style.display = "flex";
+          document.getElementById("privileged-error").textContent = "";
+          document.getElementById("privileged-code-input").value = "";
+          document.getElementById("privileged-code-input").focus();
+        };
+      }
+    }
+  </script>
 </head>
-<body>
+<body onload="updatePrivilegedButton()">
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.7</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.6</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
-    <!-- "Change Username" Button -->
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
-    <!-- "Login"/"Log Out" Button (dynamically set) -->
-    <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
+    <button id="privileged-button"></button>
   </div>
   <div id="chat-box"></div>
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
@@ -299,15 +321,12 @@
     <div class="modal-box">
       <h2>Select Your Email Provider</h2>
       <div id="provider-buttons-container" style="display: flex; justify-content: center; gap: 10px;">
-        <!-- Gmail button -->
         <button class="email-provider-btn gmail-btn" onclick="sendEmail('gmail')">
           <img src="/IMGS/gmail.png" alt="Gmail">
         </button>
-        <!-- Outlook button -->
         <button class="email-provider-btn outlook-btn" onclick="sendEmail('outlook')">
           <img src="/IMGS/outlook.png" alt="Outlook">
         </button>
-        <!-- Yahoo button -->
         <button class="email-provider-btn yahoo-btn" onclick="sendEmail('yahoo')">
           <img src="/IMGS/yahoo.png" alt="Yahoo!">
         </button>
@@ -329,7 +348,7 @@
       </div>
     </div>
   </div>
-  <!-- Modal for privileged login -->
+  <!-- Modal for privileged upgrade -->
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
@@ -364,46 +383,37 @@
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
-    let tempUsername;
-    const secretCode = "theLandbefore4.0";
-
-    // Check query param for "Back" button
+    
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
-
-    // Setup on DOM load
     document.addEventListener("DOMContentLoaded", function() {
       const prevPage = getQueryParam("prev") || "Home.html";
       document.querySelector("a.back-button").href = prevPage;
       console.log("Back button set to:", prevPage);
-
-      // Initialize or load user session
-      tempUsername = sessionStorage.getItem("tempUsername");
-      if (!tempUsername) {
-        tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
-        sessionStorage.setItem("tempUsername", tempUsername);
-      }
-      console.log("Assigned username:", tempUsername);
-
-      document.getElementById("username-display").textContent = "You are: " + tempUsername;
-
-      let chatSession = sessionStorage.getItem("chatSession");
-      if (!chatSession) {
-        chatSession = "session_" + Math.random().toString(36).substr(2, 9);
-        sessionStorage.setItem("chatSession", chatSession);
-      }
-      console.log("Chat Session ID:", chatSession);
-
-      let chatStartTime = sessionStorage.getItem("chatStartTime");
-      if (!chatStartTime) {
-        chatStartTime = Date.now().toString();
-        sessionStorage.setItem("chatStartTime", chatStartTime);
-      }
-      console.log("Chat Start Time:", chatStartTime);
-
-      // Firebase init
+    });
+    let tempUsername = sessionStorage.getItem("tempUsername");
+    if (!tempUsername) {
+      tempUsername = "User" + Math.floor(Math.random() * 9000 + 1000);
+      sessionStorage.setItem("tempUsername", tempUsername);
+    }
+    console.log("Assigned username:", tempUsername);
+    document.getElementById("username-display").textContent = "You are: " + tempUsername;
+    let chatSession = sessionStorage.getItem("chatSession");
+    if (!chatSession) {
+      chatSession = "session_" + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem("chatSession", chatSession);
+    }
+    console.log("Chat Session ID:", chatSession);
+    const activeUserDocId = "active_" + chatSession;
+    let chatStartTime = sessionStorage.getItem("chatStartTime");
+    if (!chatStartTime) {
+      chatStartTime = Date.now().toString();
+      sessionStorage.setItem("chatStartTime", chatStartTime);
+    }
+    console.log("Chat Start Time:", chatStartTime);
+    document.addEventListener("DOMContentLoaded", function() {
       const firebaseConfig = {
         apiKey: "AIzaSyAeW2fBf-gaBk-NS_jPXNNeckkf8fxuc9A",
         authDomain: "mallyssusgamingchat.firebaseapp.com",
@@ -421,9 +431,6 @@
       }
       window.db = firebase.firestore();
       console.log("✅ Firestore Ready:", window.db);
-
-      // Active user doc
-      const activeUserDocId = "active_" + chatSession;
       window.db.collection("activeUsers").doc(activeUserDocId).set({
         username: tempUsername,
         session: chatSession,
@@ -438,55 +445,41 @@
           console.error("Error cleaning up active user record:", err);
         });
       });
-
-      // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
           cachedMessages = snapshot.docs;
           renderMessages(true);
         });
-
-      // Setup login/logout button text
-      updatePrivilegedButton();
     });
-
-    // Renders messages from Firestore
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
       let displayedCount = 0;
-
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
-
-        // For non-privileged, only show today's messages
         if (!isPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
-
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
         const formattedText = formatMessageText(msgData.text);
-
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
           let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
           if (showTimestamps) {
-            messageDiv.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="${bubbleClass}">${formattedText}</div>
-                <div class="timestamp">${timestamp}</div>
-              </div>`;
+            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="${bubbleClass}">${formattedText}</div>
+              <div class="timestamp">${timestamp}</div>
+            </div>`;
           } else {
             messageDiv.innerHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
           }
@@ -494,66 +487,36 @@
           messageDiv.classList.add("other-message");
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="timestamp">${timestamp}</div>
-                <div style="text-align: left;">
-                  ${nameHTML}
-                  <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
-                </div>
-              </div>`;
+            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="timestamp">${timestamp}</div>
+              <div style="text-align: left;">
+                ${nameHTML}
+                <div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>
+              </div>
+            </div>`;
           } else {
             messageDiv.innerHTML = nameHTML + `<div class="other-bubble${msgData.isPrivileged ? " privileged" : ""}">${formattedText}</div>`;
           }
         }
-
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
-
-      // If no messages displayed for non-privileged user
       if (!isPrivileged && displayedCount === 0) {
         chatBox.innerHTML = `
           <div style="color: #888; margin-top: 50px; font-size: 1.1em;">
             No Messages Today Yet. Wanna be the first?
           </div>`;
       }
-
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
-
-    // Update the privileged button text based on current status
-    function updatePrivilegedButton() {
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      const button = document.getElementById("privileged-button");
-      if (isPrivileged) {
-        button.textContent = "Log Out";
-      } else {
-        button.textContent = "Login (for admin use)";
+    document.getElementById("chat-box").addEventListener("click", function(e) {
+      if (e.target === this) {
+        showTimestamps = !showTimestamps;
+        renderMessages(false);
       }
-    }
-
-    // Handle clicking the privileged button
-    document.addEventListener("DOMContentLoaded", function() {
-      const privilegedButton = document.getElementById("privileged-button");
-      privilegedButton.addEventListener("click", function() {
-        const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-        if (isPrivileged) {
-          // Log out
-          sessionStorage.removeItem("isPrivileged");
-          sessionStorage.removeItem("tempUsername");
-          // Force a reload so they get a new random username
-          location.reload();
-        } else {
-          // Show the login modal
-          document.getElementById("privileged-modal").style.display = "flex";
-        }
-      });
     });
-
-    // Username change modal
     const usernameModal = document.getElementById("username-modal");
     const usernameError = document.getElementById("username-error");
     const newUsernameInput = document.getElementById("new-username-input");
@@ -574,8 +537,6 @@
     cancelUsernameButton.addEventListener("click", function() {
       usernameModal.style.display = "none";
     });
-
-    // Privileged login modal
     const privilegedModal = document.getElementById("privileged-modal");
     const privilegedCodeInput = document.getElementById("privileged-code-input");
     const privilegedError = document.getElementById("privileged-error");
@@ -587,11 +548,7 @@
         savePrivilegedButton.click();
       }
     });
-    cancelPrivilegedButton.addEventListener("click", function() {
-      privilegedModal.style.display = "none";
-    });
-
-    // The secret code
+    // (The privileged-button's event listener is now handled by updatePrivilegedButton())
     const secretCode = "theLandbefore4.0";
     savePrivilegedButton.addEventListener("click", function() {
       const enteredCode = privilegedCodeInput.value.trim();
@@ -608,8 +565,6 @@
     dismissPrivilegedSuccessButton.addEventListener("click", function() {
       document.getElementById("privileged-success-modal").style.display = "none";
     });
-
-    // Blocked names
     let blockedNames = [];
     fetch("blacklistwords.txt")
       .then(response => response.text())
@@ -618,10 +573,8 @@
         console.log("Blocked words file loaded.");
       })
       .catch(err => console.error("Failed to load blocked words:", err));
-
     const privilegedNames = ["mally", "ij", "malcom", "admin"];
     const reservedNames = ["mally", "ij", "malcom", "admin"];
-
     saveUsernameButton.addEventListener("click", function() {
       let newUsername = newUsernameInput.value.trim();
       if (!newUsername) {
@@ -640,8 +593,6 @@
         usernameError.textContent = "That username is reserved for privileged users.";
         return;
       }
-      const chatSession = sessionStorage.getItem("chatSession");
-      const activeUserDocId = "active_" + chatSession;
       window.db.collection("activeUsers")
         .where("username", "==", newUsername)
         .get()
@@ -677,16 +628,12 @@
           usernameError.textContent = "Error checking username. Please try again.";
         });
     });
-
-    // Message block error modal
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
-
-    // Sending a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
@@ -716,8 +663,6 @@
         console.error("❌ Error Sending Message:", error);
       });
     }
-
-    // Feature request modals
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
@@ -740,10 +685,10 @@
       });
       const subject = encodeURIComponent("Feature Request (" + currentDate + ")");
       const body = encodeURIComponent(featureText);
-      document.getElementById("feature-modal").style.display = "none";
-      document.getElementById("email-provider-modal").style.display = "flex";
       window.featureEmailSubject = subject;
       window.featureEmailBody = body;
+      document.getElementById("feature-modal").style.display = "none";
+      document.getElementById("email-provider-modal").style.display = "flex";
     });
     function sendEmail(provider) {
       const recipient = "mallysusgaming@gmail.com";
