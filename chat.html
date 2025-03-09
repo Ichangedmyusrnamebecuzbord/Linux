@@ -68,6 +68,7 @@
       opacity: 0.3;
     }
 
+    /* Active Users list */
     #active-users-list {
       background: #333;
       border: 1px solid #555;
@@ -505,11 +506,10 @@
     let docIdToDelete = null;
     let isKicked = false;
     let kickDocId = null;
-    let replyFocusDocId = null; // Tracks which message we're replying to
-    let replyFocusSnippet = ""; // snippet of text from that message
+    let replyFocusDocId = null; // which message we're replying to
+    let replyFocusSnippet = ""; // snippet from that message
     const secretCode = "theLandbefore4.0";
 
-    /* Firebase & main logic */
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
@@ -542,7 +542,7 @@
       }
       console.log("Chat Start Time:", chatStartTime);
 
-      /* Initialize Firebase with your new config */
+      // Initialize Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyDJ0IAi3Bf5ma2XpWlK46qea8ssVvgqJD0",
         authDomain: "mallysusgamingchat2.firebaseapp.com",
@@ -579,7 +579,7 @@
         });
       });
 
-      /* Listen for messages */
+      // Listen for messages
       window.db.collection("messages")
         .orderBy("timestamp")
         .onSnapshot(function(snapshot) {
@@ -591,12 +591,19 @@
       updateActiveUsersList();
       listenForKickedStatus();
 
-      /* If user clicks the chat background, clear replyFocus */
+      // If user clicks the chat background, either exit replyFocus or toggle timestamps
       const chatBox = document.getElementById("chat-box");
       chatBox.addEventListener("click", function(e) {
+        // Check if user clicked the "chat-box" itself (not a child bubble)
         if (e.target.id === "chat-box") {
-          // user clicked the background
-          clearReplyFocus();
+          if (replyFocusDocId) {
+            // If we are in reply focus, exit it
+            clearReplyFocus();
+          } else {
+            // Otherwise, toggle timestamps
+            showTimestamps = !showTimestamps;
+            renderMessages(false);
+          }
         }
       });
     });
@@ -613,7 +620,7 @@
       const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
 
-      // If we have a replyFocusDocId, we add a class to the chatBox
+      // If we have a replyFocusDocId, add a class to chatBox
       if (replyFocusDocId) {
         chatBox.classList.add("reply-focus");
       } else {
@@ -627,7 +634,7 @@
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
 
-        // Non-privileged user sees only today's messages
+        // Non-priv user sees only today's messages
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
@@ -741,7 +748,7 @@
       const doc = cachedMessages.find(d => d.id === docId);
       if (doc) {
         const data = doc.data();
-        // snippet can be up to ~30 chars, or you can do full text if you prefer
+        // snippet can be up to ~30 chars
         replyFocusSnippet = data.text.substring(0, 30) + "...";
       } else {
         replyFocusSnippet = "(original message)";
@@ -749,7 +756,7 @@
       renderMessages(false);
     }
 
-    /* Clear reply focus if user clicks the chat background */
+    /* Clear reply focus if user clicks the background in reply mode */
     function clearReplyFocus() {
       replyFocusDocId = null;
       replyFocusSnippet = "";
@@ -799,7 +806,7 @@
       });
     }
 
-    /* Delete link messages */
+    /* Deleting link messages */
     function doDelete(docId) {
       window.db.collection("messages").doc(docId).delete()
         .then(() => { console.log("Message deleted successfully."); })
@@ -816,8 +823,6 @@
       document.getElementById("delete-modal").style.display = "none";
       window.docIdToDelete = null;
     });
-
-    /* Toggling timestamps by clicking the chat background is handled in the event listener above */
 
     /* Privileged login logic */
     function updatePrivilegedButton() {
@@ -887,7 +892,6 @@
       window.kickDocId = null;
     });
 
-    /* Listen for if we are kicked */
     function listenForKickedStatus() {
       const activeUserDocId = "active_" + sessionStorage.getItem("chatSession");
       window.db.collection("activeUsers").doc(activeUserDocId)
@@ -1078,6 +1082,13 @@
       }
       window.location.href = composeURL;
       closeEmailModal();
+    }
+
+    /* Reply focus helper functions */
+    function clearReplyFocus() {
+      replyFocusDocId = null;
+      replyFocusSnippet = "";
+      renderMessages(false);
     }
   </script>
 </body>
