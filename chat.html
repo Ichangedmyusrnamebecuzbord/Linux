@@ -32,7 +32,7 @@
       margin-bottom: 15px;
       font-weight: bold;
       display: inline-flex;
-      align-items: c;
+      align-items: center;
       gap: 10px;
     }
     /* Container for chat & user list side by side, both bottom-aligned */
@@ -71,14 +71,14 @@
       margin: 0;
       padding: 10px 0;
       font-size: 1.1em;
-      text-align: c;
+      text-align: center;
       border-bottom: 1px solid #444;
     }
     .user-item {
       margin: 5px 0;
       display: flex;
       justify-content: space-between;
-      align-items: c;
+      align-items: center;
       padding: 0 8px;
     }
     .user-item button {
@@ -95,8 +95,8 @@
       margin: 0 auto;
       max-width: 600px;
       display: flex;
-      justify-content: c;
-      align-items: c;
+      justify-content: center;
+      align-items: center;
       gap: 10px;
     }
     #message {
@@ -176,7 +176,7 @@
       color: #aaa;
       white-space: nowrap;
       margin: 0 5px;
-      align-self: c;
+      align-self: center;
     }
     /* Delete effect for privileged viewer */
     .delete-hover:hover {
@@ -193,8 +193,8 @@
       width: 100%;
       height: 100%;
       background: rgba(0,0,0,0.5);
-      justify-content: c;
-      align-items: c;
+      justify-content: center;
+      align-items: center;
       z-index: 9999;
     }
     .modal-box {
@@ -203,7 +203,7 @@
       border-radius: 10px;
       width: 320px;
       box-sizing: border-box;
-      text-align: c;
+      text-align: center;
     }
     .modal-box h2 {
       margin-top: 0;
@@ -277,7 +277,7 @@
   <script>
     document.addEventListener("contextmenu", (e) => e.preventDefault());
     document.addEventListener("keydown", (e) => {
-      // Block F12, Ctrl+Shift+(I/J/C) and Ctrl+U (case insensitive)
+      // Block F12, Ctrl+Shift+I/J/C and Ctrl+U (case-insensitive)
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
@@ -340,7 +340,8 @@
   
   <!-- Input section below chat container -->
   <div id="input-section">
-    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key===''){event.preventDefault(); sendMessage();}">
+    <!-- Bind Enter key to sendMessage -->
+    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
     <button onclick="sendMessage()">Send</button>
     <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
   </div>
@@ -384,7 +385,6 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <!-- Username input (no type change here, as usernames are visible) -->
       <input type="text" id="new-username-input" placeholder="Enter new username...">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -398,7 +398,6 @@
   <div id="privileged-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Enter Login Code</h2>
-      <!-- Changed input type to password -->
       <input type="password" id="privileged-code-input" placeholder="Enter secret code...">
       <p id="privileged-error" class="error-message"></p>
       <div class="modal-buttons">
@@ -443,7 +442,7 @@
   </div>
   
   <!-- Kick Confirmation Modal -->
-  <div id="kick-modal" class="modal-overlay">
+  <div id="kick-modal" class="modal-overlay" tabindex="0"> <!-- NEW: tabindex to allow focus -->
     <div class="modal-box">
       <h2 id="kick-modal-title">Kick User?</h2>
       <p id="kick-modal-text">Are you sure you want to kick this user?</p>
@@ -455,14 +454,6 @@
   </div>
   
   <script>
-    // For anti-spam
-let lastSentMessage = null;
-
-// Helper to escape regex characters in a banned word
-function escapeRegex(str) {
-  // This will replace every special regex character with its escaped version
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
@@ -470,6 +461,9 @@ function escapeRegex(str) {
     let isKicked = false;
     let kickDocId = null;
     const secretCode = "theLandbefore4.0";
+    
+    // Global anti-spam variable (if used elsewhere)
+    let lastSentMessage = null;
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -716,7 +710,10 @@ function escapeRegex(str) {
       window.kickDocId = docId;
       document.getElementById("kick-modal-title").textContent = "Kick " + username + "?";
       document.getElementById("kick-modal-text").textContent = "Are you sure you want to kick " + username + "?";
-      document.getElementById("kick-modal").style.display = "flex";
+      const kickModal = document.getElementById("kick-modal");
+      kickModal.style.display = "flex";
+      // NEW: Set focus on the kick modal so that it can capture key events
+      kickModal.focus();
     }
     function kickUser(docId) {
       window.db.collection("activeUsers").doc(docId).update({
@@ -736,6 +733,14 @@ function escapeRegex(str) {
     document.getElementById("kick-cancel-button").addEventListener("click", function() {
       document.getElementById("kick-modal").style.display = "none";
       window.kickDocId = null;
+    });
+    
+    // NEW: Bind Enter key on the kick modal to confirm the kick.
+    document.getElementById("kick-modal").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("kick-confirm-button").click();
+      }
     });
 
     function listenForKickedStatus() {
@@ -846,7 +851,7 @@ function escapeRegex(str) {
       const chatSession = sessionStorage.getItem("chatSession");
       const activeUserDocId = "active_" + chatSession;
 
-      // 2) Only check for non-kicked docs
+      // Only check for non-kicked docs
       window.db.collection("activeUsers")
         .where("username", "==", newUsername)
         .where("kicked", "==", false)
@@ -891,97 +896,46 @@ function escapeRegex(str) {
       messageErrorModal.style.display = "none";
     });
 
-function sendMessage() {
-  console.log("sendMessage called");
-
-  const messageInput = document.getElementById("message");
-  if (!messageInput) {
-    console.error("❌ messageInput element not found!");
-    return;
-  }
-
-  const messageErrorText = document.getElementById("message-error-text");
-  const messageErrorModal = document.getElementById("message-error-modal");
-
-  // Just in case these are missing
-  if (!messageErrorText || !messageErrorModal) {
-    console.error("❌ Error elements not found!");
-  }
-
-  // 1) Trim the user's message
-  const message = messageInput.value.trim();
-  if (!message) {
-    console.warn("⚠️ Empty message - Not sending");
-    return;
-  }
-
-  console.log("User typed message:", message);
-
-  // 2) Blocked words check
-  //    For each banned word, escape regex chars, then build the pattern
-  for (let blocked of blockedNames) {
-    const escapedBlocked = escapeRegex(blocked);
-
-    // Word boundary, then the escaped word, not followed by letters (so 'ass25' is blocked).
-    const regex = new RegExp(`\\b${escapedBlocked}(?![a-zA-Z])`, 'i');
-
-    if (regex.test(message)) {
-      console.log("❌ Banned word detected:", blocked);
-
-      // Show the error modal, if found
-      if (messageErrorText && messageErrorModal) {
-        messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
-        messageErrorModal.style.display = "flex";
+    function sendMessage() {
+      const messageInput = document.getElementById("message");
+      const message = messageInput.value.trim();
+      if (message === "") {
+        console.warn("Empty message - Not sending");
+        return;
       }
-
-      // Blur the input so user can't keep typing
-      messageInput.blur();
-      return;
+      for (let blocked of blockedNames) {
+        const regex = new RegExp(`\\b${escapeRegex(blocked)}(?![a-zA-Z])`, 'i');
+        if (regex.test(message)) {
+          messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
+          messageErrorModal.style.display = "flex";
+          messageInput.blur();
+          return;
+        }
+      }
+      const now = Date.now();
+      if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
+        messageErrorText.textContent = "Please wait before sending the same message again.";
+        messageErrorModal.style.display = "flex";
+        messageInput.blur();
+        return;
+      }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      window.db.collection("messages").add({
+        username: tempUsername,
+        text: message,
+        isPrivileged: isPrivileged,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        console.log("Message sent successfully.");
+        lastSentMessage = { text: message, timestamp: now };
+        messageInput.value = "";
+      })
+      .catch((error) => {
+        console.error("Error sending message:", error);
+      });
     }
-  }
 
-  // 3) Anti-spam check: block same message within 3 seconds
-  const now = Date.now();
-  if (
-    lastSentMessage &&
-    lastSentMessage.text === message &&
-    now - lastSentMessage.timestamp < 3000
-  ) {
-    console.log("❌ Anti-spam triggered. Same message too soon.");
-
-    if (messageErrorText && messageErrorModal) {
-      messageErrorText.textContent =
-        "Please wait before sending the same message again.";
-      messageErrorModal.style.display = "flex";
-    }
-
-    messageInput.blur();
-    return;
-  }
-
-  // 4) Build the Firestore doc
-  const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-
-  window.db
-    .collection("messages")
-    .add({
-      username: tempUsername,
-      text: message,
-      isPrivileged: isPrivileged,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-    .then(() => {
-      console.log("✅ Message sent successfully!");
-      // Update anti-spam record
-      lastSentMessage = { text: message, timestamp: now };
-
-      // Clear the input
-      messageInput.value = "";
-    })
-    .catch((error) => {
-      console.error("❌ Error sending message:", error);
-    });
-}
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
@@ -1021,6 +975,11 @@ function sendMessage() {
       }
       window.location.href = composeURL;
       closeEmailModal();
+    }
+    
+    // Helper function to escape regex characters
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
   </script>
 </body>
