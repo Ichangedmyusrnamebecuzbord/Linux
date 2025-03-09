@@ -884,35 +884,39 @@
     });
 
     function sendMessage() {
-      const messageInput = document.getElementById("message");
-      const message = messageInput.value.trim();
-      if (message === "") {
-        console.warn("⚠️ Empty message - Not sending");
-        return;
-      }
-      for (let blocked of blockedNames) {
-        if (message.toLowerCase().includes(blocked)) {
-          messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
-          messageErrorModal.style.display = "flex";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      window.db.collection("messages").add({
-        username: tempUsername,
-        text: message,
-        isPrivileged: isPrivileged,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        console.log("✅ Message Sent Successfully!");
-        messageInput.value = "";
-      })
-      .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
-      });
-    }
-
+  const messageInput = document.getElementById("message");
+  const message = messageInput.value.trim();
+  if (message === "") {
+    console.warn("⚠️ Empty message - Not sending");
+    return;
+  }
+  
+  // Anti-spam: Check if the same message was sent in the last 3 seconds.
+  const now = Date.now();
+  if (lastSentMessage && lastSentMessage.text === message && (now - lastSentMessage.timestamp) < 3000) {
+    messageErrorText.textContent = "Please wait before sending the same message again.";
+    messageErrorModal.style.display = "flex";
+    return;
+  }
+  
+  // Proceed to send the message
+  const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+  window.db.collection("messages").add({
+    username: tempUsername,
+    text: message,
+    isPrivileged: isPrivileged,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    console.log("✅ Message Sent Successfully!");
+    // Update the lastSentMessage with current message and timestamp
+    lastSentMessage = { text: message, timestamp: now };
+    messageInput.value = "";
+  })
+  .catch((error) => {
+    console.error("❌ Error Sending Message:", error);
+  });
+}
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
