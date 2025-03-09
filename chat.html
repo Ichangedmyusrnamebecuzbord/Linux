@@ -142,7 +142,7 @@
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -254,6 +254,12 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
+    // Simple link detection
+    function messageContainsLink(text) {
+      const linkRegex = /https?:\/\/\S+/i;
+      return linkRegex.test(text);
+    }
+
     function formatMessageText(text) {
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
@@ -272,7 +278,7 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.7</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
@@ -451,7 +457,6 @@
       updatePrivilegedButton();
     });
 
-    // Renders all messages in Firestore
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
@@ -464,13 +469,13 @@
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
 
-        // Only show today's messages to non-privileged viewer
+        // Non-privileged viewer sees only today's messages
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
 
-        // Create a container for the message
+        // Create container for the message
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
 
@@ -482,8 +487,7 @@
         // Convert URLs into clickable links
         const formattedText = formatMessageText(msgData.text);
 
-        // Determine bubble color based on the SENDER's privilege
-        // (not the viewer's privilege).
+        // Determine bubble color based on SENDER's privilege
         let bubbleClass;
         if (msgData.username === tempUsername) {
           // My own message
@@ -492,26 +496,24 @@
             ? "my-bubble privileged"
             : "my-bubble-nonprivileged";
         } else {
-          // Someone else's message
+          // Another user's message
           messageDiv.classList.add("other-message");
           bubbleClass = msgData.isPrivileged
             ? "other-bubble privileged"
             : "other-bubble";
         }
 
-        // Build the bubble
+        // Build the bubble content
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
 
-        // If the local viewer is privileged, wrap the bubble in a <span>
-        // that shows strikethrough on hover and triggers deletion on click
+        // If local viewer is privileged, wrap in a clickable <span>
+        // that triggers message deletion
         if (isViewerPrivileged) {
-          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}')">${bubbleHTML}</span>`;
+          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
 
-        // If it's my own message, optionally show timestamps to the right
-        // Otherwise, if it's someone else's, optionally show timestamps to the left
+        // If it's my own message
         if (msgData.username === tempUsername) {
-          // My message
           if (showTimestamps) {
             messageDiv.innerHTML = `
               <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -537,12 +539,10 @@
             messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
         }
-
         chatBox.appendChild(messageDiv);
         displayedCount++;
       });
 
-      // If no messages displayed for a non-privileged user, show placeholder
       if (!isViewerPrivileged && displayedCount === 0) {
         chatBox.innerHTML = `<div style="color: #888; margin-top: 50px; font-size: 1.1em;">
           No Messages Today Yet. Wanna be the first?
@@ -554,20 +554,25 @@
       }
     }
 
-    // Delete a message from Firestore
-    function deleteMessage(docId) {
-      if (confirm("Are you sure you want to delete this message?")) {
-        window.db.collection("messages").doc(docId).delete()
-          .then(() => {
-            console.log("Message deleted successfully.");
-          })
-          .catch(err => {
-            console.error("Error deleting message:", err);
-          });
+    // Updated deleteMessage to skip confirm unless there's a link
+    function deleteMessage(docId, rawText) {
+      const text = decodeURIComponent(rawText || "");
+      // If message text includes a link, confirm
+      if (messageContainsLink(text)) {
+        if (!confirm("This message has a link. Are you sure you want to delete it?")) {
+          return;
+        }
       }
+      // Otherwise, delete right away
+      window.db.collection("messages").doc(docId).delete()
+        .then(() => {
+          console.log("Message deleted successfully.");
+        })
+        .catch(err => {
+          console.error("Error deleting message:", err);
+        });
     }
 
-    // Clicking the chat background toggles timestamps
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -575,7 +580,6 @@
       }
     });
 
-    // Switch the privileged button text between "Log Out" and "Login"
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
@@ -586,18 +590,15 @@
       }
     }
 
-    // Clicking the privileged button either logs out or shows the login modal
     document.addEventListener("DOMContentLoaded", function() {
       const privilegedButton = document.getElementById("privileged-button");
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
-          // Log out
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
-          // Show the login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
@@ -732,7 +733,7 @@
       messageErrorModal.style.display = "none";
     });
 
-    // Sending a message
+    // Send a message
     function sendMessage() {
       const messageInput = document.getElementById("message");
       const message = messageInput.value.trim();
