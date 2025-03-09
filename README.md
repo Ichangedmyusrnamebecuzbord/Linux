@@ -2,4 +2,4 @@
 
 https://meet.google.com/kfm-izxh-xwt
 
-call through discord or gooogle meets
+# call through discord or gooogle meets when you can
