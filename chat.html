@@ -262,6 +262,11 @@
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
     }
+    
+    // Helper function to hash text (convert non-space characters to "#")
+    function hashText(text) {
+      return text.split('').map(ch => ch === ' ' ? ' ' : '#').join('');
+    }
   </script>
 </head>
 <body>
@@ -353,7 +358,7 @@
     let cachedMessages = [];
     let bannedUsers = [];
     
-    // Listen for banned users from Firestore
+    // Load banned users from Firestore
     function loadBannedUsers() {
       window.db.collection("bannedUsers").onSnapshot(snapshot => {
         bannedUsers = snapshot.docs.map(doc => doc.data().username.toLowerCase());
@@ -430,6 +435,7 @@
         });
       loadBannedUsers();
     });
+    // Render Messages Function (modified to show banned user's text as hashtags)
     function renderMessages(autoScroll) {
       const chatBox = document.getElementById("chat-box");
       chatBox.innerHTML = "";
@@ -443,15 +449,22 @@
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
-        // Skip messages from banned users
-        if (bannedUsers.includes(msgData.username.toLowerCase())) return;
-        
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
-        const formattedText = formatMessageText(msgData.text);
+        
+        // Check if sender is banned; if so, hash the name and message
+        let displayUsername = msgData.username;
+        let displayText = msgData.text;
+        if (bannedUsers.includes(msgData.username.toLowerCase())) {
+          displayUsername = hashText(msgData.username);
+          displayText = hashText(msgData.text);
+        }
+        // Format text for links
+        const formattedText = formatMessageText(displayText);
+        
         if (msgData.username === tempUsername) {
           messageDiv.classList.add("my-message");
           let bubbleClass = isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
@@ -465,10 +478,9 @@
           }
         } else {
           messageDiv.classList.add("other-message");
-          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
+          const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${bannedUsers.includes(msgData.username.toLowerCase()) ? displayUsername : msgData.username}</div>`;
           let banButtonHTML = "";
-          // Show ban button for privileged users for normal users only
-          if (isPrivileged && !msgData.isPrivileged) {
+          if (isPrivileged && !msgData.isPrivileged && !bannedUsers.includes(msgData.username.toLowerCase())) {
             banButtonHTML = `<button class="ban-button" onclick="banUser(${JSON.stringify(msgData.username)})">Ban</button>`;
           }
           if (showTimestamps) {
@@ -489,6 +501,10 @@
       if (autoScroll) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
+    }
+    // Helper function to convert text to hashtags (non-space characters become "#")
+    function hashText(text) {
+      return text.split('').map(ch => ch === ' ' ? ' ' : '#').join('');
     }
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
@@ -689,11 +705,8 @@
       window.location.href = composeURL;
       closeEmailModal();
     }
-    // ---------- Ban functionality for privileged users ----------
     function banUser(username) {
-      // Confirm banning
       if (!confirm("Are you sure you want to ban " + username + "?")) return;
-      // Add an entry to "bannedUsers" collection (use normalized username)
       window.db.collection("bannedUsers").doc(username.toLowerCase()).set({
         username: username,
         bannedAt: firebase.firestore.FieldValue.serverTimestamp()
