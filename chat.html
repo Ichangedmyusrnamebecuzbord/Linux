@@ -10,10 +10,9 @@
       font-family: Arial, sans-serif;
       background-color: #121212;
       color: white;
+      text-align: center;
       padding: 20px;
-      position: relative;
     }
-    /* Chat box in center */
     #chat-box {
       width: 80%;
       max-width: 600px;
@@ -29,16 +28,14 @@
       cursor: pointer;
       position: relative;
     }
-    /* Message input & Send button */
     input {
       width: 70%;
       padding: 10px;
-      margin: 10px auto 0 auto;
+      margin-top: 10px;
       border-radius: 5px;
       border: none;
       background: #333;
       color: white;
-      display: block;
     }
     button {
       padding: 10px;
@@ -71,42 +68,6 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-    }
-    /* Active Users List – positioned to the right */
-    #active-users-list {
-      position: absolute;
-      top: 100px;
-      right: 20px;
-      width: 200px;
-      background: #333;
-      padding: 10px;
-      border-radius: 5px;
-      text-align: left;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    #active-users-list h2 {
-      font-size: 1em;
-      margin: 0 0 10px 0;
-    }
-    .active-user {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 0;
-      font-size: 0.9em;
-      color: #fff;
-    }
-    .active-user .kick-btn {
-      display: none;
-      cursor: pointer;
-      color: red;
-      font-weight: bold;
-      margin-left: 5px;
-    }
-    /* Show kick button on hover if viewer is privileged */
-    .active-user:hover .kick-btn {
-      display: inline;
     }
     /* Message styling */
     .message-line {
@@ -149,7 +110,7 @@
       border-radius: 5px;
       display: inline-block;
     }
-    /* Privileged bubble styling based on sender */
+    /* Privileged bubble: orange background + yellow glow */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -167,7 +128,7 @@
       margin: 0 5px;
       align-self: center;
     }
-    /* Strikethrough deletion effect (for viewer) */
+    /* Strikethrough on hover if local viewer is privileged */
     .delete-hover:hover {
       cursor: pointer;
     }
@@ -298,6 +259,7 @@
       const linkRegex = /https?:\/\/\S+/i;
       return linkRegex.test(text);
     }
+
     function formatMessageText(text) {
       const urlRegex = /(\b(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]))/ig;
       return text.replace(urlRegex, '<a href="$1" target="_blank" class="message-link">$1</a>');
@@ -315,22 +277,19 @@
 </head>
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
-  <h1>Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span></h1>
+  <h1>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span>
+  </h1>
   <div id="username-container">
     <span id="username-display"></span>
+    <!-- Both buttons styled identically -->
     <button id="change-username-button" style="padding: 5px 10px; font-size: 14px;">Change Username</button>
     <button id="privileged-button" style="padding: 5px 10px; font-size: 14px;"></button>
   </div>
-  
-  <!-- Chat box -->
   <div id="chat-box"></div>
-  
   <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
   <button onclick="sendMessage()">Send</button>
   <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
-  
-  <!-- Active Users List -->
-  <div id="active-users-list"></div>
   
   <!-- Feature Request Modal -->
   <div id="feature-modal" class="modal-overlay">
@@ -403,7 +362,7 @@
     </div>
   </div>
   
-  <!-- Message Block Error Modal -->
+  <!-- Modal for message block error -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Message Blocked</h2>
@@ -413,81 +372,29 @@
       </div>
     </div>
   </div>
-  
-  <!-- Delete Confirmation Modal for messages with links -->
+
+  <!-- Modal for link message deletion confirmation -->
   <div id="delete-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Delete Link Message?</h2>
-      <p>This message contains a link. Are you sure you want to delete it?</p>
+      <p>This message has a link. Are you sure you want to delete it?</p>
       <div class="modal-buttons">
         <button id="delete-confirm-button">Yes</button>
         <button id="delete-cancel-button">No</button>
       </div>
     </div>
   </div>
-  
+
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
-    let docIdToDelete = null;
+    let docIdToDelete = null; // store doc ID for link-based confirmation
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
-    }
-
-    // Listen for changes on current user's active doc (to detect kicks)
-    function listenForKick(activeUserDocId) {
-      window.db.collection("activeUsers").doc(activeUserDocId)
-        .onSnapshot(function(doc) {
-          if (!doc.exists) {
-            document.getElementById("chat-box").innerHTML =
-              `<div style="color: red; margin-top: 50px; font-size: 1.2em;">You have been kicked. Think about what you did.</div>`;
-            document.getElementById("message").disabled = true;
-            // Optionally, disable send button if you have one
-          }
-        });
-    }
-
-    // Update active users list on the right
-    function updateActiveUsersList() {
-      window.db.collection("activeUsers")
-        .onSnapshot(function(snapshot) {
-          const activeUsersList = document.getElementById("active-users-list");
-          activeUsersList.innerHTML = "<h2>Active Users</h2>";
-          snapshot.forEach(function(doc) {
-            const userData = doc.data();
-            const userDiv = document.createElement("div");
-            userDiv.className = "active-user";
-            userDiv.innerHTML = `<span>${userData.username}</span>`;
-            // If viewer is privileged and this is not current user, add a kick button
-            if (sessionStorage.getItem("isPrivileged") === "true" && userData.username !== tempUsername) {
-              const kickBtn = document.createElement("span");
-              kickBtn.className = "kick-btn";
-              kickBtn.textContent = "X";
-              kickBtn.title = "Kick User";
-              kickBtn.onclick = function() {
-                window.db.collection("activeUsers").doc(doc.id).delete()
-                  .then(() => {
-                    // Optionally post a system message in chat
-                    window.db.collection("messages").add({
-                      username: "System",
-                      text: `${userData.username} has been kicked. Think about what you did.`,
-                      isPrivileged: false,
-                      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                  })
-                  .catch(err => {
-                    console.error("Error kicking user:", err);
-                  });
-              };
-              userDiv.appendChild(kickBtn);
-            }
-            activeUsersList.appendChild(userDiv);
-          });
-        });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -552,9 +459,6 @@
         });
       });
 
-      // Listen for kick events for current user
-      listenForKick(activeUserDocId);
-      
       // Listen for new messages
       window.db.collection("messages")
         .orderBy("timestamp")
@@ -562,9 +466,6 @@
           cachedMessages = snapshot.docs;
           renderMessages(true);
         });
-
-      // Update active users list
-      updateActiveUsersList();
 
       updatePrivilegedButton();
     });
@@ -581,54 +482,72 @@
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
 
-        // For non-privileged viewers, show only today's messages
+        // Non-privileged viewer sees only today's messages
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
           if (msgPSTDate !== currentPSTDate) return;
         }
 
+        // Create container for the message
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
 
+        // Format the timestamp
         const timestamp = new Date(msgTime).toLocaleString(undefined, {
           year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
+        // Convert URLs into clickable links
         const formattedText = formatMessageText(msgData.text);
 
+        // Determine bubble color based on SENDER's privilege
         let bubbleClass;
         if (msgData.username === tempUsername) {
+          // My own message
           messageDiv.classList.add("my-message");
-          bubbleClass = msgData.isPrivileged ? "my-bubble privileged" : "my-bubble-nonprivileged";
+          bubbleClass = msgData.isPrivileged
+            ? "my-bubble privileged"
+            : "my-bubble-nonprivileged";
         } else {
+          // Another user's message
           messageDiv.classList.add("other-message");
-          bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
+          bubbleClass = msgData.isPrivileged
+            ? "other-bubble privileged"
+            : "other-bubble";
         }
 
+        // Build the bubble content
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
+
+        // If local viewer is privileged, wrap in a clickable <span>
+        // that triggers message deletion
         if (isViewerPrivileged) {
           bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
         }
 
+        // If it's my own message
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              ${bubbleHTML}
-              <div class="timestamp">${timestamp}</div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                ${bubbleHTML}
+                <div class="timestamp">${timestamp}</div>
+              </div>`;
           } else {
             messageDiv.innerHTML = bubbleHTML;
           }
         } else {
+          // Another user's message
           const nameHTML = `<div class="other-username${msgData.isPrivileged ? " privileged-username" : ""}">${msgData.username}</div>`;
           if (showTimestamps) {
-            messageDiv.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="timestamp">${timestamp}</div>
-              <div style="text-align: left;">
-                ${nameHTML}
-                ${bubbleHTML}
-              </div>
-            </div>`;
+            messageDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="timestamp">${timestamp}</div>
+                <div style="text-align: left;">
+                  ${nameHTML}
+                  ${bubbleHTML}
+                </div>
+              </div>`;
           } else {
             messageDiv.innerHTML = nameHTML + bubbleHTML;
           }
@@ -648,16 +567,19 @@
       }
     }
 
-    // If the message has a link, show the in-site delete confirmation modal; otherwise, delete immediately.
+    // If the message has a link, show site-based modal. Otherwise, delete immediately.
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
+      // If message text includes a link, show a custom modal
       if (messageContainsLink(text)) {
         window.docIdToDelete = docId;
         document.getElementById("delete-modal").style.display = "flex";
       } else {
+        // No link, just delete
         doDelete(docId);
       }
     }
+
     function doDelete(docId) {
       window.db.collection("messages").doc(docId).delete()
         .then(() => {
@@ -667,6 +589,8 @@
           console.error("Error deleting message:", err);
         });
     }
+
+    // Link delete modal
     document.getElementById("delete-confirm-button").addEventListener("click", function() {
       document.getElementById("delete-modal").style.display = "none";
       if (window.docIdToDelete) {
@@ -679,7 +603,7 @@
       window.docIdToDelete = null;
     });
 
-    // Toggle timestamps when clicking on chat-box background
+    // Toggling timestamps by clicking the chat background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -690,17 +614,24 @@
     function updatePrivilegedButton() {
       const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const button = document.getElementById("privileged-button");
-      button.textContent = isPrivileged ? "Log Out" : "Login (for admin use)";
+      if (isPrivileged) {
+        button.textContent = "Log Out";
+      } else {
+        button.textContent = "Login (for admin use)";
+      }
     }
+
     document.addEventListener("DOMContentLoaded", function() {
       const privilegedButton = document.getElementById("privileged-button");
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
+          // Log out
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
+          // Show the login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
@@ -759,7 +690,75 @@
       document.getElementById("privileged-success-modal").style.display = "none";
     });
 
-    // Listen for Message Block Error Modal
+    // Blocked words
+    let blockedNames = [];
+    fetch("blacklistwords.txt")
+      .then(response => response.text())
+      .then(data => {
+        blockedNames = data.split(/\r?\n/).map(s => s.trim().toLowerCase().replace(/\/+$/, "")).filter(word => word.length > 0);
+        console.log("Blocked words file loaded.");
+      })
+      .catch(err => console.error("Failed to load blocked words:", err));
+    const privilegedNames = ["mally", "ij", "malcom", "admin"];
+    const reservedNames = ["mally", "ij", "malcom", "admin"];
+
+    saveUsernameButton.addEventListener("click", function() {
+      let newUsername = newUsernameInput.value.trim();
+      if (!newUsername) {
+        usernameError.textContent = "Username cannot be empty.";
+        return;
+      }
+      let normalizedNewUsername = newUsername.toLowerCase().replace(/\/+$/, "");
+      for (let blocked of blockedNames) {
+        if (normalizedNewUsername.includes(blocked)) {
+          usernameError.textContent = "That username is blocked.";
+          return;
+        }
+      }
+      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
+      if (reservedNames.includes(normalizedNewUsername) && !isPrivileged) {
+        usernameError.textContent = "That username is reserved for privileged users.";
+        return;
+      }
+      const chatSession = sessionStorage.getItem("chatSession");
+      const activeUserDocId = "active_" + chatSession;
+      window.db.collection("activeUsers")
+        .where("username", "==", newUsername)
+        .get()
+        .then(snapshot => {
+          let conflict = false;
+          snapshot.forEach(doc => {
+            if (doc.id !== activeUserDocId) {
+              conflict = true;
+            }
+          });
+          if (conflict) {
+            usernameError.textContent = "That username is already taken by an active user. Please choose another.";
+          } else {
+            window.db.collection("activeUsers").doc(activeUserDocId)
+              .update({
+                username: newUsername,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .then(() => {
+                tempUsername = newUsername;
+                sessionStorage.setItem("tempUsername", tempUsername);
+                document.getElementById("username-display").textContent = "You are: " + tempUsername;
+                usernameModal.style.display = "none";
+              })
+              .catch(error => {
+                console.error("Error updating username:", error);
+                usernameError.textContent = "Error updating username. Please try again.";
+              });
+          }
+        })
+        .catch(error => {
+          console.error("Error checking username uniqueness:", error);
+          usernameError.textContent = "Error checking username. Please try again.";
+        });
+    });
+
+    // Message Block Error
     const messageErrorModal = document.getElementById("message-error-modal");
     const messageErrorText = document.getElementById("message-error-text");
     const dismissMessageErrorButton = document.getElementById("dismiss-message-error-button");
@@ -798,7 +797,7 @@
       });
     }
 
-    // Feature Request Modals
+    // Feature Request
     function openFeatureModal() {
       document.getElementById("feature-modal").style.display = "flex";
     }
