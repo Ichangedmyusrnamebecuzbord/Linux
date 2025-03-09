@@ -891,8 +891,8 @@
         return;
       }
 for (let blocked of blockedNames) {
-  // Create a regex that matches the banned word as a whole word, case-insensitive
-  const regex = new RegExp(`\\b${blocked}\\b`, 'i');
+  // The regex matches the banned word at a word boundary, not followed by any letter.
+  const regex = new RegExp(`\\b${blocked}(?![a-zA-Z])`, 'i');
   if (regex.test(message)) {
     messageErrorText.textContent = `Your message contains a banned word: ${blocked}`;
     messageErrorModal.style.display = "flex";
