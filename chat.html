@@ -278,7 +278,7 @@
 <body>
   <a href="Home.html" class="back-button">⬅ Back</a>
   <h1>
-    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.8</span>
+    Chat Room <span style="font-size: 0.6em; color: #aaa; vertical-align: middle;">v1.0.9</span>
   </h1>
   <div id="username-container">
     <span id="username-display"></span>
@@ -362,7 +362,7 @@
     </div>
   </div>
   
-  <!-- Message Block Error Modal -->
+  <!-- Modal for message block error -->
   <div id="message-error-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Message Blocked</h2>
@@ -372,11 +372,24 @@
       </div>
     </div>
   </div>
-  
+
+  <!-- Modal for link message deletion confirmation -->
+  <div id="delete-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Delete Link Message?</h2>
+      <p>This message has a link. Are you sure you want to delete it?</p>
+      <div class="modal-buttons">
+        <button id="delete-confirm-button">Yes</button>
+        <button id="delete-cancel-button">No</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let showTimestamps = false;
     let cachedMessages = [];
     let tempUsername;
+    let docIdToDelete = null; // store doc ID for link-based confirmation
     const secretCode = "theLandbefore4.0";
 
     function getQueryParam(param) {
@@ -554,16 +567,20 @@
       }
     }
 
-    // Updated deleteMessage to skip confirm unless there's a link
+    // If the message has a link, show site-based modal. Otherwise, delete immediately.
     function deleteMessage(docId, rawText) {
       const text = decodeURIComponent(rawText || "");
-      // If message text includes a link, confirm
+      // If message text includes a link, show a custom modal
       if (messageContainsLink(text)) {
-        if (!confirm("This message has a link. Are you sure you want to delete it?")) {
-          return;
-        }
+        window.docIdToDelete = docId;
+        document.getElementById("delete-modal").style.display = "flex";
+      } else {
+        // No link, just delete
+        doDelete(docId);
       }
-      // Otherwise, delete right away
+    }
+
+    function doDelete(docId) {
       window.db.collection("messages").doc(docId).delete()
         .then(() => {
           console.log("Message deleted successfully.");
@@ -573,6 +590,20 @@
         });
     }
 
+    // Link delete modal
+    document.getElementById("delete-confirm-button").addEventListener("click", function() {
+      document.getElementById("delete-modal").style.display = "none";
+      if (window.docIdToDelete) {
+        doDelete(window.docIdToDelete);
+        window.docIdToDelete = null;
+      }
+    });
+    document.getElementById("delete-cancel-button").addEventListener("click", function() {
+      document.getElementById("delete-modal").style.display = "none";
+      window.docIdToDelete = null;
+    });
+
+    // Toggling timestamps by clicking the chat background
     document.getElementById("chat-box").addEventListener("click", function(e) {
       if (e.target === this) {
         showTimestamps = !showTimestamps;
@@ -595,10 +626,12 @@
       privilegedButton.addEventListener("click", function() {
         const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
         if (isPrivileged) {
+          // Log out
           sessionStorage.removeItem("isPrivileged");
           sessionStorage.removeItem("tempUsername");
           location.reload();
         } else {
+          // Show the login modal
           document.getElementById("privileged-modal").style.display = "flex";
         }
       });
