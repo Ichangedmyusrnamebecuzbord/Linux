@@ -25,7 +25,7 @@
       border-radius: 5px;
       text-decoration: none;
       font-size: 18px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     /* Username header */
     #username-container {
@@ -209,7 +209,7 @@
       border-left: 2px solid #bbb;
       height: 10px;
     }
-    /* Privileged message bubble styling */
+    /* Privileged bubble styling */
     .privileged {
       background-color: orange !important;
       color: white !important;
@@ -339,7 +339,8 @@
     let devtoolsOpen = false;
     const checkDevTools = () => {
       const threshold = 160;
-      if ((window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold)) {
+      if ((window.outerWidth - window.innerWidth > threshold) ||
+          (window.outerHeight - window.innerHeight > threshold)) {
         devtoolsOpen = true;
         window.location.replace("https://www.google.com");
       } else {
@@ -365,7 +366,7 @@
   </script>
 
   <script>
-    const currentPSTDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+    const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
     const storedDate = sessionStorage.getItem("usernameDate");
     if (storedDate !== currentPSTDate) {
       sessionStorage.removeItem("tempUsername");
@@ -594,7 +595,7 @@
       updateActiveUsersList();
       listenForKickedStatus();
 
-      // Background click: if in reply mode, clear it; otherwise toggle timestamps
+      /* Background click: if in reply focus mode, clear it; otherwise toggle timestamps */
       document.getElementById("chat-box").addEventListener("click", function(e) {
         if (!e.target.closest(".message-line")) {
           if (replyFocusDocId) {
@@ -604,6 +605,19 @@
             renderMessages(false);
           }
         }
+      });
+
+      /* Bind delete modal buttons */
+      document.getElementById("delete-confirm-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        if (window.docIdToDelete) {
+          doDelete(window.docIdToDelete);
+          window.docIdToDelete = null;
+        }
+      });
+      document.getElementById("delete-cancel-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        window.docIdToDelete = null;
       });
     });
 
@@ -618,19 +632,19 @@
       chatBox.innerHTML = "";
       const isViewerPrivileged = sessionStorage.getItem("isPrivileged") === "true";
       const currentPSTDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
-      
+
       if (replyFocusDocId) {
         chatBox.classList.add("reply-focus");
       } else {
         chatBox.classList.remove("reply-focus");
       }
-      
-      let displayedCount = 0;
 
+      let displayedCount = 0;
       cachedMessages.forEach(function(doc) {
         const msgData = doc.data();
         if (!msgData.timestamp) return;
         const msgTime = msgData.timestamp.toMillis();
+
         if (!isViewerPrivileged) {
           const msgPSTDate = new Date(msgTime).toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
           if (msgPSTDate !== currentPSTDate) return;
@@ -638,7 +652,6 @@
 
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message-line");
-        // If this is the message we're replying to, mark it specially.
         if (doc.id === replyFocusDocId) {
           messageDiv.classList.add("reply-focus-target");
         }
@@ -660,23 +673,20 @@
           bubbleClass = msgData.isPrivileged ? "other-bubble privileged" : "other-bubble";
         }
 
-        // Build reply snippet if applicable
         let snippetHTML = "";
         if (msgData.replyToDocId) {
-          // Determine additional class based on sender (your message vs others)
           const replyClass = (msgData.username === tempUsername) ? "reply-snippet your-reply" : "reply-snippet other-reply";
-          // Use stored snippet or fallback to a substring
-          const snippet = msgData.replyToSnippet || "Replied message...";
+          const snippet = msgData.replyToSnippet || (msgData.replyToDocId ? "Replied message..." : "");
           snippetHTML = `<div class="${replyClass}">${snippet}</div>`;
         }
 
         let bubbleHTML = `<div class="${bubbleClass}">${formattedText}</div>`;
-
-        // For messages from others, add a reply arrow
         if (msgData.username !== tempUsername) {
           bubbleHTML += `<button class="reply-arrow" onclick="startReplyFocus('${doc.id}')">&#8617;</button>`;
         }
-
+        if (isViewerPrivileged) {
+          bubbleHTML = `<span class="delete-hover" onclick="deleteMessage('${doc.id}', '${encodeURIComponent(msgData.text || "")}')">${bubbleHTML}</span>`;
+        }
         if (msgData.username === tempUsername) {
           if (showTimestamps) {
             messageDiv.innerHTML = snippetHTML + `
@@ -785,16 +795,20 @@
       .then(() => { console.log("Message deleted successfully."); })
       .catch(err => { console.error("Error deleting message:", err); });
     }
-    document.getElementById("delete-confirm-button").addEventListener("click", function() {
-      document.getElementById("delete-modal").style.display = "none";
-      if (window.docIdToDelete) {
-        doDelete(window.docIdToDelete);
+
+    /* Bind delete modal buttons after DOM loads */
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("delete-confirm-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
+        if (window.docIdToDelete) {
+          doDelete(window.docIdToDelete);
+          window.docIdToDelete = null;
+        }
+      });
+      document.getElementById("delete-cancel-button").addEventListener("click", function() {
+        document.getElementById("delete-modal").style.display = "none";
         window.docIdToDelete = null;
-      }
-    });
-    document.getElementById("delete-cancel-button").addEventListener("click", function() {
-      document.getElementById("delete-modal").style.display = "none";
-      window.docIdToDelete = null;
+      });
     });
 
     function updatePrivilegedButton() {
@@ -1003,87 +1017,6 @@
     dismissMessageErrorButton.addEventListener("click", function() {
       messageErrorModal.style.display = "none";
     });
-
-    function sendMessage() {
-      const messageInput = document.getElementById("message");
-      const message = messageInput.value.trim();
-      if (message === "") {
-        console.warn("⚠️ Empty message - Not sending");
-        return;
-      }
-      for (let blocked of blockedNames) {
-        if (message.toLowerCase().includes(blocked)) {
-          messageErrorText.textContent = `Your message contains a blocked word: ${blocked}`;
-          messageErrorModal.style.display = "flex";
-          return;
-        }
-      }
-      const isPrivileged = sessionStorage.getItem("isPrivileged") === "true";
-      let newMsgData = {
-        username: tempUsername,
-        text: message,
-        isPrivileged: isPrivileged,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      if (replyFocusDocId) {
-        newMsgData.replyToDocId = replyFocusDocId;
-        newMsgData.replyToSnippet = replyFocusSnippet;
-      }
-      window.db.collection("messages").add(newMsgData)
-      .then(() => {
-        console.log("✅ Message Sent Successfully!");
-        messageInput.value = "";
-        clearReplyFocus();
-      })
-      .catch((error) => {
-        console.error("❌ Error Sending Message:", error);
-      });
-    }
-
-    function openFeatureModal() {
-      document.getElementById("feature-modal").style.display = "flex";
-    }
-    function closeEmailModal() {
-      document.getElementById("email-provider-modal").style.display = "none";
-    }
-    document.getElementById("cancel-feature-button").addEventListener("click", function() {
-      document.getElementById("feature-modal").style.display = "none";
-    });
-    document.getElementById("submit-feature-button").addEventListener("click", function() {
-      const featureText = document.getElementById("feature-text").value.trim();
-      const featureErrorEl = document.getElementById("feature-error");
-      if (!featureText) {
-        featureErrorEl.textContent = "Please enter your feature request.";
-        return;
-      }
-      featureErrorEl.textContent = "";
-      const currentDate = new Date().toLocaleString(undefined, {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-      const subject = encodeURIComponent(`Feature Request (${currentDate})`);
-      const body = encodeURIComponent(featureText);
-      window.featureEmailSubject = subject;
-      window.featureEmailBody = body;
-      document.getElementById("feature-modal").style.display = "none";
-      document.getElementById("email-provider-modal").style.display = "flex";
-    });
-    function sendEmail(provider) {
-      const recipient = "mallysusgaming@gmail.com";
-      let composeURL = "";
-      if (provider === "gmail") {
-        composeURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      } else if (provider === "outlook") {
-        composeURL = `https://outlook.live.com/owa/?path=/mail/action/compose&to=${recipient}&subject=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      } else if (provider === "yahoo") {
-        composeURL = `https://compose.mail.yahoo.com/?to=${recipient}&subj=${window.featureEmailSubject}&body=${window.featureEmailBody}`;
-      }
-      window.location.href = composeURL;
-      closeEmailModal();
-    }
   </script>
 </body>
 </html>
