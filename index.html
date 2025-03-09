@@ -95,10 +95,8 @@
 </audio>
 <body onclick="openGame()">
 
-    <!-- Click to start screen (only if pop-ups are blocked) -->
-    <div id="click-to-start" onclick="openGame()">Click anywhere to start Mally's Sus Gaming or open pop-ups</div>
-
-    <!-- Loading Screen -->
+  
+ 
     <div id="loading-screen">
         <div class="loader"></div>
         <p>Loading Mally's Sus Gaming...</p>
@@ -111,63 +109,10 @@
         document.addEventListener("DOMContentLoaded", () => {
             console.log("DOMContentLoaded event fired");
 
-            const clickToStart = document.getElementById("click-to-start");
-            let popupBlocked = false;
 
-            // Check if pop-ups are allowed by opening a test window
-            try {
-                let testWin = window.open("", "_blank");
-                if (!testWin || testWin.closed || typeof testWin.closed === "undefined") {
-                    popupBlocked = true; // Pop-ups are blocked
-                } else {
-                    testWin.close(); // Pop-ups are allowed, close test window
-                }
-            } catch (err) {
-                popupBlocked = true;
-            }
-
-            if (popupBlocked) {
-                console.log("Popups are blocked. User must click to start.");
-                clickToStart.style.display = "flex"; // Show "Click to start" screen
-            } else {
-                console.log("Popups are allowed. Starting game automatically.");
-                startGame();
-            }
-        });
-
-        function startGame() {
-            document.getElementById("click-to-start").style.display = "none"; // Hide the click-to-start screen
-
-            // Start the progress bar animation
-            const progressBar = document.getElementById("progress-bar");
-            progressBar.style.width = "100%";  // Fill the bar over 5 seconds
-
-            // After 5 seconds, automatically load the game in a new window
-            setTimeout(() => {
-                openGame(); // Trigger openGame to open Home.html in a new window
-            }, 3000); // Wait for 5 seconds before automatically opening the game
-        }
 
 function openGame() {
-    var win = window.open();
-    var url = "Home.html";
-    
-    win.document.write('<html><head><title>Mally\'s Sus Gaming</title><style>body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style></head><body></body></html>');
-    
-    var link = win.document.createElement('link');
-    link.rel = 'icon';
-    link.type = 'image/x-icon';
-    link.href = 'https://msg2.pages.dev/IMGS/MSG.png';
-    win.document.head.appendChild(link); // Append favicon after writing document
-
-    var iframe = win.document.createElement('iframe');
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.src = url;
-    win.document.body.appendChild(iframe);
-    
-    location.replace("https://launchpad.classlink.com/lwsd");
+  window.location.replace("https://msg2.pages.dev/Home");
 }
 
          
