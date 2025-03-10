@@ -35,6 +35,44 @@
       align-items: center;
       gap: 10px;
     }
+    .username-emoji-btn {
+  height: 35px; /* Match button size */
+  padding: 5px 10px;
+  font-size: 18px;
+  background: #bbb; /* Light gray */
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: auto; /* Pushes to the left */
+}
+
+/* Emoji Panel inside Username Modal */
+.emoji-panel {
+  display: none;
+  position: absolute;
+  background: #333;
+  border: 1px solid #555;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 320px;
+  max-height: 200px;
+  overflow-y: auto;
+  left: 10px; /* Moves it under the emoji button */
+  bottom: -160px; /* Opens downward */
+  z-index: 1000;
+}
+
+/* Individual Emojis */
+.emoji-panel span {
+  font-size: 22px;
+  cursor: pointer;
+  margin: 5px;
+  display: inline-block;
+}
+.emoji-panel span:hover {
+  transform: scale(1.2);
+}
     /* Container for chat & user list side by side, both bottom-aligned */
     #chat-container {
       display: flex;
@@ -317,21 +355,6 @@
   font-size: 24px;
   margin: 5px;
   display: inline-block;
-}
-/* Emoji Button inside Username Modal */
-.username-emoji-btn {
-  height: 35px; /* Match button size */
-  padding: 0 12px;
-  font-size: 18px;
-  background: #bbb; /* Light gray */
-  color: black;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px; /* Space from error message */
-  position: absolute;
-  left: 15px; /* Align to bottom-left */
-  bottom: 15px;
 }
   </style>
   <!-- Developer Tools Blocking Script -->
