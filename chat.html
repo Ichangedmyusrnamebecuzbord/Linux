@@ -460,24 +460,24 @@
     <input type="text" id="new-username-input" placeholder="Enter new username...">
     <p id="username-error" class="error-message"></p>
 
-    <!-- Container for buttons to align correctly -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-      <!-- Emoji Button (Now correctly positioned) -->
-      <button id="username-emoji-button" style="
-          background: #ccc;
-          border-radius: 5px;
-          padding: 6px;
-          cursor: pointer;
-          font-size: 18px;
-        ">
-        😊
-      </button>
-
-      <div>
-        <button id="save-username-button">Save</button>
-        <button id="cancel-username-button">Cancel</button>
-      </div>
+    <!-- Save & Cancel Buttons (Moved Back to Original Position) -->
+    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+      <button id="save-username-button">Save</button>
+      <button id="cancel-username-button">Cancel</button>
     </div>
+
+    <!-- Emoji Button (Now Correctly Positioned Below Save/Cancel) -->
+    <button id="username-emoji-button" style="
+        background: #ccc;
+        border-radius: 5px;
+        padding: 6px;
+        cursor: pointer;
+        font-size: 18px;
+        margin-top: 10px;
+        display: block;
+      ">
+      😀
+    </button>
 
     <div id="username-emoji-picker" class="emoji-picker"></div>
   </div>
