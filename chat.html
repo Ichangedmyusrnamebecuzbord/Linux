@@ -218,6 +218,18 @@
       box-sizing: border-box;
       text-align: center;
     }
+        /* Emoji Button inside Username Popup */
+#username-emoji-button {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: #ccc;
+    border-radius: 5px;
+    padding: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    border: none;
+}
     .modal-box h2 {
       margin-top: 0;
       margin-bottom: 10px;
@@ -317,18 +329,6 @@
   font-size: 24px;
   margin: 5px;
   display: inline-block;
-}
-    /* Emoji Button inside Username Popup */
-#username-emoji-button {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    background: #ccc;
-    border-radius: 5px;
-    padding: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    border: none;
 }
 
   </style>
@@ -457,7 +457,9 @@
         <h2>Change Username</h2>
         <input type="text" id="new-username-input" placeholder="Enter new username...">
         <p id="username-error" class="error-message"></p>
+      
         <button id="username-emoji-button">😀</button>
+      
         <div class="modal-buttons">
             <button id="save-username-button">Save</button>
             <button id="cancel-username-button">Cancel</button>
