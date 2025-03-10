@@ -321,13 +321,14 @@
     /* Emoji Button inside Username Popup */
 #username-emoji-button {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+    bottom: 15px;
+    left: 15px;
     background: #ccc;
     border-radius: 5px;
     padding: 6px;
     cursor: pointer;
     font-size: 18px;
+    border: none;
 }
 
   </style>
@@ -452,31 +453,16 @@
   
   <!-- Username Change Modal -->
 <div id="username-modal" class="modal-overlay">
-  <div class="modal-box">
-    <h2>Change Username</h2>
-
-    <div style="display: flex; align-items: center; gap: 5px;">
-      <input type="text" id="new-username-input" placeholder="Enter new username..." style="flex-grow: 1;">
-      <button id="username-emoji-button" style="
-        background: #ccc;
-        border-radius: 5px;
-        padding: 6px;
-        cursor: pointer;
-        font-size: 18px;
-      ">😊</button>
+    <div class="modal-box">
+        <h2>Change Username</h2>
+        <input type="text" id="new-username-input" placeholder="Enter new username...">
+        <p id="username-error" class="error-message"></p>
+        <button id="username-emoji-button">😀</button>
+        <div class="modal-buttons">
+            <button id="save-username-button">Save</button>
+            <button id="cancel-username-button">Cancel</button>
+        </div>
     </div>
-
-    <p id="username-error" class="error-message"></p>
-
-    <!-- Save & Cancel Buttons (Aligned to Right) -->
-    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-      <button id="save-username-button">Save</button>
-      <button id="cancel-username-button">Cancel</button>
-    </div>
-
-    <!-- Emoji Picker -->
-    <div id="username-emoji-picker" class="emoji-picker"></div>
-  </div>
 </div>
   
   <!-- Privileged Login Modal -->
