@@ -51,6 +51,7 @@
 }
 
 /* Emoji Panel: Properly Positioned Above */
+/* Emoji Panel: Opens BELOW button, no horizontal scrollbar */
 .emoji-panel {
   display: none;
   position: absolute;
@@ -58,15 +59,30 @@
   border: 1px solid #555;
   padding: 10px;
   border-radius: 5px;
-  width: 180px; /* Adjusted */
+  width: 160px; /* Adjust width for 4 per row */
   max-height: 150px;
-  overflow-y: auto;
+  overflow-y: auto; /* Only vertical scrolling */
   left: 0;
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* 4 per row */
   gap: 5px;
   justify-items: center;
+}
+
+/* Emoji Button (Same Size as Save & Cancel) */
+.username-emoji-btn {
+  height: 35px;
+  width: 40px;
+  font-size: 18px;
+  background: #bbb;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Emoji Styling */
@@ -1159,7 +1175,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const emojiPanel = document.getElementById("username-emoji-panel");
 
   // List of Emojis
-  const usernameEmojis = "😀😂😎😍😢👍👎🙌🎉🔥💯🥳🤔😜🤩🥺😡😇🤗🎃👻💀🦇🎈🥂🍕🎮🚀🏆";
+  const usernameEmojis = "😀😃😄😁😆🥹😅😂🤣😍😌😉🙃🙂😇😊☺️🥲🥰😘😗😙😚😋😛😝😜😏🥳🤩🥸😎🤓🧐🤨🤪😒😞😔😟😕🙁☹️😣😖🤬😡😠😤😭😢🥺😩😫🤯😳🥵🥶😶‍🌫️😱😨😰😥🫠🤫🫡🫢🤭🫣🤔🤗😓🤥😶🫥😐🫤😑😬🙄😯😮‍💨😪🤤😴🥱😲😮😧😦😵😵‍💫🤐🥴🤢🤮🤧😷🤒💩🤡👺👹👿😈🤠🤑🤕👻💀☠️👽👾🤖🎃😺😸🤲🫶😾😿🙀😽😼😻😹👐🙌👏🤝👍👎✊🤛👊🤏🤌👌🤘🤟🫰✌️🤞🤜🫳🫴👈👉👆👇☝️✋🤚🦾💪🫱🫲🤙👋🖖🖐✍️🙏🫵🦶🦵🦿💄💋👄👀👁👣👃🦻👂👅🦷🫦🫀🫁🧠🗣👤👥🫂👶👧👩‍🦰👨‍🦱🧑‍🦱👩‍🦱👨🧑👩👦🧒🧑‍🦰👨‍🦰👱‍♀️👱👱‍♂️👩‍🦳🧑‍🦳👨‍🦳👩‍🦲👲👴🧓👵🧔‍♂️🧔🧔‍♀️👨‍🦲🧑‍🦲👳‍♀️👳👳‍♂️🧕👮‍♀️👮👮‍♂️👷‍♀️👷🧑‍⚕️👩‍⚕️🕵️‍♂️🕵️🕵️‍♀️💂‍♂️💂💂‍♀️👷‍♂️👨‍⚕️👩‍🌾🧑‍🌾👩‍🍳🧑‍🍳👨‍🍳👩‍🎓🧑‍🎓👨‍🌾🧑‍🏭👩‍🏭👨‍🏫🧑‍🏫👩‍🏫👨‍🎤🧑‍🎤👩‍🎤👨‍🎓👨‍🏭👩‍💻🧑‍💻👨‍💻👩‍💼🧑‍💼👨‍💼👩‍🔧🧑‍🔧🧑‍🚒👩‍🚒👨‍🎨🧑‍🎨👩‍🎨👨‍🔬🧑‍🔬👩‍🔬👨‍🔧👨‍🚒👩‍✈️🧑‍✈️👨‍✈️👩‍🚀🧑‍🚀👨‍🚀👩‍⚖️🧑‍⚖️🫅👸🤵‍♂️🤵🤵‍♀️👰‍♂️👰👰‍♀️👨‍⚖️🤴🥷🦸‍♀️🦸🦸‍♂️🦹🦹‍♂️🤶🦹‍♀️🧌🧝‍♂️🧝🧝‍♀️🧙‍♂️🧙🧙‍♀️🎅🧑‍🎄🧛‍♀️🧛🧛‍♂️🧟‍♀️🧟🧟‍♂️🧞‍♀️🧞🧞‍♂️🫄🤰👼🧚‍♂️🧚🧚‍♀️🧜‍♂️🧜🧜‍♀️🫃🤱👩‍🍼🧑‍🍼👨‍🍼🙇‍♀️🙇🙇‍♂️💁‍♀️🙋‍♀️🙆‍♂️🙆🙆‍♀️🙅‍♂️🙅🙅‍♀️💁‍♂️💁🙋🙋‍♂️🧏‍♀️🧏🧏‍♂️🤦‍♀️🤦🤦‍♂️🤷‍♀️💇‍♀️🙍‍♂️🙍🙍‍♀️🙎‍♂️🙎🙎‍♀️🤷‍♂️🤷💇💇‍♂️💆‍♀️💆💆‍♂️🧖‍♀️🧖🧖‍♂️💅🧑‍🦽👩‍🦽🕴👯‍♂️👯👯‍♀️🕺💃🤳👨‍🦽🧑‍🦼👨‍🦼🚶‍♀️🚶🚶‍♂️👩‍🦯🧑‍🦯🧍🧍‍♀️🏃‍♂️🏃🏃‍♀️🧎‍♂️🧎🧎‍♀️👨‍🦯🧍‍♂️👫👭👬👩‍❤️‍👨👩‍❤️‍👩💑👨‍❤️‍👨👩‍❤️‍💋‍👨👩‍👩‍👦👨‍👩‍👧‍👧👨‍👩‍👦‍👦👨‍👩‍👧‍👦👨‍👩‍👧👨‍👩‍👦👨‍❤️‍💋‍👨💏👩‍❤️‍💋‍👩👩‍👩‍👧👩‍👩‍👧‍👦👩‍👩‍👦‍👦👩‍👩‍👧‍👧👨‍👨‍👦👨‍👨‍👧👨‍👨‍👧‍👦👨‍👨‍👦‍👦👨‍👨‍👧‍👧👨‍👦‍👦👨‍👧‍👦👨‍👧👨‍👦👩‍👧‍👧👩‍👦‍👦👩‍👧‍👦👩‍👧👩‍👦👨‍👧‍👧🪢🧶🧵🪡🧥🥼🦺👚👘🩱👙👗👔🩳🩲👖👕🥻🩴🥿👠👡👢👞👟🥾🪖⛑👒🎓🧢🎩🧣🧤🧦👑💍👝👛👜💼🎒🧳👓🌂🥽🕶❤️🧡💛💚💙💜🤎🖤🤍💖💗💓💞💕❣️❤️‍🩹❤️‍🔥💔💘💝♡♥︎❥❦❧☙❢এლდღɞʚෆᰔᩚᰔঞଓᜊᥫ᭡ꨄஐᦗ🐶🐱🐭🐹🐰🦊🐻🐼🐻‍❄️🙈🐵🐸🐽🐷🐮🦁🐯🐨🙉🙊🐒🐔🐧🐦🐤🐣🐥🐝🦄🐴🐗🐺🦇🦉🦅🦆🪱🐛🦋🐌🐞🐜🪰🪲🪳🦖🦎🐍🐢🦂🕸🕷🦗🦟🦕🐙🦑🦐🦞🦀🐡🐠🐟🦓🐆🐅🐊🦭🦈🐋🐳🐬🦍🦧🦣🐘🦛🦏🐪🐫🦒🐑🐏🐖🐎🐄🐂🐃🦬🦘🦙🐐🦌🐕🐩🦮🐕‍🦺🐈🐈‍⬛🕊🦩🦢🦜🦚🦤🦃🐓🪶🐇🦝🦨🦡🦫🦦🦥🐁🐀🌳🌲🎄🌵🐲🐉🐾🦔🐿🌴🪵🌱🌿☘️🍀🎍🪴🎋🪨🪸🐚🍄🪹🪺🍁🍂🍃🌾💐🌷🌹🥀🪷🌺🌸🌼🌗🌖🌕🌚🌜🌛🌝🌞🌻🌘🌑🌒🌓🌔🌙🌎🌍🌏🔥💥☄️⚡️✨🌟⭐️💫🪐🌪🌈☀️🌤⛅️🌥☁️🌦🌧💧💨🌬⛄️☃️❄️🌨🌩⛈💦🫧☔️☂️🌊🍏🍎🍐🍊🍋🍌🍉🍇🍓🍅🥝🥥🍍🥭🍑🍒🍈🫐🍆🥑🥦🥬🥒🌶🫑🌽🥕🥖🍞🥯🥐🍠🥔🧅🧄🫒🥨🧀🥚🍳🧈🥞🧇🥓🥩🥪🫓🍕🍟🍔🌭🦴🍖🍗🥙🧆🌮🌯🫔🥗🥘🫕🥫🦪🥟🍱🍣🍛🍲🍜🍝🫙🍤🍙🍚🍘🍥🥠🥮🍢🍡🍭🍮🎂🍰🧁🥧🍦🍨🍧🍬🍫🍿🍩🍪🌰🥜🫘🍯🧋🥤🧃🍵☕️🫖🍼🫗🥛🍶🍺🍻🥂🍷🥃🍸🍹🧉🧂🥢🥡🥣🍽🍴🥄🧊🍾⚽️🏀🏈⚾️🥎🎾🏐🏉🥏🪃🏏🥍🏑🏒🏸🏓🪀🎱🥅⛳️🪁🛝🏹🎣🤿🥊🥋🏂⛷🎿🥌⛸🛷🛼🛹🎽🪂🏋️‍♀️🏋️🏋️‍♂️🤼‍♀️🤼🤼‍♂️🤸‍♀️🤸🏌️‍♀️🤾‍♂️🤾🤾‍♀️🤺⛹️‍♂️⛹️⛹️‍♀️🤸‍♂️🏌️🏌️‍♂️🏇🧘‍♀️🧘🧘‍♂️🏄‍♀️🏄🏄‍♂️🚣‍♂️🚣🚣‍♀️🤽‍♂️🤽🤽‍♀️🏊‍♂️🏊🏊‍♀️🧗‍♀️🧗🧗‍♂️🚵‍♀️🚵🚵‍♂️🚴‍♀️🚴🚴‍♂️🎫🎗🏵🎖🏅🥉🥈🥇🏆🎟🎪🤹‍♀️🤹🤹‍♂️🎭🩰🎨🎬🪗🎺🎷🪘🥁🎹🎼🎧🎤🎸🪕🎻🎲♟🎯🎳🎮🎰🧩🚗🚕🚙🚌🚎🏎🚓🚑🚒🩼🦼🦽🦯🚜🚛🚚🛻🚐🛴🚲🛵🏍🛺🛞🚨🚔🚍🚝🚞🚋🚃🚟🚠🚡🚖🚘🚄🚅🚈🚂🚆🚇🚊🚉✈️🛶🚁🛸🚀🛰💺🛩🛬🛫⛵️🚤🛥🛳🚢🛟⛴⚓️🪝🗼🗽🗿🗺🚏🚥🚦🚧⛽️🏰🏯🏟🎡🎢🎠⛲️⛱🏖🛖⛺️🏕🗻🏔⛰🌋🏜🏝🏠🏡🏘🏚🏗🏭🏢🏬🏣🏛💒🏩🏫🏪🏨🏦🏥🏤⛪️🕌🕍🛕🕋⛩🛤🛣🗾🌆🌇🎆🎇🌠🌄🌅🏞🎑🏙🌃🌌🌉🌁⌚️📱📲💻⌨️🖥🖨🖱🖲📸📷📼📀💿💾💽🗜🕹📹🎥📽🎞📞☎️📟📠📺🕰⏰⏲⏱🧭🎛🎚🎙📻⌛️⏳📡🔋🪫🔌💡🔦🕯🪙💷💶💴💵💸🛢🧯🪔💰💳🪪💎⚖️🪜🧰🪛🔧🧱🪤⚙️🔩🪚⛏🛠⚒🔨⛓🧲🔫💣🧨🪓🔪🗡⚔️🧿📿🔮🏺⚱️🪦⚰️🚬🛡🪬💈⚗️🔭🔬🕳🩻🩹🩺🧹🌡🧪🧫🦠🧬🩸💉💊🪠🧺🧻🚽🚰🚿🛁🛀🧼🚪🗝🔑🛎🧴🪣🧽🪒🪥🪑🛋🛏🛌🧸🪆🖼🪞🪟🎊🪅🪄🎀🎏🎈🎁🛒🛍🎉🎎🏮🎐🪩🧧✉️📩📨📫📪🪧🏷📦📤📥💌📧📬📭📮📯📜📃📄📑🧾📇🗑📅📆🗓🗒📉📈📊🗃🗳🗄📋📂📁🗂🗞📰📖📚📙📘📗📕📒📔📓🔖🧷🔗📎🖇📐📏🧮📌✏️📝🖍🖌✒️🖋🖊✂️📍🔍🔎🔏🔐🔒🔓❤️🧡💛💚💙💜🤎🖤🤍⚪️⚫️🟤🟣🔵🟢🟡🟠🔴🟥🟧🟨🟩🟦🟫⬛️⬜️❤️‍🩹❣️❤️‍🔥💔🏿🏾🏽🏼🏻💕💞💓💗💖💘💝💟☮️☦️☯️🕎🔯✡️☸️🕉☪️✝️🛐⛎♈️♉️♊️♋️♌️♍️♎️⚛️🆔♓️♒️♑️♐️♏️🉑☢️📴📳🈶🈚️🈸🈺🈷️✴️🈲🈹🈵🈴㊗️㊙️🉐💮🆚🅰️🅱️🆎🅾️🆑🆘❌⭕️🛑🚳🚯🚷♨️💢💯🚫📛⛔️🚱🔞📵🚭❗️❕❓❔‼️🔰⚜️🔱🚸⚠️〽️🔆🔅⁉️♻️✅🈯️💹❇️✳️❎🌐💠🈳🛗🅿️♿️🚾🏧💤🌀Ⓜ️🈂️🛂🛃🛄🛅🚹🚺🚼⚧🔡🔤ℹ️🔣🈁📶🎦🚮🚻🔠🆖🆗🆙🆒🆕🆓0️⃣1️⃣🔟9️⃣8️⃣7️⃣6️⃣5️⃣4️⃣3️⃣2️⃣🔢#️⃣*️⃣⏏️▶️⏸⏯⏹⏺🔽🔼◀️⏬⏫⏪⏩⏮⏭➡️⬅️⬆️⬇️↗️↘️↙️↖️↕️🔄🔂🔁🔀⤵️⤴️↩️↪️↔️🔃🎵🎶➕➖➗✖️🟰♾️🔛🔙🔚👁‍🗨®️©️™️💱💲🔝🔜〰️➰➿✔️☑️🔘🔺▫️▪️🔲🔳🔷🔶🔹🔸🔻◾️◽️◼️◻️🔈🔇🔉🔊🔔♥️♣️♠️🗯💭💬📢📣🔕♦️🃏🎴🀄️🕐🕑🕒🕓🕔🕝🕜🕛🕚🕙🕘🕗🕖🕕🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧🏳️🏴🏴‍☠️🏁🚩🏳️‍🌈🏳️‍⚧️🎌✡✳✴❇☯✂☘✉✔✘⚧✏✒";
 
   // Populate Emoji Panel
   emojiPanel.innerHTML = "";
@@ -1174,14 +1190,14 @@ document.addEventListener("DOMContentLoaded", function() {
     emojiPanel.appendChild(span);
   });
 
-  // Toggle Emoji Panel
+  // Toggle Emoji Panel (Now opens BELOW)
   usernameEmojiButton.addEventListener("click", function(event) {
     event.stopPropagation();
     
-    // Position the panel above the button
+    // Position the panel BELOW the button
     const rect = usernameEmojiButton.getBoundingClientRect();
     emojiPanel.style.left = `${rect.left}px`;
-    emojiPanel.style.top = `${rect.top - emojiPanel.offsetHeight - 10}px`; // Moves up slightly
+    emojiPanel.style.top = `${rect.bottom + 5}px`; // Moves down slightly
 
     emojiPanel.style.display = (emojiPanel.style.display === "none" || emojiPanel.style.display === "") ? "grid" : "none";
   });
