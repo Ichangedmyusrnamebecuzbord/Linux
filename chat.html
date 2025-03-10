@@ -1182,6 +1182,19 @@ document.getElementById("chat-box").addEventListener("click", function(e) {
     }
   });
 });
+    function showUsernameEmojiPicker() {
+    const emojiPicker = document.getElementById("emoji-picker");
+    const emojiButton = document.getElementById("username-emoji-button");
+
+    // Get the button position relative to the page
+    const rect = emojiButton.getBoundingClientRect();
+
+    // Set the emoji picker position near the button
+    emojiPicker.style.position = "absolute";
+    emojiPicker.style.top = `${rect.bottom + 5}px`;  // Slightly below the button
+    emojiPicker.style.left = `${rect.left}px`;  // Align with the button
+    emojiPicker.style.display = "block";  // Make it visible
+}
   </script>
 </body>
 </html>
