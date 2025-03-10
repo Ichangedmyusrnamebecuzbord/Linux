@@ -85,15 +85,16 @@
         const backendURL = "https://interstellar-worker.malds61798.workers.dev"; // Replace with your actual Worker URL
 
         function startProxy() {
-    const url = document.getElementById("proxyUrl").value.trim();
+    let url = document.getElementById("proxyUrl").value.trim();
     if (!url.startsWith("http")) {
         alert("Please enter a valid URL (including http:// or https://)");
         return;
     }
 
     // Encode and send the request through the Cloudflare Worker
-    document.getElementById("proxyFrame").src = `${backendURL}/?q=${encodeURIComponent(url)}`;
+    document.getElementById("proxyFrame").src = `${backendURL}/?q=${btoa(url)}`;
 }
+
 
         function goBack() {
             document.getElementById("proxyFrame").contentWindow.history.back();
