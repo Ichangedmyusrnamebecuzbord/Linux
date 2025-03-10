@@ -35,6 +35,7 @@
       align-items: center;
       gap: 10px;
     }
+/* Emoji Button (Same Height as Save & Cancel) */
 .username-emoji-btn {
   height: 35px;
   width: 40px;
@@ -44,11 +45,12 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-right: auto; /* Aligns left */
-  margin-left: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Emoji Panel: Fixed size and grid layout */
+/* Emoji Panel: Properly Positioned Above */
 .emoji-panel {
   display: none;
   position: absolute;
@@ -56,14 +58,13 @@
   border: 1px solid #555;
   padding: 10px;
   border-radius: 5px;
-  width: 180px; /* Adjust width for 5 emojis per row */
+  width: 180px; /* Adjusted */
   max-height: 150px;
   overflow-y: auto;
-  left: 10px; /* Align with button */
-  top: -160px; /* Adjusted for perfect placement above button */
+  left: 0;
   z-index: 1000;
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 emojis per row */
+  grid-template-columns: repeat(5, 1fr);
   gap: 5px;
   justify-items: center;
 }
@@ -1157,10 +1158,10 @@ document.addEventListener("DOMContentLoaded", function() {
   const usernameInput = document.getElementById("new-username-input");
   const emojiPanel = document.getElementById("username-emoji-panel");
 
-  // Emoji Picker Data
+  // List of Emojis
   const usernameEmojis = "😀😂😎😍😢👍👎🙌🎉🔥💯🥳🤔😜🤩🥺😡😇🤗🎃👻💀🦇🎈🥂🍕🎮🚀🏆";
 
-  // Populate Panel with Emojis
+  // Populate Emoji Panel
   emojiPanel.innerHTML = "";
   [...usernameEmojis].forEach(emoji => {
     const span = document.createElement("span");
@@ -1177,15 +1178,15 @@ document.addEventListener("DOMContentLoaded", function() {
   usernameEmojiButton.addEventListener("click", function(event) {
     event.stopPropagation();
     
-    // Adjust emoji panel position relative to button
+    // Position the panel above the button
     const rect = usernameEmojiButton.getBoundingClientRect();
     emojiPanel.style.left = `${rect.left}px`;
-    emojiPanel.style.top = `${rect.top - emojiPanel.offsetHeight}px`; // Moves up
+    emojiPanel.style.top = `${rect.top - emojiPanel.offsetHeight - 10}px`; // Moves up slightly
 
-    emojiPanel.style.display = (emojiPanel.style.display === "none" || emojiPanel.style.display === "") ? "block" : "none";
+    emojiPanel.style.display = (emojiPanel.style.display === "none" || emojiPanel.style.display === "") ? "grid" : "none";
   });
 
-  // Close Emoji Panel if Clicking Outside
+  // Close the panel when clicking outside
   document.addEventListener("click", function(event) {
     if (!emojiPanel.contains(event.target) && event.target !== usernameEmojiButton) {
       emojiPanel.style.display = "none";
