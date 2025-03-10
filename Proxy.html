@@ -13,13 +13,11 @@
             color: white;
             text-align: center;
         }
-
         .container {
             max-width: 600px;
             margin: 100px auto;
             text-align: center;
         }
-
         input[type="text"] {
             width: 80%;
             padding: 10px;
@@ -28,7 +26,6 @@
             border-radius: 5px;
             border: none;
         }
-
         button {
             padding: 10px 15px;
             font-size: 16px;
@@ -38,7 +35,6 @@
             color: white;
             cursor: pointer;
         }
-
         button:hover {
             background: #0033aa;
         }
@@ -52,24 +48,19 @@
         <button onclick="startProxy()">Go</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet-Static/uv.bundle.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet-Static/uv.config.js"></script>
-
     <script>
-        async function startProxy() {
+        function startProxy() {
             const url = document.getElementById("proxyUrl").value.trim();
             if (!url) {
                 alert("Please enter a valid URL.");
                 return;
             }
 
-            if (!window.UV) {
-                alert("UltraViolet is still loading. Please wait a moment and try again.");
-                return;
-            }
+            // Replace this with a known UltraViolet backend (if hosting separately)
+            const backendURL = "https://uv-titaniumnetwork.koyeb.app"; // Example public backend
 
-            const encodedUrl = UV.encodeUrl(url);
-            window.location.href = `/uv/service/${encodedUrl}`;
+            const encodedUrl = btoa(url);
+            window.location.href = `${backendURL}/service/${encodedUrl}`;
         }
     </script>
 </body>
