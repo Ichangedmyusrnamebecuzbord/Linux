@@ -285,6 +285,39 @@
       text-decoration: underline;
       color: inherit;
     }
+    /* Make the emoji button the same height & light gray */
+#emoji-button {
+  height: 40px; /* Match send button height */
+  padding: 0 12px;
+  font-size: 18px;
+  background: #bbb; /* Light gray */
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Adjust the emoji panel */
+#emoji-panel {
+  display: none;
+  position: absolute;
+  background: #333;
+  border: 1px solid #555;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 320px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Emoji style inside the panel */
+#emoji-panel span {
+  cursor: pointer;
+  font-size: 24px;
+  margin: 5px;
+  display: inline-block;
+}
   </style>
   <!-- Developer Tools Blocking Script -->
   <script>
@@ -354,12 +387,12 @@
   
   <!-- Input section below chat container -->
   <div id="input-section">
- <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
-<button onclick="sendMessage()">Send</button>
-<button id="emoji-button" style="padding: 10px;">😀</button>
+<input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+<button onclick="sendMessage()" id="send-button">Send</button>
+<button id="emoji-button">😀</button>
 
 <!-- Emoji Picker Panel (Hidden by Default) -->
-<div id="emoji-panel" style="display: none; position: absolute; background: #333; border: 1px solid #555; padding: 10px; border-radius: 5px; max-width: 320px; max-height: 200px; overflow-y: auto;"></div>
+<div id="emoji-panel"></div>
 
     <button id="request-feature-button" onclick="openFeatureModal()">Request a Chat Room Feature</button>
   </div>
@@ -1050,13 +1083,9 @@ document.getElementById("chat-box").addEventListener("click", function(e) {
   emojis.forEach(emoji => {
     const span = document.createElement("span");
     span.textContent = emoji;
-    span.style.cursor = "pointer";
-    span.style.fontSize = "24px";
-    span.style.margin = "5px";
-    span.style.display = "inline-block";
     span.addEventListener("click", function() {
-      messageInput.value += emoji;
-      emojiPanel.style.display = "none"; // Hide emoji panel after selection
+      messageInput.value += emoji; // Append emoji to message input
+      emojiPanel.style.display = "none"; // Hide after selection
       messageInput.focus();
     });
     emojiPanel.appendChild(span);
