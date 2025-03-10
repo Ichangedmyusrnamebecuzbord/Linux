@@ -91,7 +91,7 @@
         return;
     }
 
-    // Encode and send the request through the Cloudflare Worker
+    // Use Base64 encoding to prevent URL corruption
     document.getElementById("proxyFrame").src = `${backendURL}/?q=${btoa(url)}`;
 }
 
