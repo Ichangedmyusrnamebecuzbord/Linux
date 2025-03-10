@@ -35,19 +35,20 @@
       align-items: center;
       gap: 10px;
     }
-    .username-emoji-btn {
-  height: 35px; /* Match button size */
-  padding: 5px 10px;
+.username-emoji-btn {
+  height: 35px;
+  width: 40px;
   font-size: 18px;
-  background: #bbb; /* Light gray */
+  background: #bbb;
   color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-right: auto; /* Pushes to the left */
+  margin-right: auto; /* Aligns left */
+  margin-left: 10px;
 }
 
-/* Emoji Panel inside Username Modal */
+/* Emoji Panel: Fixed size and grid layout */
 .emoji-panel {
   display: none;
   position: absolute;
@@ -55,23 +56,27 @@
   border: 1px solid #555;
   padding: 10px;
   border-radius: 5px;
-  max-width: 320px;
-  max-height: 20px;
+  width: 180px; /* Adjust width for 5 emojis per row */
+  max-height: 150px;
   overflow-y: auto;
-  left: 10px; /* Moves it under the emoji button */
-  bottom: -210px; /* Opens downward */
+  left: 10px; /* Align with button */
+  top: -160px; /* Adjusted for perfect placement above button */
   z-index: 1000;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 emojis per row */
+  gap: 5px;
+  justify-items: center;
 }
 
-/* Individual Emojis */
+/* Emoji Styling */
 .emoji-panel span {
   font-size: 22px;
   cursor: pointer;
-  margin: 5px;
-  display: inline-block;
+  padding: 5px;
+  border-radius: 5px;
 }
 .emoji-panel span:hover {
-  transform: scale(1.2);
+  background: #444;
 }
     /* Container for chat & user list side by side, both bottom-aligned */
     #chat-container {
