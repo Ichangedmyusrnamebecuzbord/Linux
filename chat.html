@@ -457,25 +457,28 @@
 <div id="username-modal" class="modal-overlay">
   <div class="modal-box">
     <h2>Change Username</h2>
-    <div style="display: flex; align-items: center; position: relative;">
-      <input type="text" id="new-username-input" placeholder="Enter new username..." style="flex: 1; padding-right: 35px;">
+    <input type="text" id="new-username-input" placeholder="Enter new username...">
+    <p id="username-error" class="error-message"></p>
+
+    <!-- Container for buttons to align correctly -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+      <!-- Emoji Button (Now correctly positioned) -->
       <button id="username-emoji-button" style="
-          position: absolute; 
-          right: 10px; 
-          background: #ccc; 
-          border-radius: 5px; 
-          padding: 6px; 
+          background: #ccc;
+          border-radius: 5px;
+          padding: 6px;
           cursor: pointer;
-          font-size: 16px;
+          font-size: 18px;
         ">
         😊
       </button>
+
+      <div>
+        <button id="save-username-button">Save</button>
+        <button id="cancel-username-button">Cancel</button>
+      </div>
     </div>
-    <p id="username-error" class="error-message"></p>
-    <div class="modal-buttons">
-      <button id="save-username-button">Save</button>
-      <button id="cancel-username-button">Cancel</button>
-    </div>
+
     <div id="username-emoji-picker" class="emoji-picker"></div>
   </div>
 </div>
