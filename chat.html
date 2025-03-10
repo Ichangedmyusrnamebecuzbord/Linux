@@ -318,7 +318,21 @@
   margin: 5px;
   display: inline-block;
 }
-
+/* Emoji Button inside Username Modal */
+.username-emoji-btn {
+  height: 35px; /* Match button size */
+  padding: 0 12px;
+  font-size: 18px;
+  background: #bbb; /* Light gray */
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px; /* Space from error message */
+  position: absolute;
+  left: 15px; /* Align to bottom-left */
+  bottom: 15px;
+}
   </style>
   <!-- Developer Tools Blocking Script -->
   <script>
@@ -445,7 +459,8 @@
         <h2>Change Username</h2>
         <input type="text" id="new-username-input" placeholder="Enter new username...">
         <p id="username-error" class="error-message"></p>
-      
+      <!-- NEW: Emoji button for username input -->
+<button id="username-emoji-button" class="username-emoji-btn">😀</button>
         <div class="modal-buttons">
             <button id="save-username-button">Save</button>
             <button id="cancel-username-button">Cancel</button>
@@ -1105,6 +1120,59 @@ document.getElementById("chat-box").addEventListener("click", function(e) {
   // Hide emoji panel if clicking outside of it
   document.addEventListener("click", function(event) {
     if (!emojiPanel.contains(event.target) && event.target !== emojiButton) {
+      emojiPanel.style.display = "none";
+    }
+  });
+});
+    document.addEventListener("DOMContentLoaded", function() {
+  const usernameEmojiButton = document.getElementById("username-emoji-button");
+  const usernameInput = document.getElementById("new-username-input");
+
+  // Emoji Picker Data (No commas needed, just paste emojis)
+  const usernameEmojis = "😀😂😎😍😢👍👎🙌🎉🔥💯🥳🤔😜🤩🥺😡😇🤗🎃👻💀🦇🎈🥂🍕🎮🚀🏆";
+  const emojiPanel = document.createElement("div");
+
+  // Create Emoji Panel
+  emojiPanel.id = "username-emoji-panel";
+  emojiPanel.style.display = "none";
+  emojiPanel.style.position = "absolute";
+  emojiPanel.style.background = "#333";
+  emojiPanel.style.border = "1px solid #555";
+  emojiPanel.style.padding = "10px";
+  emojiPanel.style.borderRadius = "5px";
+  emojiPanel.style.maxWidth = "320px";
+  emojiPanel.style.maxHeight = "200px";
+  emojiPanel.style.overflowY = "auto";
+  emojiPanel.style.bottom = "60px"; // Opens above the emoji button
+  emojiPanel.style.left = "15px";
+
+  // Populate Panel with Emojis
+  [...usernameEmojis].forEach(emoji => {
+    const span = document.createElement("span");
+    span.textContent = emoji;
+    span.style.cursor = "pointer";
+    span.style.fontSize = "24px";
+    span.style.margin = "5px";
+    span.style.display = "inline-block";
+    span.addEventListener("click", function() {
+      usernameInput.value += emoji; // Append emoji to username input
+      emojiPanel.style.display = "none"; // Hide panel after selection
+      usernameInput.focus();
+    });
+    emojiPanel.appendChild(span);
+  });
+
+  // Add emoji panel to modal
+  document.getElementById("username-modal").appendChild(emojiPanel);
+
+  // Toggle Emoji Panel
+  usernameEmojiButton.addEventListener("click", function() {
+    emojiPanel.style.display = (emojiPanel.style.display === "none" || emojiPanel.style.display === "") ? "block" : "none";
+  });
+
+  // Close Emoji Panel if Clicking Outside
+  document.addEventListener("click", function(event) {
+    if (!emojiPanel.contains(event.target) && event.target !== usernameEmojiButton) {
       emojiPanel.style.display = "none";
     }
   });
