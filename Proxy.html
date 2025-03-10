@@ -3,31 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interstellar Proxy</title>
+    <title>UltraViolet Proxy</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: #121212;
             color: white;
             text-align: center;
-            margin: 0;
-            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
         }
 
         input[type="text"] {
-            width: 70%;
+            width: 80%;
             padding: 10px;
             font-size: 16px;
-            margin-right: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
             border: none;
-            border-radius: 4px;
         }
 
         button {
             padding: 10px 15px;
             font-size: 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             background: #0044cc;
             color: white;
             cursor: pointer;
@@ -36,34 +42,34 @@
         button:hover {
             background: #0033aa;
         }
-
-        iframe {
-            width: 100%;
-            height: 600px;
-            border: 1px solid #444;
-            margin-top: 20px;
-            border-radius: 4px;
-            background: #fff;
-        }
     </style>
 </head>
 <body>
-    <h1>Interstellar Proxy</h1>
-    <p>Enter a URL below to browse securely.</p>
-    
-   <input type="text" id="urlInput" placeholder="Enter a website (https://duckduckgo.com for best results)">
-    <button onclick="loadProxy()">Go</button>
-    
-    <iframe id="proxyFrame" title="Proxy Content"></iframe>
+    <a href="Home.html" class="back-button">← Back</a>
+    <div class="container">
+        <h1>UltraViolet Proxy</h1>
+        <input type="text" id="proxyUrl" placeholder="Enter URL (https://)">
+        <button onclick="startProxy()">Go</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet-Static/uv.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet-Static/uv.config.js"></script>
 
     <script>
-        function loadProxy() {
-            const url = document.getElementById('urlInput').value.trim();
+        async function startProxy() {
+            const url = document.getElementById("proxyUrl").value.trim();
             if (!url) {
                 alert("Please enter a valid URL.");
                 return;
             }
-            document.getElementById('proxyFrame').src = "https://intersteller.malds61798.workers.dev//?url=" + encodeURIComponent(url);
+
+            if (!window.UV) {
+                alert("UltraViolet is still loading. Please wait a moment and try again.");
+                return;
+            }
+
+            const encodedUrl = UV.encodeUrl(url);
+            window.location.href = `/uv/service/${encodedUrl}`;
         }
     </script>
 </body>
