@@ -56,10 +56,10 @@
   padding: 10px;
   border-radius: 5px;
   max-width: 320px;
-  max-height: 200px;
+  max-height: 20px;
   overflow-y: auto;
   left: 10px; /* Moves it under the emoji button */
-  bottom: -160px; /* Opens downward */
+  bottom: -210px; /* Opens downward */
   z-index: 1000;
 }
 
@@ -487,6 +487,8 @@
             <button id="save-username-button">Save</button>
             <button id="cancel-username-button">Cancel</button>
         </div>
+      <!-- Emoji Panel directly inside the modal -->
+<div id="username-emoji-panel" class="emoji-panel"></div>
     </div>
 </div>
   
@@ -1149,33 +1151,16 @@ document.getElementById("chat-box").addEventListener("click", function(e) {
 document.addEventListener("DOMContentLoaded", function() {
   const usernameEmojiButton = document.getElementById("username-emoji-button");
   const usernameInput = document.getElementById("new-username-input");
+  const emojiPanel = document.getElementById("username-emoji-panel");
 
-  // Emoji Picker Data (No commas needed, just paste emojis)
+  // Emoji Picker Data
   const usernameEmojis = "😀😂😎😍😢👍👎🙌🎉🔥💯🥳🤔😜🤩🥺😡😇🤗🎃👻💀🦇🎈🥂🍕🎮🚀🏆";
-  const emojiPanel = document.createElement("div");
-
-  // Create Emoji Panel
-  emojiPanel.id = "username-emoji-panel";
-  emojiPanel.style.display = "none";
-  emojiPanel.style.position = "absolute";
-  emojiPanel.style.background = "#333";
-  emojiPanel.style.border = "1px solid #555";
-  emojiPanel.style.padding = "10px";
-  emojiPanel.style.borderRadius = "5px";
-  emojiPanel.style.maxWidth = "320px";
-  emojiPanel.style.maxHeight = "200px";
-  emojiPanel.style.overflowY = "auto";
-  emojiPanel.style.bottom = "60px"; // Opens above the emoji button
-  emojiPanel.style.left = "15px";
 
   // Populate Panel with Emojis
+  emojiPanel.innerHTML = "";
   [...usernameEmojis].forEach(emoji => {
     const span = document.createElement("span");
     span.textContent = emoji;
-    span.style.cursor = "pointer";
-    span.style.fontSize = "24px";
-    span.style.margin = "5px";
-    span.style.display = "inline-block";
     span.addEventListener("click", function() {
       usernameInput.value += emoji; // Append emoji to username input
       emojiPanel.style.display = "none"; // Hide panel after selection
@@ -1184,11 +1169,15 @@ document.addEventListener("DOMContentLoaded", function() {
     emojiPanel.appendChild(span);
   });
 
-  // Add emoji panel to modal
-  document.getElementById("username-modal").appendChild(emojiPanel);
-
   // Toggle Emoji Panel
-  usernameEmojiButton.addEventListener("click", function() {
+  usernameEmojiButton.addEventListener("click", function(event) {
+    event.stopPropagation();
+    
+    // Adjust emoji panel position relative to button
+    const rect = usernameEmojiButton.getBoundingClientRect();
+    emojiPanel.style.left = `${rect.left}px`;
+    emojiPanel.style.top = `${rect.top - emojiPanel.offsetHeight}px`; // Moves up
+
     emojiPanel.style.display = (emojiPanel.style.display === "none" || emojiPanel.style.display === "") ? "block" : "none";
   });
 
