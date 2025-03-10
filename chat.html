@@ -457,8 +457,12 @@
   <div id="username-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Change Username</h2>
-      <!-- Emoji Button for Username Popup -->
-<button id="username-emoji-button">😀</button>
+ <div style="display: flex; align-items: center;">
+      <input type="text" id="new-username-input" placeholder="Enter new username..." style="flex: 1;">
+      <button id="username-emoji-button" style="margin-left: 8px; background: #ccc; border-radius: 5px; padding: 5px;">
+        😀
+      </button>
+    </div>
       <input type="text" id="new-username-input" placeholder="Enter new username...">
       <p id="username-error" class="error-message"></p>
       <div class="modal-buttons">
