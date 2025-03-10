@@ -354,10 +354,18 @@
   
   <!-- Input section below chat container -->
   <div id="input-section">
-    <input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+   <!-- Message input and Send button already exist -->
+<input type="text" id="message" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){event.preventDefault(); sendMessage();}">
+<button onclick="sendMessage()">Send</button>
+<!-- NEW: Emoji button -->
+<button id="emoji-button" style="padding: 10px;">😀</button>
     <button onclick="sendMessage()">Send</button>
     <button id="request-feature-button" onclick="openFeatureModal()">Request a Feature</button>
   </div>
+  <!-- NEW: Emoji Panel -->
+<div id="emoji-panel" style="display: none; position: absolute; bottom: 70px; right: 20px; background: #333; border: 1px solid #555; padding: 5px; border-radius: 5px; max-width: 300px; max-height: 200px; overflow-y: auto;">
+  <!-- Emojis will be dynamically added here -->
+</div>
   
   <!-- Modals -->
   <!-- Feature Request Modal -->
@@ -372,6 +380,7 @@
       </div>
     </div>
   </div>
+
   
   <!-- Email Provider Modal -->
   <div id="email-provider-modal" class="modal-overlay">
@@ -1024,6 +1033,40 @@ document.getElementById("chat-box").addEventListener("click", function(e) {
     function escapeRegex(str) {
       return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
+    document.addEventListener("DOMContentLoaded", function() {
+  const emojiButton = document.getElementById("emoji-button");
+  const emojiPanel = document.getElementById("emoji-panel");
+  const messageInput = document.getElementById("message");
+
+  // List of sample emojis (you can add more as needed)
+  const emojis = ["😀", "😂", "😎", "😍", "😢", "👍", "👎", "🙌", "🎉", "🔥", "💯", "🥳", "🤔", "😜", "🤩", "🥺", "😡", "😇", "🤗"];
+
+  // Populate the emoji panel
+  emojis.forEach(emoji => {
+    const span = document.createElement("span");
+    span.textContent = emoji;
+    span.style.cursor = "pointer";
+    span.style.fontSize = "20px";
+    span.style.margin = "5px";
+    span.addEventListener("click", function() {
+      // Append the clicked emoji to the message input
+      messageInput.value += emoji;
+      // Hide the emoji panel after selection (optional)
+      emojiPanel.style.display = "none";
+      messageInput.focus();
+    });
+    emojiPanel.appendChild(span);
+  });
+
+  // Toggle the emoji panel when the emoji button is clicked
+  emojiButton.addEventListener("click", function() {
+    if (emojiPanel.style.display === "none" || emojiPanel.style.display === "") {
+      emojiPanel.style.display = "block";
+    } else {
+      emojiPanel.style.display = "none";
+    }
+  });
+});
   </script>
 </body>
 </html>
