@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UltraViolet Proxy</title>
+    <title>Interstellar Proxy</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,7 +43,7 @@
 <body>
     <a href="Home.html" class="back-button">← Back</a>
     <div class="container">
-        <h1>UltraViolet Proxy</h1>
+        <h1>Interstellar Proxy</h1>
         <input type="text" id="proxyUrl" placeholder="Enter URL (https://)">
         <button onclick="startProxy()">Go</button>
     </div>
@@ -56,11 +56,9 @@
                 return;
             }
 
-            // Replace this with a known UltraViolet backend (if hosting separately)
-            const backendURL = "https://uv-titaniumnetwork.koyeb.app"; // Example public backend
+            const backendURL = "https://interstellareducation.pro"; // Example public backend
 
-            const encodedUrl = btoa(url);
-            window.location.href = `${backendURL}/service/${encodedUrl}`;
+            window.location.href = `${backendURL}/search?q=${encodeURIComponent(url)}`;
         }
     </script>
 </body>
