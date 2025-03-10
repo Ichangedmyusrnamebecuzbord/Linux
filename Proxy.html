@@ -3,114 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultraviolet Proxy</title>
+    <title>Interstellar Proxy</title>
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
-        #header {
-            background: #333;
-            padding: 10px;
-            display: flex;
-            align-items: center;
+            background-color: #121212;
             color: white;
-            justify-content: space-between;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
         }
-        #back-button {
-            background: red;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        #back-button:hover {
-            background: darkred;
-        }
-        #search-container {
-            display: flex;
-            flex-grow: 1;
-            justify-content: center;
-        }
-        input {
-            width: 60%;
+
+        input[type="text"] {
+            width: 70%;
             padding: 10px;
             font-size: 16px;
+            margin-right: 5px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
         }
+
         button {
             padding: 10px 15px;
             font-size: 16px;
-            background: #007bff;
-            color: white;
             border: none;
-            border-radius: 5px;
-            margin-left: 10px;
+            border-radius: 4px;
+            background: #0044cc;
+            color: white;
             cursor: pointer;
         }
+
         button:hover {
-            background: #0056b3;
+            background: #0033aa;
         }
-        #proxy-container {
-            flex: 1;
+
+        iframe {
             width: 100%;
-            border: none;
+            height: 600px;
+            border: 1px solid #444;
+            margin-top: 20px;
+            border-radius: 4px;
+            background: #fff;
         }
     </style>
 </head>
 <body>
-
-    <div id="header">
-        <button id="back-button" onclick="goHome()">Back</button>
-        <div id="search-container">
-            <input type="text" id="uv-address" placeholder="Enter website URL">
-            <button id="go-button">Go</button>
-        </div>
-    </div>
-
-    <iframe id="proxy-container"></iframe>
+    <h1>Interstellar Proxy</h1>
+    <p>Enter a URL below to browse securely.</p>
+    
+    <input type="text" id="urlInput" placeholder="Enter a website (https://)">
+    <button onclick="loadProxy()">Go</button>
+    
+    <iframe id="proxyFrame" title="Proxy Content"></iframe>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const inputField = document.getElementById('uv-address');
-            const goButton = document.getElementById('go-button');
-            const iframe = document.getElementById('proxy-container');
-
-            // Bind the "Enter" key to the Go button
-            inputField.addEventListener('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    loadProxy();
-                }
-            });
-
-            // Make sure the Go button works
-            goButton.addEventListener('click', loadProxy);
-
-            function loadProxy() {
-                let url = inputField.value.trim();
-                if (!url.startsWith('http')) {
-                    url = 'https://' + url;
-                }
-                
-                // **Use a public Ultraviolet instance**
-                const ultravioletBase = "https://ultraviolet-node.titaniumnetwork.org/service/";
-
-                iframe.src = ultravioletBase + btoa(url); // Base64 encode the URL for Ultraviolet
+        function loadProxy() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert("Please enter a valid URL.");
+                return;
             }
-
-            function goHome() {
-                window.location.href = '/'; // Change this if your home page is different
-            }
-        });
+            document.getElementById('proxyFrame').src = "https://interstellar-proxy.example.com/?url=" + encodeURIComponent(url);
+        }
     </script>
-
 </body>
 </html>
