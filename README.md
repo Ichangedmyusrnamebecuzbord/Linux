@@ -5,4 +5,4 @@ https://meet.google.com/kfm-izxh-xwt
 
 can u call or google mets?p leas
 
-# JOIN THE MEETS
+# JOIN THE MEETS PLEASE -mally
